@@ -1,0 +1,72 @@
+---
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Project Structure
+
+## Component Organization
+
+- Each component in its own folder: `src/components/ComponentName/ComponentName.tsx`
+- One component per file - no nested component definitions
+- Export components from `src/components/index.ts`
+
+## File Structure
+
+```
+src/
+├── components/      # React components (each in subfolder)
+├── hooks/           # Custom hooks
+├── lib/             # Constants and utilities
+├── types/           # TypeScript interfaces
+└── App.tsx          # Main app component
+```
+
+## Constants (`lib/constants.ts`)
+
+- Move ALL literal values (strings, arrays, objects) to `lib/constants.ts`
+- Add JSDoc comment for each constant explaining its purpose
+- Use SCREAMING_SNAKE_CASE for constants
+
+## Types (`types/index.ts`)
+
+- Define ALL interfaces in `types/index.ts`
+- NO inline type definitions in components
+- Props interfaces: `ComponentNameProps`
+- Hook returns: `UseHookNameReturn`
+
+## Custom Hooks (`hooks/`)
+
+- Extract reusable logic into custom hooks
+- Name hooks with `use` prefix: `useScroll`, `useSlider`
+- Export from `hooks/index.ts`
+
+# Performance Patterns
+
+## Always Apply
+
+- Wrap components with `React.memo()`
+- Add `displayName` to memoized components
+- Use `useMemo` for computed values and rendered arrays
+- Use `useCallback` for event handlers and functions passed as props
+- Use `React.lazy()` + `Suspense` for below-the-fold components
+
+## Example
+
+```tsx
+import { memo, useMemo, useCallback } from "react";
+
+export const Component = memo(function Component({ items }: Props): JSX.Element {
+  const renderedItems = useMemo(() => items.map(...), [items]);
+  const handleClick = useCallback(() => {...}, []);
+  return <div>{renderedItems}</div>;
+});
+
+Component.displayName = "Component";
+```
+
+# Styling
+
+- Use Tailwind CSS utility classes
+- Use `Container` component for consistent layout (48px padding, max-width 1400px)
+- Inline styles only when Tailwind classes don't apply correctly
