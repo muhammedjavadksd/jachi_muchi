@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Container } from "../Container/Container";
 import { PhoneIcon, SearchIcon, HeartIcon, CartIcon } from "../icons";
 import { useWishlist } from "../../context/WishlistContext";
@@ -18,6 +19,7 @@ import {
 export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
+  const navigate = useNavigate();
 
   /** Memoize utility links */
   const utilityLinksElements = useMemo(() => (
@@ -126,6 +128,8 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
             {/* Cart */}
             <button 
+              type="button"
+              onClick={() => navigate("/cart")}
               className="relative text-gray-700 hover:text-gray-900"
               aria-label="Cart"
             >

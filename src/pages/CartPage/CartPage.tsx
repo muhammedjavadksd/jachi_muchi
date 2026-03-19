@@ -1,4 +1,5 @@
 import { memo, useMemo, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 
@@ -288,12 +289,16 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               </div>
 
               {/* Checkout Button */}
-              <button className="w-full py-4 bg-teal-700 text-white font-semibold rounded-full hover:bg-teal-800 transition-colors flex items-center justify-center gap-2">
+              <Link
+                to="/checkout"
+                className="w-full py-4 bg-teal-700 text-white font-semibold rounded-full hover:bg-teal-800 transition-colors flex items-center justify-center gap-2 text-center"
+                aria-label="Proceed to checkout"
+              >
                 Proceed To Checkout
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
             </div>
           </div>
         </Container>

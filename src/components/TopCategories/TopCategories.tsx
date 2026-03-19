@@ -1,4 +1,5 @@
 import { memo, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Container } from "../Container/Container";
 import { TOP_CATEGORIES } from "../../lib/constants";
 
@@ -11,25 +12,26 @@ export const TopCategories = memo(function TopCategories(): JSX.Element {
   /** Memoize category cards to prevent recreation on re-render */
   const categoryCards = useMemo(() => (
     TOP_CATEGORIES.map((category, index) => (
-      <div key={index} className="flex flex-col items-center gap-4">
-        {/* Card Container */}
+      <Link
+        key={index}
+        to={category.link}
+        className="flex flex-col items-stretch gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
+      >
+        {/* Card Container (keeps existing design) */}
         <div
           className="relative flex items-center justify-center overflow-hidden"
           style={{
             backgroundColor: "#f6f6f6",
             borderRadius: "16px",
-            width: "100%",
             aspectRatio: "1 / 0.7",
           }}
         >
-          {/* Category Image */}
           <img
             src={category.image}
             alt={category.label}
             className="w-4/5 h-4/5 object-contain"
             loading="lazy"
           />
-          {/* Sale Badge */}
           {category.badge && (
             <span
               className="absolute bottom-3 right-3 text-white text-xs font-semibold px-3 py-1 rounded-full"
@@ -39,31 +41,37 @@ export const TopCategories = memo(function TopCategories(): JSX.Element {
             </span>
           )}
         </div>
-        {/* Category Label */}
+
         <span
-          className="text-center font-medium"
-          style={{ color: "darkgoldenrod", fontSize: "20px" }}
+          className="text-center font-medium text-xs sm:text-sm md:text-base leading-tight"
+          style={{ color: "darkgoldenrod" }}
         >
           {category.label}
         </span>
-      </div>
+      </Link>
     ))
   ), []);
 
   return (
-    <section
-      className="w-full bg-white"
-      style={{ paddingTop: "48px", paddingBottom: "48px" }}
-    >
+    <section className="w-full py-12">
       <Container>
-        <h2
-          className="font-semibold mb-3"
-          style={{ fontSize: "30px", color: "#1a1a1a" }}
-        >
+        <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">
           Top Categorie
         </h2>
-        <div className="grid grid-cols-6 gap-6">
-          {categoryCards}
+
+        {/* Parent scroll container */}
+        <div className="w-full overflow-x-auto scrollbar-hide scroll-smooth">
+          {/* Single row flex container */}
+          <div className="flex flex-nowrap gap-3 sm:gap-4 md:gap-5 w-full max-w-full">
+            {TOP_CATEGORIES.map((category, i) => (
+              <div
+                key={category.name}
+                className="flex-shrink-0 w-[25%] sm:w-[20%] lg:w-[16.66%]"
+              >
+                {categoryCards[i]}
+              </div>
+            ))}
+          </div>
         </div>
       </Container>
     </section>

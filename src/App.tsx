@@ -5,6 +5,7 @@ import { EYEGLASS_SHAPES, HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR
 
 /** Lazy loaded components for code splitting and faster initial load */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
+const SecondaryBannerCarousel = lazy(() => import("./components/SecondaryBannerCarousel/SecondaryBannerCarousel").then(m => ({ default: m.SecondaryBannerCarousel })));
 const TopCategories = lazy(() => import("./components/TopCategories/TopCategories").then(m => ({ default: m.TopCategories })));
 const Campaign = lazy(() => import("./components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
 const ShapeSection = lazy(() => import("./components/ShapeSection/ShapeSection").then(m => ({ default: m.ShapeSection })));
@@ -37,6 +38,11 @@ export default function App(): JSX.Element {
       <Suspense fallback={<LoadingSkeleton />}>
         {/* Hero Slider */}
         <HeroSlider />
+      </Suspense>
+
+      <Suspense fallback={<LoadingSkeleton />}>
+        {/* Secondary horizontal banners */}
+        <SecondaryBannerCarousel />
       </Suspense>
 
       <Suspense fallback={<LoadingSkeleton />}>

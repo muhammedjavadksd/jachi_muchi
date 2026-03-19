@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import type { ContainerProps } from "../../types";
 
 /** Constant padding style to avoid recreation */
-const CONTAINER_PADDING_STYLE = { paddingLeft: "48px", paddingRight: "48px" };
+const CONTAINER_PADDING_STYLE = { paddingLeft: "12px", paddingRight: "12px" };
 
 /**
  * Container component for consistent page layout
