@@ -18,6 +18,7 @@
     font-family: 'Barlow', system-ui, -apple-system, sans-serif;
     background-color: #ffffff;
     color: #1a1a1a;
+    overflow-x: hidden;
   }
 
   a {

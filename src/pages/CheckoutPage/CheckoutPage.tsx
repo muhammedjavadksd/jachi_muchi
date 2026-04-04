@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
-
+import { useNavigate } from "react-router-dom";
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -247,6 +247,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [addresses, setAddresses] = useState<Address[]>(SAMPLE_ADDRESSES);
   const [currentStep] = useState("address");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   /** Memoize header spacer style */
   const spacerStyle = useMemo(() => ({
@@ -449,7 +450,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
               </div>
 
               {/* Proceed Button */}
-              <button className="w-full py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors">
+              <button type="button" onClick={() => navigate("/order-success")} className="w-full py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors">
                 Save Address & Proceed
               </button>
             </div>

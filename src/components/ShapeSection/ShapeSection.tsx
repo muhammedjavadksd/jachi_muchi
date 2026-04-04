@@ -1,12 +1,16 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Container } from "../Container/Container";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import type { ShapeSectionProps } from "../../types";
 
-/** Number of items visible at once in the slider */
-const ITEMS_PER_VIEW = 7;
-/** Width percentage each item takes */
-const ITEM_WIDTH_PERCENT = 100 / ITEMS_PER_VIEW;
+function getItemsPerView(width: number): number {
+  // Breakpoints aligned to typical Tailwind defaults
+  // mobile < 640: 4, tablet < 1024: 5, small laptop < 1280: 6, desktop >= 1280: 7
+  if (width < 640) return 4;
+  if (width < 1024) return 5;
+  if (width < 1280) return 6;
+  return 7;
+}
 
 /**
  * Reusable shape section component with horizontal slider
@@ -19,11 +23,32 @@ export const ShapeSection = memo(function ShapeSection({
   items 
 }: ShapeSectionProps): JSX.Element {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerView, setItemsPerView] = useState(() => {
+    if (typeof window === "undefined") return 7;
+    return getItemsPerView(window.innerWidth);
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      const next = getItemsPerView(window.innerWidth);
+      setItemsPerView((prev) => (prev === next ? prev : next));
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const itemWidthPercent = useMemo(() => 100 / itemsPerView, [itemsPerView]);
   
   /** Calculate max index for sliding */
   const maxIndex = useMemo(() => (
-    Math.max(0, items.length - ITEMS_PER_VIEW)
-  ), [items.length]);
+    Math.max(0, items.length - itemsPerView)
+  ), [items.length, itemsPerView]);
+
+  useEffect(() => {
+    setCurrentIndex((prev) => Math.min(prev, maxIndex));
+  }, [maxIndex]);
 
   /** Check if we can navigate */
   const canGoPrev = currentIndex > 0;
@@ -45,16 +70,16 @@ export const ShapeSection = memo(function ShapeSection({
 
   /** Memoize slider transform style */
   const sliderStyle = useMemo(() => ({
-    transform: `translateX(-${currentIndex * ITEM_WIDTH_PERCENT}%)`
-  }), [currentIndex]);
+    transform: `translateX(-${currentIndex * itemWidthPercent}%)`
+  }), [currentIndex, itemWidthPercent]);
 
   /** Memoize shape items to prevent recreation */
   const shapeItems = useMemo(() => (
     items.map((item, index) => (
       <div 
         key={index} 
-        className="shrink-0 flex flex-col items-center gap-4 px-3"
-        style={{ width: `${ITEM_WIDTH_PERCENT}%` }}
+        className="shrink-0 flex flex-col items-center gap-2 md:gap-3 lg:gap-4 px-2 sm:px-3"
+        style={{ width: `${itemWidthPercent}%` }}
       >
         {/* Card Container - Square aspect ratio for proper circle/box shape */}
         <div
@@ -75,36 +100,37 @@ export const ShapeSection = memo(function ShapeSection({
         </div>
         {/* Shape Label */}
         <span
-          className="text-center font-medium"
-          style={{ color: "darkgoldenrod", fontSize: "20px" }}
+          className="text-center font-medium text-xs sm:text-sm md:text-base lg:text-lg"
+          style={{ color: "darkgoldenrod" }}
         >
           {item.label}
         </span>
       </div>
     ))
-  ), [items, borderRadius]);
+  ), [items, borderRadius, itemWidthPercent]);
 
   return (
     <section
-      className="w-full bg-white"
-      style={{ paddingTop: "48px", paddingBottom: "48px" }}
+      className="w-full bg-white py-8 md:py-12"
     >
       <Container>
         {/* Header with title and navigation */}
-        <div className="flex items-center justify-between mb-3">
-        <h2
-          className="font-semibold mb-3"
-          style={{ fontSize: "30px", color: "#1a1a1a" }}
-        >
+        <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5 md:mb-6">
+          <h2
+          className="font-semibold text-lg sm:text-md md:text-2xl lg:text-[30px] text-[#1a1a1a] max-w-[70%] sm:max-w-[75%]"
+            // className="font-semibold text-sm sm:text-lg md:text-2xl lg:text-[30px] text-[#1a1a1a] whitespace-nowrap overflow-hidden text-ellipsis"
+            // className="font-semibold text-lg sm:text-xl md:text-2xl lg:text-[30px]"
+            style={{ color: "#1a1a1a" }}
+          >
             {title}
           </h2>
           
           {/* Navigation Arrows */}
-          <div className="flex items-center ">
+          <div className="flex items-center">
             <button
               onClick={handlePrev}
               disabled={!canGoPrev}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${
+              className={`w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border flex items-center justify-center transition-colors ${
                 canGoPrev 
                   ? "border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer" 
                   : "border-gray-200 text-gray-300 cursor-not-allowed"
@@ -116,7 +142,7 @@ export const ShapeSection = memo(function ShapeSection({
             <button
               onClick={handleNext}
               disabled={!canGoNext}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors ${
+              className={`w-6 h-6 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border flex items-center justify-center transition-colors ${
                 canGoNext 
                   ? "border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer" 
                   : "border-gray-200 text-gray-300 cursor-not-allowed"

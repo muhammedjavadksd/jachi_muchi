@@ -26,7 +26,8 @@ export const TopUtilityHeader = memo(function TopUtilityHeader(): JSX.Element {
   return (
     <div className="w-full bg-white">
       <Container className="flex justify-between h-10 items-center">
-        <div className="flex items-center gap-4 text-xs text-black">
+        {/* <div className="flex items-center gap-4 text-xs text-black"> */}
+        <div className="hidden sm:flex items-center gap-4 text-xs text-black">
           {utilityLinksElements}
         </div>
         <div className="flex items-center gap-2 text-xs text-black">

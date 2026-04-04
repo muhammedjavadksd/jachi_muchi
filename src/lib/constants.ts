@@ -53,8 +53,9 @@ export const UTILITY_LINKS: string[] = [
 export const NAV_CATEGORIES: string[] = [
   "Eyeglasses",
   "Sunglasses",
+  "Collections",
   "Contact",
-  "Special Power",
+  // "Special Power",
   "Stores",
   "Try @ Home",
 ];
@@ -70,6 +71,9 @@ export const EYEGLASS_SHAPES: ShapeItem[] = [
   { label: "Geometric", image: "/category/image.png", link: "/eyeglasses/geometric" },
   { label: "Round", image: "/category/image.png", link: "/eyeglasses/round" },
   { label: "Clubmaster", image: "/category/image.png", link: "/eyeglasses/clubmaster" },
+  { label: "Square", image: "/category/image.png", link: "/eyeglasses/square" },
+  { label: "Square", image: "/category/image.png", link: "/eyeglasses/square" },
+  { label: "Square", image: "/category/image.png", link: "/eyeglasses/square" },
   { label: "Square", image: "/category/image.png", link: "/eyeglasses/square" },
 ];
 
@@ -96,6 +100,8 @@ export const TOP_CATEGORIES: CategoryItem[] = [
   { name: "Special Power", label: "Special Power", image: "/category/image.png", link: "/category/special-power" },
   { name: "Contact Lenses", label: "Contact Lenses", image: "/category/image.png", link: "/category/contact-lenses" },
   { name: "Kids Glasses", label: "Kids Glasses", image: "/category/image.png", link: "/category/kids-glasses" },
+  { name: "Kids Glasses", label: "Kids Glasses", image: "/category/image.png", link: "/category/kids-glasses" },
+  { name: "Sale", label: "Sale", image: "/category/image.png", link: "/category/sale", badge: "60% OFF" },
   { name: "Sale", label: "Sale", image: "/category/image.png", link: "/category/sale", badge: "60% OFF" },
 ];
 
@@ -108,6 +114,15 @@ export const HERO_BANNER_IMAGES: string[] = [
   "/banner/image.png",
   "/banner/image.png",
 ];
+
+export const SECONDARY_BANNERS: string[] = [
+  // "/campign/image.png",
+  "/campign/4.png",
+  "/campign/4.png",
+  "/campign/4.png",
+  "/campign/4.png",
+  "/campign/4.png",
+] as const;
 
 /**
  * Campaign section configuration

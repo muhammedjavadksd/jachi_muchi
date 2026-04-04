@@ -23,7 +23,8 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
         <img
           src={image}
           alt={`Banner ${index + 1}`}
-          className="w-full h-auto block object-cover"
+          // className="w-full h-auto block object-cover"
+          className="w-full h-[180px] sm:h-[250px] md:h-[320px] lg:h-[400px] object-cover"
           loading={index === 0 ? "eager" : "lazy"}
         />
       </div>
@@ -52,8 +53,7 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
   ), [getDotClassName, goToSlide]);
 
   return (
-    <section className="w-full relative overflow-hidden">
-      <div className="w-full relative">
+<section className="w-full relative mt-6 sm:mt-8 md:mt-12 pb-4 px-2 sm:px-4">      <div className="w-full max-w-[1400px] mx-auto relative rounded-2xl overflow-hidden">
         {/* Slides Container */}
         <div
           className="w-full flex transition-transform duration-500 ease-in-out"
@@ -65,8 +65,7 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
         {/* Previous Button - Left Corner */}
         <button
           onClick={prevSlide}
-          className="absolute bottom-12 left-12 w-12 h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors cursor-pointer"
-          aria-label="Previous slide"
+          className="absolute bottom-4 sm:bottom-6 left-2 sm:left-6 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors"          aria-label="Previous slide"
         >
           <ChevronLeftIcon />
         </button>
@@ -74,14 +73,13 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
         {/* Next Button - Right Corner */}
         <button
           onClick={nextSlide}
-          className="absolute bottom-12 right-12 w-12 h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors cursor-pointer"
-          aria-label="Next slide"
+          className="absolute bottom-4 sm:bottom-6 right-2 sm:right-6 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors"          aria-label="Next slide"
         >
           <ChevronRightIcon />
         </button>
 
         {/* Pagination Dots - Centered */}
-        <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
+        <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2.5 z-10">
           {paginationDots}
         </div>
       </div>

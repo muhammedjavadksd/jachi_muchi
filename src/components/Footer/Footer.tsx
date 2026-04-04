@@ -64,15 +64,15 @@ export const Footer = memo(function Footer(): JSX.Element {
           </div>
 
           {/* Links and App Download Section */}
-          <div className="flex justify-between">
+          <div className="flex flex-col lg:flex-row justify-between gap-10 lg:gap-16">
             {/* Navigation Links */}
-            <div className="flex gap-24">
+            <div className="flex flex-wrap gap-10 lg:gap-24">
               {linkColumns}
             </div>
 
             {/* Additional Links Section */}
-            <div className="flex flex-col items-end gap-6">
-              <div className="flex gap-8">
+            <div className="flex flex-col items-start lg:items-end gap-4 sm:gap-6">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
                 <Link to="/about" className="text-gray-400 text-sm hover:text-white transition-colors">
                   About Us
                 </Link>
@@ -89,7 +89,10 @@ export const Footer = memo(function Footer(): JSX.Element {
                   Sitemap
                 </a>
               </div>
-              <div className="flex gap-8">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
+                <a href="/terms" className="text-gray-400 text-sm hover:text-white transition-colors">
+                  Terms
+                </a>
                 <a href="/franchise" className="text-gray-400 text-sm hover:text-white transition-colors">
                   Franchise
                 </a>
@@ -100,7 +103,7 @@ export const Footer = memo(function Footer(): JSX.Element {
                   Investors
                 </a>
               </div>
-              <div className="flex gap-8">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
                 <a href="/press" className="text-gray-400 text-sm hover:text-white transition-colors">
                   Press
                 </a>
@@ -122,9 +125,9 @@ export const Footer = memo(function Footer(): JSX.Element {
       {/* Bottom Bar */}
       <div className="border-t border-gray-800">
         <Container>
-          <div className="flex justify-between items-center py-5">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-5">
             {/* Legal Links */}
-            <div className="flex items-center gap-8">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
               <a href="/terms" className="text-gray-400 text-sm hover:text-white transition-colors">
                 T & C
               </a>
