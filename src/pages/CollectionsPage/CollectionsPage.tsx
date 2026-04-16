@@ -47,7 +47,7 @@ export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 sm:py-8 lg:py-12">
-        <Container className="max-w-7xl">
+        <Container className="max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <nav className="mb-4 sm:mb-6 text-xs sm:text-sm text-gray-500" aria-label="Breadcrumb">
             <ol className="flex items-center gap-1.5 sm:gap-2">
@@ -68,7 +68,7 @@ export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight uppercase">
               Collections
             </h1>
-            <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm lg:text-base max-w-xl mx-auto px-4">
+            <p className="mt-2 sm:mt-3 text-gray-600 text-xs sm:text-sm lg:text-base max-w-xl mx-auto px-2 sm:px-4">
               Explore our eyewear collections and collaborations. Find the perfect style for every look.
             </p>
           </div>
