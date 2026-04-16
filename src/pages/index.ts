@@ -25,3 +25,5 @@ export { WarrantyPage } from "./WarrantyPage/WarrantyPage";
 export { CollectionsPage } from "./CollectionsPage/CollectionsPage";
 export { ServicesPage } from "./ServicesPage/ServicesPage";
 export { HomePage2 } from "./HomePage2/HomePage2";
+export { HomeTryOnPage } from "./HomeTryOnPage/HomeTryOnPage";
+export { StoresPage } from "./StoresPage/StoresPage";

@@ -50,24 +50,24 @@ export const FeaturedGrid = memo(function FeaturedGrid({
           {title}
         </h2>
         
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
           {/* Featured Large Card - Left Side */}
           <a
             href={featuredItem.link}
-            className="relative block overflow-hidden row-span-2"
+            className="relative block overflow-hidden row-span-1 sm:row-span-2"
             style={{ borderRadius: "16px" }}
           >
             <img
               src={featuredItem.image}
               alt={featuredItem.title}
-              className="w-full h-full object-cover"
+              className="w-full h-48 sm:h-full object-cover"
               loading="lazy"
             />
             
           </a>
 
           {/* Right Side - 2x2 Grid */}
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
             {gridCards}
           </div>
         </div>

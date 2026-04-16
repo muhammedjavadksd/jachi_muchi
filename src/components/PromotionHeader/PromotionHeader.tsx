@@ -55,31 +55,31 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
       {/* Top Utility Bar */}
       <div className="w-full bg-white border-b border-gray-100">
         <Container className="flex justify-between h-8 items-center">
-          <div className="flex items-center gap-4 text-xs text-gray-600">
+          <div className="hidden sm:flex items-center gap-4 text-xs text-gray-600">
             {utilityLinksElements}
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-800 font-medium">
-            <PhoneIcon className="text-gray-600" />
-            <span>{SUPPORT_PHONE}</span>
+            <PhoneIcon className="text-gray-600 w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">{SUPPORT_PHONE}</span>
           </div>
         </Container>
       </div>
 
       {/* Main Navigation Bar */}
       <div className="w-full bg-white border-b border-gray-200">
-        <Container className="flex items-center justify-between h-16">
+        <Container className="flex items-center justify-between h-12 sm:h-16 py-2 sm:py-0">
           {/* Logo */}
           <a href="/" className="flex items-center">
             <img
               src={BRAND_LOGO_URL}
               alt="Brand Logo"
-              className="h-6 w-auto"
+              className="h-5 sm:h-6 w-auto"
             />
           </a>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-xl mx-8">
-            <div className="flex items-center h-10 bg-gray-50 border border-gray-200 rounded-md px-4">
+          {/* Search Bar - Hidden on mobile */}
+          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+            <div className="flex items-center h-10 bg-gray-50 border border-gray-200 rounded-md px-4 w-full">
               <SearchIcon className="text-gray-400 mr-3" />
               <input
                 type="text"
@@ -90,37 +90,37 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-6">
-            {/* Track Orders */}
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+            {/* Track Orders - Hidden on mobile */}
             <a 
               href="/track-orders" 
-              className="text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
+              className="hidden sm:block text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
             >
               Track Orders
             </a>
 
-            {/* Sign In */}
+            {/* Sign In - Hidden on mobile, show icon only */}
             <button
               type="button"
               onClick={openLoginModal}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-800 hover:bg-gray-200"
+              className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-800 hover:bg-gray-200"
             >
-              <span>Sign In</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 12 15 18 9" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
+              <span className="hidden sm:inline">Sign In</span>
             </button>
 
             {/* Wishlist */}
             <button
               type="button"
               onClick={openWishlist}
-              className="relative text-gray-700 hover:text-gray-900"
+              className="relative text-gray-700 hover:text-gray-900 p-1"
               aria-label="Wishlist"
             >
-              <HeartIcon />
+              <HeartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               {wishlistItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full">
                   {wishlistItems.length > 99 ? "99+" : wishlistItems.length}
                 </span>
               )}
@@ -130,11 +130,11 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
             <button 
               type="button"
               onClick={() => navigate("/cart")}
-              className="relative text-gray-700 hover:text-gray-900"
+              className="relative text-gray-700 hover:text-gray-900 p-1"
               aria-label="Cart"
             >
-              <CartIcon />
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-teal-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+              <CartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-teal-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 4
               </span>
             </button>
@@ -144,21 +144,21 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
       {/* Category Navigation Bar */}
       <div className="w-full bg-white border-b border-gray-200">
-        <Container className="flex items-center justify-between h-10">
-          {/* Category Links */}
-          <nav className="flex items-center gap-6">
+        <Container className="flex items-center justify-between h-10 overflow-x-auto">
+          {/* Category Links - Horizontal scroll on mobile */}
+          <nav className="flex items-center gap-4 sm:gap-6 overflow-x-auto scrollbar-hide">
             {categoryLinks}
           </nav>
 
-          {/* Feature Badges */}
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold rounded">
+          {/* Feature Badges - Hide on small mobile */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="hidden xs:block px-2 sm:px-3 py-0.5 sm:py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-[10px] sm:text-xs font-bold rounded">
               3D TRY ON
             </span>
-            <span className="px-3 py-1 bg-blue-900 text-white text-xs font-bold rounded">
+            <span className="hidden xs:block px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-900 text-white text-[10px] sm:text-xs font-bold rounded">
               BLU
             </span>
-            <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs font-bold rounded">
+            <span className="hidden xs:block px-2 sm:px-3 py-0.5 sm:py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-[10px] sm:text-xs font-bold rounded">
               GOLD
             </span>
           </div>

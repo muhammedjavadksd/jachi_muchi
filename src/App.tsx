@@ -1,12 +1,11 @@
 import { lazy, Suspense, useMemo } from "react";
-import { Header, LoadingSkeleton, Footer, WhatsAppButton } from "./components";
-import { useScroll } from "./hooks";
+import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton } from "./components";
 import { EYEGLASS_SHAPES, HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
+import { TopCategories } from "./components/TopCategories/TopCategories";
 
 /** Lazy loaded components for code splitting and faster initial load */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const SecondaryBannerCarousel = lazy(() => import("./components/SecondaryBannerCarousel/SecondaryBannerCarousel").then(m => ({ default: m.SecondaryBannerCarousel })));
-const TopCategories = lazy(() => import("./components/TopCategories/TopCategories").then(m => ({ default: m.TopCategories })));
 const Campaign = lazy(() => import("./components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
 const ShapeSection = lazy(() => import("./components/ShapeSection/ShapeSection").then(m => ({ default: m.ShapeSection })));
 const NearbyServices = lazy(() => import("./components/NearbyServices/NearbyServices").then(m => ({ default: m.NearbyServices })));
@@ -19,8 +18,6 @@ const FeaturedGrid = lazy(() => import("./components/FeaturedGrid/FeaturedGrid")
  * Uses lazy loading for below-the-fold content
  */
 export default function App(): JSX.Element {
-  const isScrolled = useScroll();
-
   /** Memoize spacer style to prevent recalculation */
   const spacerStyle = useMemo(() => ({ 
     height: `${HEADER_SPACER_HEIGHT}px` 
@@ -29,15 +26,17 @@ export default function App(): JSX.Element {
   return (
     <div className="w-full flex flex-col">
       {/* Fixed Header - Not lazy loaded as it's always visible */}
-      <Header isScrolled={isScrolled} />
+      <PromotionHeader />
 
-      {/* Spacer for top utility bar only (hero goes behind navbar) */}
+      {/* Spacer - exactly matches header height to push content below */}
       <div style={spacerStyle} />
 
       {/* Lazy loaded sections with Suspense */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Hero Slider */}
-        <HeroSlider />
+        {/* Hero Slider - Edge to Edge */}
+        <div className="w-full">
+          <HeroSlider />
+        </div>
       </Suspense>
 
       <Suspense fallback={<LoadingSkeleton />}>
@@ -45,10 +44,8 @@ export default function App(): JSX.Element {
         <SecondaryBannerCarousel />
       </Suspense>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Top Categories */}
-        <TopCategories />
-      </Suspense>
+      {/* Top Categories */}
+      <TopCategories />
 
       <Suspense fallback={<LoadingSkeleton />}>
         {/* Campaign Banner */}

@@ -69,8 +69,8 @@ const BILL_SUMMARY = {
   totalDiscount: 13740,
   fittingFee: 199,
   totalPayable: 8359,
-  appliedCoupon: "GET60",
-  couponSavings: 2340,
+  appliedCoupon: "",
+  couponSavings: 0,
 };
 
 /**
@@ -79,6 +79,11 @@ const BILL_SUMMARY = {
  */
 export const CartPage = memo(function CartPage(): JSX.Element {
   const [cartItems, setCartItems] = useState<CartItem[]>(CART_ITEMS);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponSavings, setCouponSavings] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   /** Memoize header spacer style */
   const spacerStyle = useMemo(() => ({
@@ -88,6 +93,34 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   /** Handle remove item */
   const handleRemoveItem = useCallback((id: string) => {
     setCartItems(prev => prev.filter(item => item.id !== id));
+  }, []);
+
+  /** Handle apply coupon */
+  const handleApplyCoupon = useCallback(() => {
+    if (!couponInput.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+    setIsApplyingCoupon(true);
+    setCouponError("");
+    
+    setTimeout(() => {
+      if (couponInput.toUpperCase() === "GET60") {
+        setAppliedCoupon("GET60");
+        setCouponSavings(2340);
+        setCouponInput("");
+      } else {
+        setCouponError("Invalid coupon code");
+      }
+      setIsApplyingCoupon(false);
+    }, 500);
+  }, [couponInput]);
+
+  /** Handle remove coupon */
+  const handleRemoveCoupon = useCallback(() => {
+    setAppliedCoupon("");
+    setCouponSavings(0);
+    setCouponError("");
   }, []);
 
   /** Memoize cart items list */
@@ -230,9 +263,15 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   <span className="text-gray-600">Fitting Fee</span>
                   <span className="text-gray-900">₹{BILL_SUMMARY.fittingFee}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Coupon ({appliedCoupon})</span>
+                    <span className="text-green-600">-₹{couponSavings}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-3 border-t border-gray-200 mt-2">
                   <span className="text-gray-900 font-semibold">Total payable</span>
-                  <span className="text-gray-900 font-bold text-lg">₹{BILL_SUMMARY.totalPayable}</span>
+                  <span className="text-gray-900 font-bold text-lg">₹{BILL_SUMMARY.totalPayable - couponSavings}</span>
                 </div>
               </div>
 
@@ -260,17 +299,40 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 </div>
               </div>
 
-              {/* Applied Coupon Card */}
+              {/* Coupon Card - Applied or Input */}
               <div className="bg-white border border-gray-200 rounded-lg p-5 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-900">{BILL_SUMMARY.appliedCoupon} applied</p>
-                    <p className="text-gray-500 text-sm">You are saving ₹{BILL_SUMMARY.couponSavings}</p>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">{appliedCoupon} applied</p>
+                      <p className="text-gray-500 text-sm">You are saving ₹{couponSavings}</p>
+                    </div>
+                    <button onClick={handleRemoveCoupon} className="text-red-500 font-medium text-sm hover:text-red-700">
+                      REMOVE
+                    </button>
                   </div>
-                  <button className="text-gray-500 font-medium text-sm hover:text-gray-700">
-                    REMOVE
-                  </button>
-                </div>
+                ) : (
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-2">Apply Coupon</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm uppercase"
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponInput.trim()}
+                        className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        {isApplyingCoupon ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-red-500 text-sm mt-2">{couponError}</p>}
+                  </div>
+                )}
               </div>
 
               {/* Apply Insurance Card */}

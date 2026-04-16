@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useRef } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
+import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { ProductCard } from "../../components/ProductCard/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../../components/icons";
@@ -61,6 +61,7 @@ const SAMPLE_PRODUCT: ProductDetail = {
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [pincode, setPincode] = useState("");
+  const [lensPanelOpen, setLensPanelOpen] = useState(false);
   
   /** Refs for product sliders */
   const recentlyViewedRef = useRef<HTMLDivElement>(null);
@@ -235,9 +236,20 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               </div>
 
               {/* Select Lens Button */}
-              <button className="w-full py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors mb-3">
+              <button 
+                onClick={() => setLensPanelOpen(true)}
+                className="w-full py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors mb-3"
+              >
                 SELECT LENS
               </button>
+
+              <LensSelectionPanel
+                isOpen={lensPanelOpen}
+                onClose={() => setLensPanelOpen(false)}
+                productId={SAMPLE_PRODUCT.id}
+                productName={SAMPLE_PRODUCT.name}
+                productPrice={SAMPLE_PRODUCT.price}
+              />
 
               {/* Try On Button */}
               <button className="w-full py-4 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors mb-4 flex items-center justify-center gap-2">

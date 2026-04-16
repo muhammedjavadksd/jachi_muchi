@@ -27,8 +27,9 @@ export const SCROLL_THRESHOLD = 200;
 /**
  * Height of the top utility header spacer in pixels
  * Used to offset content below the fixed header
+ * Must match: PromotionHeader (h-8 + h-16 + borders = ~100px)
  */
-export const HEADER_SPACER_HEIGHT = 72;
+export const HEADER_SPACER_HEIGHT = 110;
 
 /**
  * Utility links displayed in the top header bar

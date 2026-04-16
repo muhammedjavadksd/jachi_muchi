@@ -2,6 +2,7 @@ import { memo, useCallback, useState } from "react";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useSignupModal } from "../../context/SignupModalContext";
 import { useForgotPasswordModal } from "../../context/ForgotPasswordModalContext";
+import { useAuth } from "../../context/AuthContext";
 
 const LOGIN_IMAGE =
   "https://images.unsplash.com/photo-1522335789203-aabd1b54eaea?w=480&h=240&fit=crop";
@@ -24,12 +25,15 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
   const { isOpen, close } = useLoginModal();
   const { open: openSignupModal } = useSignupModal();
   const { open: openForgotPasswordModal } = useForgotPasswordModal();
+  const { login } = useAuth();
 
   const [step, setStep] = useState<LoginStep>("email");
   const [mobileOrEmail, setMobileOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState(false);
   const [whatsappUpdates, setWhatsappUpdates] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const emailValid = isValidEmailOrMobile(mobileOrEmail);
   const showEmailError = touched && !emailValid && mobileOrEmail.length > 0;
@@ -56,12 +60,20 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
   );
 
   const handleSignIn = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
       if (step !== "password" || !canSignIn) return;
-      handleClose();
+      setIsLoading(true);
+      setLoginError("");
+      const success = await login(mobileOrEmail, password);
+      setIsLoading(false);
+      if (success) {
+        handleClose();
+      } else {
+        setLoginError("Invalid email or password");
+      }
     },
-    [step, canSignIn, handleClose]
+    [step, canSignIn, handleClose, mobileOrEmail, password, login]
   );
 
   const handleBack = useCallback(() => {
@@ -214,16 +226,17 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
                 </div>
               </div>
 
+              {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
               <button
                 type="submit"
-                disabled={!canSignIn}
+                disabled={!canSignIn || isLoading}
                 className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  canSignIn
+                  canSignIn && !isLoading
                     ? "bg-teal-600 text-white hover:bg-teal-700"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
               >
-                Sign In
+                {isLoading ? "Signing in..." : "Sign In"}
               </button>
             </form>
           )}

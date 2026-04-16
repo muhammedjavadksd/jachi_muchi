@@ -15,7 +15,7 @@ export const Container = memo(function Container({
 }: ContainerProps): JSX.Element {
   /** Memoize combined className to prevent recalculation */
   const combinedClassName = useMemo(() => (
-    `w-full max-w-[1400px] mx-auto ${className}`
+    `w-full max-w-[1400px] mx-auto overflow-visible px-3 sm:px-4 md:px-6 lg:px-12 ${className}`
   ), [className]);
 
   return (

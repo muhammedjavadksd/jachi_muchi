@@ -37,5 +37,8 @@ export { ProductCard } from "./ProductCard/ProductCard";
 export { FilterSidebar } from "./FilterSidebar/FilterSidebar";
 export { CategoryNav } from "./CategoryNav/CategoryNav";
 
+// Lens Selection
+export { LensSelectionPanel } from "./LensSelectionPanel/LensSelectionPanel";
+
 // Icons
 export * from "./icons";
