@@ -31,7 +31,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
     label: "WhatsApp Notification",
     description: "Receive order updates and offers on WhatsApp",
     icon: (
-      <svg className="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-500" fill="currentColor" viewBox="0 0 24 24">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
     ),
@@ -41,7 +41,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
     label: "SMS Notification",
     description: "Receive order updates and alerts via SMS",
     icon: (
-      <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
       </svg>
     ),
@@ -51,7 +51,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
     label: "Push Notification",
     description: "Receive instant notifications on your device",
     icon: (
-      <svg className="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
     ),
@@ -61,7 +61,7 @@ const NOTIFICATION_TYPES: NotificationType[] = [
     label: "Email Notification",
     description: "Receive order confirmations and newsletters via email",
     icon: (
-      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-7 h-7 sm:w-8 sm:h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
       </svg>
     ),
@@ -74,7 +74,8 @@ const NOTIFICATION_TYPES: NotificationType[] = [
  */
 export const ManageNotificationsPage = memo(function ManageNotificationsPage(): JSX.Element {
   const [activeMenu] = useState("notifications");
-  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Notification states
   const [notifications, setNotifications] = useState<Record<string, boolean>>({
     whatsapp: true,
@@ -93,53 +94,62 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
     setNotifications(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  /** Memoize sidebar menu */
-  const sidebarMenu = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id
-            ? "bg-teal-600 text-white"
-            : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
+  /** Shared sidebar nav content */
+  const sidebarNav = useMemo(() => (
+    <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+      {SIDEBAR_MENU.map((item) => (
+        <Link
+          key={item.id}
+          to={item.link}
+          onClick={() => setSidebarOpen(false)}
+          className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
+            activeMenu === item.id
+              ? "bg-teal-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          <span>{item.label}</span>
+          {item.icon === "3d" && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+            </svg>
+          )}
+        </Link>
+      ))}
+    </nav>
   ), [activeMenu]);
 
   /** Memoize notification cards */
   const notificationCards = useMemo(() => (
     NOTIFICATION_TYPES.map((notification) => (
-      <div 
+      <div
         key={notification.id}
-        className="flex items-center justify-between p-5 bg-white border border-gray-200 rounded-xl hover:shadow-sm transition-shadow"
+        className="flex items-center justify-between gap-3 p-4 sm:p-5 bg-white border border-gray-200 rounded-xl hover:shadow-sm transition-shadow"
       >
         {/* Left: Icon and Info */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="w-11 h-11 sm:w-14 sm:h-14 bg-gray-50 rounded-full flex items-center justify-center shrink-0">
             {notification.icon}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{notification.label}</h3>
-            <p className="text-sm text-gray-500 mt-0.5">{notification.description}</p>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base leading-snug">
+              {notification.label}
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 leading-snug">
+              {notification.description}
+            </p>
           </div>
         </div>
 
         {/* Right: Toggle Switch */}
         <button
           onClick={() => toggleNotification(notification.id)}
-          className={`relative w-12 h-6 rounded-full transition-colors ${
+          className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${
             notifications[notification.id] ? "bg-teal-600" : "bg-gray-300"
           }`}
           aria-label={`Toggle ${notification.label}`}
+          aria-checked={notifications[notification.id]}
+          role="switch"
         >
           <span
             className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
@@ -155,30 +165,58 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
     <div className="w-full min-h-screen flex flex-col bg-white">
       {/* Promotion Header */}
       <PromotionHeader />
-      
+
       {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
       {/* Main Content */}
-      <main className="flex-1 py-6">
+      <main className="flex-1 py-4 md:py-6">
         <Container>
+
+          {/* ── Mobile: menu toggle bar ── */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={() => setSidebarOpen(prev => !prev)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 w-full"
+              aria-expanded={sidebarOpen}
+              aria-controls="mobile-sidebar"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Account Menu</span>
+              <svg
+                className={`w-4 h-4 ml-auto transition-transform ${sidebarOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {sidebarOpen && (
+              <div id="mobile-sidebar" className="mt-2">
+                {sidebarNav}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-8">
-            {/* Left Sidebar - Sticky */}
-            <div 
-              className="w-64 shrink-0 sticky"
+            {/* ── Desktop: Left Sidebar – Sticky ── */}
+            <div
+              className="hidden lg:block w-64 shrink-0 sticky self-start"
               style={{ top: `${PROMOTION_HEADER_HEIGHT + 24}px` }}
             >
-              <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                {sidebarMenu}
-              </nav>
+              {sidebarNav}
             </div>
 
             {/* Right Content Area */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {/* Page Header */}
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Manage Notifications</h1>
-                <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Manage Notifications</h1>
+                <p className="text-gray-500 mt-1 text-sm sm:text-base">
+                  Control how you receive updates and alerts
+                </p>
               </div>
 
               {/* Info Banner */}
@@ -187,21 +225,21 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
                   <svg className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-xs sm:text-sm text-blue-700">
                     Stay updated with your orders, exclusive offers, and important account information by enabling your preferred notification channels.
                   </p>
                 </div>
               </div>
 
               {/* Notification Options */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {notificationCards}
               </div>
 
               {/* Save Note */}
               <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Your preferences are automatically saved when you toggle any option.

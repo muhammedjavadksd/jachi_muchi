@@ -2,28 +2,28 @@ import { memo } from "react";
 import type { ImageCardProps } from "../../types";
 
 /**
- * Reusable ImageCard component for displaying clickable image cards
- * Used in exclusive section, category grids, etc.
- * Memoized to prevent unnecessary re-renders
+ * ImageCard - consistent aspect ratio
  */
 export const ImageCard = memo(function ImageCard({ 
   image, 
   alt, 
   link,
-  borderRadius = "16px"
+  borderRadius = "8px"
 }: ImageCardProps): JSX.Element {
   return (
     <a
       href={link}
-      className="relative block overflow-hidden group"
+      className="block overflow-hidden"
       style={{ borderRadius }}
     >
-      <img
-        src={image}
-        alt={alt}
-        className="w-full h-auto object-cover"
-        loading="lazy"
-      />
+      <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+        <img
+          src={image}
+          alt={alt}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
     </a>
   );
 });

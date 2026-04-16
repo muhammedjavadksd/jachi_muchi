@@ -41,7 +41,8 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const [activeMenu] = useState("account-info");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Account info state
   const [accountInfo, setAccountInfo] = useState<AccountInfo>({
     firstName: "Muhammed",
@@ -95,67 +96,95 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
   /** Handle password submit */
   const handlePasswordSubmit = useCallback(() => {
-    // Password change logic would go here
     setShowPasswordModal(false);
     setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
   }, []);
 
-  /** Memoize sidebar menu */
-  const sidebarMenu = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id
-            ? "bg-teal-600 text-white"
-            : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
+  /** Shared sidebar nav content */
+  const sidebarNav = useMemo(() => (
+    <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+      {SIDEBAR_MENU.map((item) => (
+        <Link
+          key={item.id}
+          to={item.link}
+          onClick={() => setSidebarOpen(false)}
+          className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
+            activeMenu === item.id
+              ? "bg-teal-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          <span>{item.label}</span>
+          {item.icon === "3d" && (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+            </svg>
+          )}
+        </Link>
+      ))}
+    </nav>
   ), [activeMenu]);
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
       {/* Promotion Header */}
       <PromotionHeader />
-      
+
       {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
       {/* Main Content */}
-      <main className="flex-1 py-6">
+      <main className="flex-1 py-4 md:py-6">
         <Container>
+
+          {/* ── Mobile: menu toggle bar ── */}
+          <div className="lg:hidden mb-4">
+            <button
+              onClick={() => setSidebarOpen(prev => !prev)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 w-full"
+              aria-expanded={sidebarOpen}
+              aria-controls="mobile-sidebar"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Account Menu</span>
+              <svg
+                className={`w-4 h-4 ml-auto transition-transform ${sidebarOpen ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {sidebarOpen && (
+              <div id="mobile-sidebar" className="mt-2">
+                {sidebarNav}
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-8">
-            {/* Left Sidebar - Sticky */}
-            <div 
-              className="w-64 shrink-0 sticky"
+            {/* ── Desktop: Left Sidebar – Sticky ── */}
+            <div
+              className="hidden lg:block w-64 shrink-0 sticky self-start"
               style={{ top: `${PROMOTION_HEADER_HEIGHT + 24}px` }}
             >
-              <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                {sidebarMenu}
-              </nav>
+              {sidebarNav}
             </div>
 
             {/* Right Content Area */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               {/* Page Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Account Information</h1>
-                  <p className="text-gray-500 mt-1">Manage your personal information</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Account Information</h1>
+                  <p className="text-gray-500 mt-1 text-sm sm:text-base">Manage your personal information</p>
                 </div>
                 {!isEditing && (
-                  <button 
+                  <button
                     onClick={handleEditClick}
-                    className="px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 shrink-0"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -168,15 +197,16 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
               {/* Account Info Form */}
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 {/* Form Header */}
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-200">
                   <h2 className="font-semibold text-gray-900">
                     {isEditing ? "Edit Account Information" : "Personal Details"}
                   </h2>
                 </div>
 
                 {/* Form Body */}
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-6">
+                <div className="p-4 sm:p-6">
+                  {/* 2-col on sm+, 1-col on mobile */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     {/* First Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -191,7 +221,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                           placeholder="Enter first name"
                         />
                       ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
+                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900 break-words">
                           {accountInfo.firstName}
                         </p>
                       )}
@@ -211,14 +241,14 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                           placeholder="Enter last name"
                         />
                       ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
+                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900 break-words">
                           {accountInfo.lastName}
                         </p>
                       )}
                     </div>
 
                     {/* Email Address */}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address
                       </label>
@@ -231,14 +261,14 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                           placeholder="Enter email address"
                         />
                       ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
+                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900 break-all">
                           {accountInfo.email}
                         </p>
                       )}
                     </div>
 
                     {/* Gender */}
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Gender
                       </label>
@@ -264,16 +294,16 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
                   {/* Edit Mode Buttons */}
                   {isEditing && (
-                    <div className="flex items-center gap-4 mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 pt-6 border-t border-gray-200">
                       <button
                         onClick={handleSave}
-                        className="px-6 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors text-center"
                       >
                         Save Changes
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                        className="w-full sm:w-auto px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors text-center"
                       >
                         Cancel
                       </button>
@@ -284,11 +314,11 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
               {/* Change Password Section */}
               <div className="mt-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-200">
                   <h2 className="font-semibold text-gray-900">Security</h2>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <h3 className="font-medium text-gray-900">Password</h3>
                       <p className="text-sm text-gray-500 mt-1">
@@ -297,7 +327,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     </div>
                     <button
                       onClick={() => setShowPasswordModal(true)}
-                      className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                      className="w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 shrink-0"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -322,17 +352,17 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
       {showPasswordModal && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-[100]"
             onClick={() => setShowPasswordModal(false)}
           />
-          
-          {/* Modal */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[101]">
+
+          {/* Modal — full-width on mobile, max-w-md on sm+ */}
+          <div className="fixed z-[101] inset-x-4 top-1/2 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md bg-white rounded-xl shadow-2xl">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
-              <button 
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Change Password</h2>
+              <button
                 onClick={() => setShowPasswordModal(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
               >
@@ -343,7 +373,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-4">
+            <div className="p-4 sm:p-6 space-y-4">
               {/* Current Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -388,16 +418,16 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 px-4 sm:px-6 py-4 border-t border-gray-200">
               <button
                 onClick={() => setShowPasswordModal(false)}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handlePasswordSubmit}
-                className="px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
               >
                 Update Password
               </button>

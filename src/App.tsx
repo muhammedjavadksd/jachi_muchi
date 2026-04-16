@@ -1,9 +1,9 @@
-import { lazy, Suspense, useMemo } from "react";
-import { Header, LoadingSkeleton, Footer, WhatsAppButton } from "./components";
+import { lazy, Suspense } from "react";
+import { Header, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
 import { useScroll } from "./hooks";
-import { EYEGLASS_SHAPES, HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
+import { EYEGLASS_SHAPES, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
 
-/** Lazy loaded components for code splitting and faster initial load */
+/** Lazy loaded components for code splitting */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const SecondaryBannerCarousel = lazy(() => import("./components/SecondaryBannerCarousel/SecondaryBannerCarousel").then(m => ({ default: m.SecondaryBannerCarousel })));
 const TopCategories = lazy(() => import("./components/TopCategories/TopCategories").then(m => ({ default: m.TopCategories })));
@@ -16,47 +16,40 @@ const FeaturedGrid = lazy(() => import("./components/FeaturedGrid/FeaturedGrid")
 /**
  * Main application component
  * Assembles all page sections for the homepage
- * Uses lazy loading for below-the-fold content
  */
 export default function App(): JSX.Element {
   const isScrolled = useScroll();
 
-  /** Memoize spacer style to prevent recalculation */
-  const spacerStyle = useMemo(() => ({ 
-    height: `${HEADER_SPACER_HEIGHT}px` 
-  }), []);
-
   return (
-    <div className="w-full flex flex-col">
-      {/* Fixed Header - Not lazy loaded as it's always visible */}
+    <div className="w-full flex flex-col min-h-screen pb-16 lg:pb-0">
+      {/* Fixed Header */}
       <Header isScrolled={isScrolled} />
 
-      {/* Spacer for top utility bar only (hero goes behind navbar) */}
-      <div style={spacerStyle} />
+      {/* Spacer for header (promo + navbar) */}
+      <div className="h-[76px] sm:h-[80px]" />
 
-      {/* Lazy loaded sections with Suspense */}
+      {/* Hero Slider */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Hero Slider */}
         <HeroSlider />
       </Suspense>
 
+      {/* Secondary Banners */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Secondary horizontal banners */}
         <SecondaryBannerCarousel />
       </Suspense>
 
+      {/* Top Categories */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Top Categories */}
         <TopCategories />
       </Suspense>
 
+      {/* Campaign Banner */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Campaign Banner */}
         <Campaign image="/campign/image.png" link="/campaign" />
       </Suspense>
 
+      {/* Shape Section - Eyeglasses */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Shape Section - Eyeglasses */}
         <ShapeSection
           title="Get the perfect shape - Eyeglasses"
           shape="circle"
@@ -64,13 +57,13 @@ export default function App(): JSX.Element {
         />
       </Suspense>
       
+      {/* Nearby Services */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Nearby Stores & Services */}
         <NearbyServices />
       </Suspense>
 
+      {/* Shape Section - Sunglasses */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Shape Section - Sunglasses */}
         <ShapeSection
           title="Get the perfect shape - Sunglasses"
           shape="circle"
@@ -78,8 +71,8 @@ export default function App(): JSX.Element {
         />
       </Suspense>
 
+      {/* Exclusively at Lenskart */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Exclusively at Lenskart */}
         <GridSection
           title="Exclusively at Lenskart"
           columns={3}
@@ -87,13 +80,13 @@ export default function App(): JSX.Element {
         />
       </Suspense>
 
+      {/* Campaign Banner 2 */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Campaign Banner 2 */}
         <Campaign image="/campign/2.png" link="/campaign/2" />
       </Suspense>
 
+      {/* Our Brands */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Our Brands */}
         <GridSection
           title="Our Brands"
           columns={3}
@@ -101,18 +94,16 @@ export default function App(): JSX.Element {
         />
       </Suspense>
 
-      
-
+      {/* Premium Eyewear */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Premium Eyewear */}
         <FeaturedGrid
           title="Premium Eyewear"
           items={PREMIUM_EYEWEAR}
         />
       </Suspense>
 
+      {/* Free Eye Check Up */}
       <Suspense fallback={<LoadingSkeleton />}>
-        {/* Our Brands */}
         <GridSection
           title="Get a FREE Eye Check Up"
           columns={3}
@@ -120,15 +111,19 @@ export default function App(): JSX.Element {
         />
       </Suspense>
 
+      {/* Campaign Banners */}
       <Suspense fallback={<LoadingSkeleton />}>
         <Campaign image="/campign/4.png" link="/campaign/3" />
         <Campaign image="/campign/5.png" link="/campaign/4" />
       </Suspense>
 
-      {/* Footer - Not lazy loaded as it's always visible at bottom */}
+      {/* Footer */}
       <Footer />
 
-      {/* Fixed Floating WhatsApp Button */}
+      {/* Bottom Navigation (Mobile Only) */}
+      <BottomNav />
+
+      {/* WhatsApp Button */}
       <WhatsAppButton />
     </div>
   );
