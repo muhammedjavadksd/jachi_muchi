@@ -68,10 +68,6 @@ const NOTIFICATION_TYPES: NotificationType[] = [
   },
 ];
 
-/**
- * Manage Notifications Page
- * Allows users to manage their notification preferences
- */
 export const ManageNotificationsPage = memo(function ManageNotificationsPage(): JSX.Element {
   const [activeMenu] = useState("notifications");
   
@@ -83,26 +79,24 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
     email: true,
   });
 
-  /** Memoize header spacer style */
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`
   }), []);
 
-  /** Toggle notification */
   const toggleNotification = useCallback((id: string) => {
     setNotifications(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  /** Memoize sidebar menu */
-  const sidebarMenu = useMemo(() => (
+  // Desktop Sidebar
+  const desktopSidebar = useMemo(() => (
     SIDEBAR_MENU.map((item) => (
       <Link
         key={item.id}
         to={item.link}
         className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id
-            ? "bg-teal-600 text-white"
-            : "text-gray-700 hover:bg-gray-100"
+          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
         }`}
       >
         <span>{item.label}</span>
@@ -115,35 +109,78 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
     ))
   ), [activeMenu]);
 
-  /** Memoize notification cards */
+  // Mobile Account Menu (First on mobile)
+  const mobileAccountMenu = useMemo(() => (
+    <div className="md:hidden mb-6">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
+        >
+          <span className="font-medium text-gray-900">Account Menu</span>
+          <svg
+            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isMobileMenuOpen && (
+          <div className="divide-y divide-gray-100">
+            {SIDEBAR_MENU.map((item) => (
+              <Link
+                key={item.id}
+                to={item.link}
+                className={`block px-5 py-4 text-sm font-medium transition-colors ${
+                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{item.label}</span>
+                  {item.icon === "3d" && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                    </svg>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ), [activeMenu, isMobileMenuOpen]);
+
+  // Notification Cards
   const notificationCards = useMemo(() => (
     NOTIFICATION_TYPES.map((notification) => (
       <div 
         key={notification.id}
-        className="flex items-center justify-between p-5 bg-white border border-gray-200 rounded-xl hover:shadow-sm transition-shadow"
+        className="flex items-center justify-between p-6 bg-white border border-gray-200 rounded-2xl hover:shadow-sm transition-shadow"
       >
-        {/* Left: Icon and Info */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center">
+        <div className="flex items-center gap-5">
+          <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center">
             {notification.icon}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{notification.label}</h3>
-            <p className="text-sm text-gray-500 mt-0.5">{notification.description}</p>
+            <h3 className="font-semibold text-gray-900 text-base">{notification.label}</h3>
+            <p className="text-sm text-gray-500 mt-1 pr-8">{notification.description}</p>
           </div>
         </div>
 
-        {/* Right: Toggle Switch */}
         <button
           onClick={() => toggleNotification(notification.id)}
-          className={`relative w-12 h-6 rounded-full transition-colors ${
+          className={`relative w-12 h-6 rounded-full transition-all duration-200 ${
             notifications[notification.id] ? "bg-teal-600" : "bg-gray-300"
           }`}
-          aria-label={`Toggle ${notification.label}`}
         >
           <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 ${
-              notifications[notification.id] ? "translate-x-6" : "translate-x-0"
+            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+              notifications[notification.id] ? "translate-x-6" : ""
             }`}
           />
         </button>
@@ -153,69 +190,67 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
-      {/* Promotion Header */}
       <PromotionHeader />
-      
-      {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
-      {/* Main Content */}
-      <main className="flex-1 py-6">
+      <main className="flex-1 py-6 md:py-8">
         <Container>
-          <div className="flex gap-8">
-            {/* Left Sidebar - Sticky */}
-            <div 
-              className="w-64 shrink-0 sticky"
-              style={{ top: `${PROMOTION_HEADER_HEIGHT + 24}px` }}
-            >
-              <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                {sidebarMenu}
-              </nav>
+          <div className="max-w-6xl mx-auto">
+            {/* Page Header */}
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Manage Notifications</h1>
+              <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>
             </div>
 
-            {/* Right Content Area */}
-            <div className="flex-1">
-              {/* Page Header */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Manage Notifications</h1>
-                <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>
-              </div>
-
-              {/* Info Banner */}
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <div className="flex gap-3">
-                  <svg className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-blue-700">
-                    Stay updated with your orders, exclusive offers, and important account information by enabling your preferred notification channels.
-                  </p>
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+              {/* Desktop Sidebar */}
+              <div className="hidden md:block w-64 shrink-0">
+                <div
+                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
+                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
+                >
+                  <nav>{desktopSidebar}</nav>
                 </div>
               </div>
 
-              {/* Notification Options */}
-              <div className="space-y-4">
-                {notificationCards}
-              </div>
+              {/* Mobile Account Menu - FIRST */}
+              {mobileAccountMenu}
 
-              {/* Save Note */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Your preferences are automatically saved when you toggle any option.
-                </p>
+              {/* Main Content */}
+              <div className="flex-1">
+                {/* Info Banner */}
+                <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
+                  <div className="flex gap-4">
+                    <svg className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-blue-700">
+                      Stay updated with your orders, exclusive offers, and important account information by enabling your preferred notification channels.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Notification Options */}
+                <div className="space-y-4">
+                  {notificationCards}
+                </div>
+
+                {/* Auto-save Note */}
+                <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-sm text-gray-600 flex items-start gap-3">
+                    <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Your preferences are automatically saved when you toggle any option.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </Container>
       </main>
 
-      {/* Footer */}
       <Footer />
-
-      {/* WhatsApp Button */}
       <WhatsAppButton />
     </div>
   );
