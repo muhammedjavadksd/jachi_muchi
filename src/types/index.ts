@@ -88,7 +88,7 @@ export interface HeaderProps {
 
 /** Props for MainNavBar component - main navigation with scroll state */
 export interface MainNavBarProps {
-  isScrolled: boolean;
+  isScrolled?: boolean;
 }
 
 /** Props for TopCategories component - category grid section */
