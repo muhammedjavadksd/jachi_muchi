@@ -2,6 +2,7 @@
 export { Container } from "./Container/Container";
 export { Grid } from "./Grid/Grid";
 export { ImageCard } from "./ImageCard/ImageCard";
+export { BottomNav } from "./BottomNav/BottomNav";
 
 // Loading Components
 export { LoadingSkeleton } from "./LoadingSkeleton/LoadingSkeleton";

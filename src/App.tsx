@@ -1,9 +1,10 @@
-import { lazy, Suspense, useMemo } from "react";
-import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton } from "./components";
+import { lazy, Suspense, useMemo, useState, useEffect } from "react";
+import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
+import { NavTab } from "./components/BottomNav/BottomNav";
 import { EYEGLASS_SHAPES, HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
 
-/** Lazy loaded components for code splitting and faster initial load */
+/** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const SecondaryBannerCarousel = lazy(() => import("./components/SecondaryBannerCarousel/SecondaryBannerCarousel").then(m => ({ default: m.SecondaryBannerCarousel })));
 const Campaign = lazy(() => import("./components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
@@ -12,121 +13,151 @@ const NearbyServices = lazy(() => import("./components/NearbyServices/NearbyServ
 const GridSection = lazy(() => import("./components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
 const FeaturedGrid = lazy(() => import("./components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
 
-/**
- * Main application component
- * Assembles all page sections for the homepage
- * Uses lazy loading for below-the-fold content
- */
 export default function App(): JSX.Element {
-  /** Memoize spacer style to prevent recalculation */
-  const spacerStyle = useMemo(() => ({ 
-    height: `${HEADER_SPACER_HEIGHT}px` 
-  }), []);
+  const [activeTab, setActiveTab] = useState<NavTab>("home");
+  const [orderCount] = useState(2);
+  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+
+  // Fake countdown for Hustlr Club (like in screenshot)
+  const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 8, minutes: 51, seconds: 44 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        let { days, hours, minutes, seconds } = prev;
+        seconds--;
+        if (seconds < 0) { seconds = 59; minutes--; }
+        if (minutes < 0) { minutes = 59; hours--; }
+        if (hours < 0) { hours = 23; days--; }
+        return { days, hours, minutes, seconds };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="w-full flex flex-col">
-      {/* Fixed Header - Not lazy loaded as it's always visible */}
+    <div className="w-full flex flex-col bg-white min-h-screen font-sans">
+      {/* Promotion Header */}
       <PromotionHeader />
 
-      {/* Spacer - exactly matches header height to push content below */}
+      {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
-      {/* Lazy loaded sections with Suspense */}
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Hero Slider - Edge to Edge */}
-        <div className="w-full">
+      <main className="flex-1 pb-20">
+        {/* Hero Slider */}
+        <Suspense fallback={<LoadingSkeleton />}>
           <HeroSlider />
+        </Suspense>
+
+        {/* Secondary Offers */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <SecondaryBannerCarousel />
+        </Suspense>
+
+        {/* Top Categories */}
+        <div className="px-4 pt-6 pb-8">
+          <TopCategories />
         </div>
-      </Suspense>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Secondary horizontal banners */}
-        <SecondaryBannerCarousel />
-      </Suspense>
+        {/* Hustlr Club Banner - Made to match your screenshot */}
+        <div className="mx-4 mb-8 bg-gradient-to-r from-indigo-950 via-blue-950 to-indigo-950 rounded-3xl overflow-hidden shadow-xl">
+          <div className="p-6 flex items-center gap-5 text-white">
+            <div className="flex-1">
+              <div className="uppercase text-amber-400 text-xs font-bold tracking-[2px] mb-1">hustlr CLUB</div>
+              <p className="text-lg leading-tight font-medium">
+                Scan your face and get your <span className="font-bold">first Hustlr frame for FREE</span>!
+              </p>
+              <p className="text-sm mt-2 opacity-90">Limited spots till 19th April</p>
 
-      {/* Top Categories */}
-      <TopCategories />
+              {/* Countdown */}
+              <div className="flex gap-2 mt-4 text-sm">
+                <div className="bg-white/10 px-3 py-1 rounded-xl text-center">
+                  {timeLeft.days}d
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-xl text-center">
+                  {timeLeft.hours}h
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-xl text-center">
+                  {timeLeft.minutes}m
+                </div>
+                <div className="bg-white/10 px-3 py-1 rounded-xl text-center">
+                  {timeLeft.seconds}s
+                </div>
+              </div>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Campaign Banner */}
-        <Campaign image="/campign/image.png" link="/campaign" />
-      </Suspense>
+              <button className="mt-5 bg-white text-indigo-950 px-8 py-3 rounded-full font-semibold text-sm shadow-md hover:bg-gray-100 transition">
+                Unlock my Hustlr
+              </button>
+            </div>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Shape Section - Eyeglasses */}
-        <ShapeSection
-          title="Get the perfect shape - Eyeglasses"
-          shape="circle"
-          items={EYEGLASS_SHAPES}
-        />
-      </Suspense>
-      
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Nearby Stores & Services */}
-        <NearbyServices />
-      </Suspense>
+            {/* Right side image/avatar area */}
+            <div className="w-28 h-28 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="24" r="8" />
+                <circle cx="36" cy="24" r="8" />
+                <path d="M20 24h8" />
+                <path d="M4 24h0M44 24h0" />
+              </svg>
+            </div>
+          </div>
+        </div>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Shape Section - Sunglasses */}
-        <ShapeSection
-          title="Get the perfect shape - Sunglasses"
-          shape="circle"
-          items={EYEGLASS_SHAPES}
-        />
-      </Suspense>
+        {/* Eyeglasses Section */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <ShapeSection title="Eyeglasses" shape="circle" items={EYEGLASS_SHAPES} />
+        </Suspense>
 
-      <Suspense fallback={<LoadingSkeleton />}>
+        {/* Sunglasses Section */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <ShapeSection title="Sunglasses" shape="circle" items={EYEGLASS_SHAPES} />
+        </Suspense>
+
+        {/* Nearby Services */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <NearbyServices />
+        </Suspense>
+
         {/* Exclusively at Lenskart */}
-        <GridSection
-          title="Exclusively at Lenskart"
-          columns={3}
-          items={EXCLUSIVE_ITEMS}
-        />
-      </Suspense>
+        <div className="px-4 mt-8">
+          <GridSection title="Exclusively at Lenskart" columns={3} items={EXCLUSIVE_ITEMS} />
+        </div>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Campaign Banner 2 */}
-        <Campaign image="/campign/2.png" link="/campaign/2" />
-      </Suspense>
+        {/* Campaign Banner */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <Campaign image="/campign/image.png" link="/campaign" />
+        </Suspense>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Our Brands */}
-        <GridSection
-          title="Our Brands"
-          columns={3}
-          items={EXCLUSIVE_ITEMS}
-        />
-      </Suspense>
-
-      
-
-      <Suspense fallback={<LoadingSkeleton />}>
         {/* Premium Eyewear */}
-        <FeaturedGrid
-          title="Premium Eyewear"
-          items={PREMIUM_EYEWEAR}
-        />
-      </Suspense>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <FeaturedGrid title="Premium Eyewear" items={PREMIUM_EYEWEAR} />
+        </Suspense>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        {/* Our Brands */}
-        <GridSection
-          title="Get a FREE Eye Check Up"
-          columns={3}
-          items={FREE_CHECKUP}
-        />
-      </Suspense>
+        {/* Our Brands + Free Eye Checkup */}
+        <div className="px-4 space-y-8 mt-8">
+          <GridSection title="Our Brands" columns={3} items={EXCLUSIVE_ITEMS} />
+          <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
+        </div>
 
-      <Suspense fallback={<LoadingSkeleton />}>
-        <Campaign image="/campign/4.png" link="/campaign/3" />
-        <Campaign image="/campign/5.png" link="/campaign/4" />
-      </Suspense>
+        {/* Extra Campaign Banners */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <Campaign image="/campign/4.png" link="/campaign/3" />
+          <Campaign image="/campign/5.png" link="/campaign/4" />
+        </Suspense>
+      </main>
 
-      {/* Footer - Not lazy loaded as it's always visible at bottom */}
+      {/* Footer */}
       <Footer />
 
-      {/* Fixed Floating WhatsApp Button */}
+      {/* WhatsApp Floating Button */}
       <WhatsAppButton />
+
+      {/* Bottom Navigation (Lenskart-style) */}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        orderCount={orderCount}
+      />
     </div>
   );
 }
