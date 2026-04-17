@@ -34,9 +34,9 @@ createRoot(rootElement).render(
                 <Route path="/" element={<App />} />
                 <Route path="/home-2" element={<HomePage2 />} />
                 <Route path="/search" element={<SearchPage />} />
+                
                 <Route path="/search/:category" element={<SearchPage />} />
                 <Route path="/category/:category" element={<SearchPage />} />
-                
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
