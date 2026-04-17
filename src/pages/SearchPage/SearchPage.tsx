@@ -8,37 +8,29 @@ import {
   SEARCH_FILTERS, 
   SAMPLE_PRODUCTS,
 } from "../../lib/constants";
+import { X, SlidersHorizontal } from "lucide-react"; // Add these icons (or use your own)
 
-/** Height of the promotion header (utility bar + main nav + category bar) */
 const PROMOTION_HEADER_HEIGHT = 140;
 
-/**
- * Search/Product listing page
- * Displays filters sidebar and product grid
- * Uses PromotionHeader with light theme and category navigation
- */
 export const SearchPage = memo(function SearchPage(): JSX.Element {
   const [sortBy, setSortBy] = useState("best-sellers");
   const [activeTab, setActiveTab] = useState("eyeglasses");
   const [viewMode, setViewMode] = useState<"frames" | "virtual">("frames");
+  const [showFilters, setShowFilters] = useState(false);
 
-  /** Memoize header spacer style */
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`
   }), []);
 
-  /** Handle sort change */
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   }, []);
 
-  /** Handle filter change */
   const handleFilterChange = useCallback((filters: Record<string, string[]>) => {
     console.log("Filters changed:", filters);
-    // Filter logic here
+    // TODO: Apply filtering logic
   }, []);
 
-  /** Memoize product cards */
   const productCards = useMemo(() => (
     SAMPLE_PRODUCTS.map((product, index) => (
       <ProductCard
@@ -59,94 +51,139 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
-      {/* Promotion Header - Light theme with categories */}
+      {/* Promotion Header */}
       <PromotionHeader />
       
-      {/* Spacer for fixed header */}
+      {/* Spacer */}
       <div style={spacerStyle} />
 
       {/* Main Content */}
       <main className="flex-1">
         <Container>
-          <div className="flex gap-8 pt-6">
-            {/* Filter Sidebar - Sticky with independent scroll */}
-            <div 
-              className="w-64 shrink-0 self-start sticky overflow-y-auto pr-4 pb-6 scrollbar-thin"
-              style={{ top: `${PROMOTION_HEADER_HEIGHT}px`, maxHeight: `calc(100vh - ${PROMOTION_HEADER_HEIGHT}px)` }}
-            >
-              <FilterSidebar 
-                filters={SEARCH_FILTERS}
-                onFilterChange={handleFilterChange}
-              />
+          <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12">
+            
+            {/* Filter Sidebar - Desktop: Sticky | Mobile: Drawer */}
+            <div className={`
+              lg:w-72 lg:shrink-0 lg:self-start lg:sticky lg:overflow-y-auto
+              ${showFilters ? 'fixed inset-0 z-50 bg-white lg:relative' : 'hidden lg:block'}
+            `}>
+              {/* Mobile Header for Drawer */}
+              <div className="lg:hidden flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+                <h2 className="text-lg font-semibold">Filters</h2>
+                <button 
+                  onClick={() => setShowFilters(false)}
+                  className="p-2"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="lg:pr-4 lg:pb-6 p-4 lg:p-0">
+                <FilterSidebar 
+                  filters={SEARCH_FILTERS}
+                  onFilterChange={handleFilterChange}
+                />
+              </div>
+
+              {/* Apply button for mobile */}
+              <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
+                <button 
+                  onClick={() => setShowFilters(false)}
+                  className="w-full bg-teal-600 text-white py-3 rounded-xl font-semibold"
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
 
-            {/* Product Listing Box - scrolls with page, only top and left border */}
-            <div className="flex-1 border-t border-l border-gray-200 rounded-tl-lg overflow-hidden">
-              {/* Header with dark background */}
-              <div className="bg-gray-800 px-5 py-4">
-                <div className="flex items-center justify-between">
-                  {/* Left: Tabs */}
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setActiveTab("eyeglasses")}
-                      className={`px-5 py-2 text-sm font-semibold rounded-full transition-colors ${
-                        activeTab === "eyeglasses"
-                          ? "bg-teal-600 text-white"
-                          : "bg-gray-700 text-gray-200 hover:bg-gray-600"
-                      }`}
-                    >
-                      EYEGLASSES
-                    </button>
-                    <div className="flex items-center bg-gray-700 rounded-full p-1">
-                      <button 
-                        onClick={() => setViewMode("frames")}
-                        className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-colors ${
-                          viewMode === "frames"
-                            ? "bg-gray-600 text-white"
-                            : "text-gray-400 hover:text-gray-200"
+            {/* Product Listing Area */}
+            <div className="flex-1 min-w-0">
+              {/* Dark Header with Tabs + Sort */}
+              <div className="bg-gray-900 text-white rounded-t-2xl lg:rounded-tl-2xl overflow-hidden">
+                <div className="px-4 py-4 lg:px-6 lg:py-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    
+                    {/* Tabs & View Mode */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => setActiveTab("eyeglasses")}
+                        className={`px-6 py-2.5 text-sm font-semibold rounded-full transition-all ${
+                          activeTab === "eyeglasses"
+                            ? "bg-teal-600 text-white shadow-sm"
+                            : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                         }`}
                       >
-                        VIEW FRAMES
+                        EYEGLASSES
                       </button>
-                      <button 
-                        onClick={() => setViewMode("virtual")}
-                        className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-colors ${
-                          viewMode === "virtual"
-                            ? "text-gray-900 golden-pulse"
-                            : "text-gray-400 hover:text-gray-200"
-                        }`}
-                      >
-                        VIRTUAL TRY ON
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Right: Results Count and Sort */}
-                  <div className="flex items-center gap-6">
-                    <span className="text-sm text-gray-300">
-                      Showing 15 of 729 Results
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-300 font-medium">SORT BY</span>
-                      <select
-                        value={sortBy}
-                        onChange={handleSortChange}
-                        className="border border-gray-600 rounded-md px-3 py-2 text-sm bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      <div className="flex items-center bg-gray-800 rounded-full p-1">
+                        <button 
+                          onClick={() => setViewMode("frames")}
+                          className={`px-5 py-2 text-xs font-semibold rounded-full transition-all ${
+                            viewMode === "frames"
+                              ? "bg-gray-700 text-white"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          FRAMES
+                        </button>
+                        <button 
+                          onClick={() => setViewMode("virtual")}
+                          className={`px-5 py-2 text-xs font-semibold rounded-full transition-all ${
+                            viewMode === "virtual"
+                              ? "bg-amber-400 text-gray-900 font-bold"
+                              : "text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          VIRTUAL TRY-ON
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mobile Filters Button + Results + Sort */}
+                    <div className="flex items-center justify-between sm:justify-end gap-4">
+                      <button 
+                        onClick={() => setShowFilters(true)}
+                        className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-xl text-sm font-medium"
                       >
-                        <option value="best-sellers">Best Sellers</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                        <option value="newest">Newest First</option>
-                        <option value="rating">Top Rated</option>
-                      </select>
+                        <SlidersHorizontal size={18} />
+                        Filters
+                      </button>
+
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-gray-400 hidden sm:inline">
+                          Showing 15 of 729
+                        </span>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400 font-medium whitespace-nowrap">SORT:</span>
+                          <select
+                            value={sortBy}
+                            onChange={handleSortChange}
+                            className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                          >
+                            <option value="best-sellers">Best Sellers</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="newest">Newest First</option>
+                            <option value="rating">Top Rated</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Product Grid - flows with page */}
-              <div className="p-5 pb-8">
-                <Grid columns={3} gap={4}>
+              {/* Product Grid */}
+              <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6">
+                <Grid 
+                  columns={1} 
+                  sm={2} 
+                  lg={3} 
+                  xl={4} 
+                  gap={5}
+                >
                   {productCards}
                 </Grid>
               </div>
@@ -155,10 +192,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
         </Container>
       </main>
 
-      {/* Footer */}
       <Footer />
-
-      {/* WhatsApp Button */}
       <WhatsAppButton />
     </div>
   );
