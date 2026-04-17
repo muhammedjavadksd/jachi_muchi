@@ -78,15 +78,15 @@ export const TopCategories = memo(function TopCategories(): JSX.Element {
       const hasDropdown = !!CATEGORY_SUBCATEGORIES[category.name];
       
       return (
-        <div key={category.name} className="relative group flex-shrink-0 w-[50%] sm:w-[33.33%] md:w-[25%] lg:w-[20%] xl:w-[16.66%]">
+        <div key={category.name} className="relative group">
           <Link
             to={category.link}
-            className="flex flex-col items-stretch gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
+            className="flex flex-col items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
             onMouseEnter={() => handleMouseEnter(category.name)}
             onMouseLeave={handleMouseLeave}
           >
             <div
-              className="relative flex items-center justify-center overflow-hidden"
+              className="relative flex items-center justify-center overflow-hidden w-full"
               style={{ backgroundColor: "#f6f6f6", borderRadius: "16px", aspectRatio: "1 / 0.7" }}
             >
               <img src={category.image} alt={category.label} className="w-4/5 h-4/5 object-contain" loading="lazy" />
@@ -139,7 +139,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element {
     <section className="relative py-12">
       <Container className="overflow-visible">
         <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">Top Categorie</h2>
-        <div className="flex flex-wrap sm:flex-nowrap gap-3 sm:gap-4 md:gap-5 w-full justify-center sm:justify-start">{categoryCards}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 w-full">{categoryCards}</div>
       </Container>
     </section>
   );
