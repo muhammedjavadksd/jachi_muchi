@@ -33,15 +33,12 @@ interface AccountInfo {
   gender: string;
 }
 
-/**
- * Account Information Page
- * Displays and allows editing of user account information
- */
 export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const [activeMenu] = useState("account-info");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Account info state
   const [accountInfo, setAccountInfo] = useState<AccountInfo>({
     firstName: "Muhammed",
@@ -50,66 +47,53 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
     gender: "",
   });
 
-  // Edit form state
   const [editForm, setEditForm] = useState<AccountInfo>(accountInfo);
-
-  // Password change state
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  /** Memoize header spacer style */
-  const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`
-  }), []);
+  const spacerStyle = useMemo(() => ({ height: `${PROMOTION_HEADER_HEIGHT}px` }), []);
 
-  /** Handle edit toggle */
   const handleEditClick = useCallback(() => {
     setEditForm(accountInfo);
     setIsEditing(true);
   }, [accountInfo]);
 
-  /** Handle cancel edit */
   const handleCancelEdit = useCallback(() => {
     setEditForm(accountInfo);
     setIsEditing(false);
   }, [accountInfo]);
 
-  /** Handle save */
   const handleSave = useCallback(() => {
     setAccountInfo(editForm);
     setIsEditing(false);
   }, [editForm]);
 
-  /** Handle form change */
   const handleFormChange = useCallback((field: keyof AccountInfo, value: string) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  /** Handle password form change */
   const handlePasswordChange = useCallback((field: string, value: string) => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  /** Handle password submit */
   const handlePasswordSubmit = useCallback(() => {
-    // Password change logic would go here
     setShowPasswordModal(false);
     setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
   }, []);
 
-  /** Memoize sidebar menu */
-  const sidebarMenu = useMemo(() => (
+  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
+
+  // Desktop Sidebar
+  const desktopSidebar = useMemo(() => (
     SIDEBAR_MENU.map((item) => (
       <Link
         key={item.id}
         to={item.link}
         className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id
-            ? "bg-teal-600 text-white"
-            : "text-gray-700 hover:bg-gray-100"
+          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
         }`}
       >
         <span>{item.label}</span>
@@ -122,40 +106,89 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
     ))
   ), [activeMenu]);
 
+  // Mobile Account Menu (First element on mobile)
+  const mobileAccountMenu = useMemo(() => (
+    <div className="md:hidden mb-6">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        {/* Account Menu Header */}
+        <button
+          onClick={toggleMobileMenu}
+          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
+        >
+          <span className="font-medium text-gray-900">Account Menu</span>
+          <svg
+            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Menu Items - Shown when expanded */}
+        {isMobileMenuOpen && (
+          <div className="divide-y divide-gray-100">
+            {SIDEBAR_MENU.map((item) => (
+              <Link
+                key={item.id}
+                to={item.link}
+                className={`block px-5 py-4 text-sm font-medium transition-colors ${
+                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{item.label}</span>
+                  {item.icon === "3d" && (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+                    </svg>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ), [activeMenu, isMobileMenuOpen]);
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
-      {/* Promotion Header */}
       <PromotionHeader />
-      
-      {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
-      {/* Main Content */}
-      <main className="flex-1 py-6">
+      <main className="flex-1 py-6 md:py-8">
         <Container>
-          <div className="flex gap-8">
-            {/* Left Sidebar - Sticky */}
-            <div 
-              className="w-64 shrink-0 sticky"
-              style={{ top: `${PROMOTION_HEADER_HEIGHT + 24}px` }}
-            >
-              <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                {sidebarMenu}
-              </nav>
+          <div className="max-w-6xl mx-auto">
+            {/* Page Header */}
+            <div className="mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Account Information</h1>
+              <p className="text-gray-500 mt-1">Manage your personal information</p>
             </div>
 
-            {/* Right Content Area */}
-            <div className="flex-1">
-              {/* Page Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Account Information</h1>
-                  <p className="text-gray-500 mt-1">Manage your personal information</p>
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+              {/* Desktop Sidebar */}
+              <div className="hidden md:block w-64 shrink-0">
+                <div
+                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
+                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
+                >
+                  <nav>{desktopSidebar}</nav>
                 </div>
+              </div>
+
+              {/* Mobile: Account Menu FIRST */}
+              {mobileAccountMenu}
+
+              {/* Main Content */}
+              <div className="flex-1">
+                {/* Edit Information Button - Now comes AFTER Account Menu on mobile */}
                 {!isEditing && (
-                  <button 
+                  <button
                     onClick={handleEditClick}
-                    className="px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2"
+                    className="w-full md:w-auto mb-6 px-6 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-2xl flex items-center justify-center gap-2 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -163,147 +196,69 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     Edit Information
                   </button>
                 )}
-              </div>
 
-              {/* Account Info Form */}
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                {/* Form Header */}
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h2 className="font-semibold text-gray-900">
-                    {isEditing ? "Edit Account Information" : "Personal Details"}
-                  </h2>
-                </div>
+                {/* Personal Details Card */}
+                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="bg-gray-50 px-5 py-4 border-b border-gray-200">
+                    <h2 className="font-semibold text-gray-900">Personal Details</h2>
+                  </div>
 
-                {/* Form Body */}
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="p-5 md:p-6 space-y-5">
                     {/* First Name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editForm.firstName}
-                          onChange={(e) => handleFormChange("firstName", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          placeholder="Enter first name"
-                        />
-                      ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
-                          {accountInfo.firstName}
-                        </p>
-                      )}
+                      <label className="block text-sm font-medium text-gray-600 mb-1.5">First Name</label>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
+                        {accountInfo.firstName}
+                      </div>
                     </div>
 
-                    {/* Last Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editForm.lastName}
-                          onChange={(e) => handleFormChange("lastName", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          placeholder="Enter last name"
-                        />
-                      ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
-                          {accountInfo.lastName}
-                        </p>
-                      )}
+                    {/* Last Name with WhatsApp Icon */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-600 mb-1.5">Last Name</label>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 flex items-center justify-between">
+                        {accountInfo.lastName}
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xl">💬</span> {/* WhatsApp style icon */}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Email Address */}
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      {isEditing ? (
-                        <input
-                          type="email"
-                          value={editForm.email}
-                          onChange={(e) => handleFormChange("email", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          placeholder="Enter email address"
-                        />
-                      ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
-                          {accountInfo.email}
-                        </p>
-                      )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1.5">Email Address</label>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 break-all">
+                        {accountInfo.email}
+                      </div>
                     </div>
 
                     {/* Gender */}
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Gender
-                      </label>
-                      {isEditing ? (
-                        <select
-                          value={editForm.gender}
-                          onChange={(e) => handleFormChange("gender", e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-                        >
-                          {GENDER_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <p className="px-4 py-3 bg-gray-50 border border-gray-600 rounded-lg text-gray-900">
-                          {GENDER_OPTIONS.find(g => g.value === accountInfo.gender)?.label || "Select"}
-                        </p>
-                      )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1.5">Gender</label>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
+                        {GENDER_OPTIONS.find(g => g.value === accountInfo.gender)?.label || "Not specified"}
+                      </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Edit Mode Buttons */}
-                  {isEditing && (
-                    <div className="flex items-center gap-4 mt-6 pt-6 border-t border-gray-200">
+                {/* Security Section */}
+                <div className="mt-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="bg-gray-50 px-5 py-4 border-b border-gray-200">
+                    <h2 className="font-semibold text-gray-900">Security</h2>
+                  </div>
+                  <div className="p-5 md:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="font-medium">Password</h3>
+                        <p className="text-sm text-gray-500 mt-1">Change your password to keep your account secure</p>
+                      </div>
                       <button
-                        onClick={handleSave}
-                        className="px-6 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                        onClick={() => setShowPasswordModal(true)}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-2xl hover:bg-gray-200 transition-colors"
                       >
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
-                      >
-                        Cancel
+                        Change Password
                       </button>
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Change Password Section */}
-              <div className="mt-6 bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h2 className="font-semibold text-gray-900">Security</h2>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-gray-900">Password</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Change your password to keep your account secure
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowPasswordModal(true)}
-                      className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Change Password
-                    </button>
                   </div>
                 </div>
               </div>
@@ -312,95 +267,37 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
         </Container>
       </main>
 
-      {/* Footer */}
       <Footer />
-
-      {/* WhatsApp Button */}
       <WhatsAppButton />
 
-      {/* Change Password Modal */}
+      {/* Password Modal */}
       {showPasswordModal && (
         <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/50 z-[100]"
-            onClick={() => setShowPasswordModal(false)}
-          />
-          
-          {/* Modal */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl shadow-2xl z-[101]">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
-              <button 
-                onClick={() => setShowPasswordModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
-              >
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-4">
-              {/* Current Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="Enter current password"
-                />
+          <div className="fixed inset-0 bg-black/60 z-[100]" onClick={() => setShowPasswordModal(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 z-[101]">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+              <div className="px-6 py-5 border-b flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Change Password</h2>
+                <button onClick={() => setShowPasswordModal(false)} className="text-2xl text-gray-400 hover:text-gray-600">×</button>
               </div>
-
-              {/* New Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={passwordForm.newPassword}
-                  onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="Enter new password"
-                />
+              <div className="p-6 space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                  <input type="password" value={passwordForm.currentPassword} onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                  <input type="password" value={passwordForm.newPassword} onChange={(e) => handlePasswordChange("newPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                  <input type="password" value={passwordForm.confirmPassword} onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                </div>
               </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="Confirm new password"
-                />
+              <div className="flex gap-3 px-6 py-5 border-t bg-gray-50">
+                <button onClick={() => setShowPasswordModal(false)} className="flex-1 py-3.5 bg-gray-100 rounded-2xl font-medium">Cancel</button>
+                <button onClick={handlePasswordSubmit} className="flex-1 py-3.5 bg-teal-600 text-white rounded-2xl font-medium">Update Password</button>
               </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-              <button
-                onClick={() => setShowPasswordModal(false)}
-                className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handlePasswordSubmit}
-                className="px-5 py-2.5 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                Update Password
-              </button>
             </div>
           </div>
         </>
