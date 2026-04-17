@@ -186,3 +186,106 @@ export const ChevronRightIcon = memo(function ChevronRightIcon({
 });
 
 ChevronRightIcon.displayName = "ChevronRightIcon";
+
+/**
+ * Menu/hamburger icon for mobile navigation
+ * Memoized as props rarely change
+ */
+export const MenuIcon = memo(function MenuIcon({ 
+  className = "" 
+}: IconProps): JSX.Element {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+});
+
+MenuIcon.displayName = "MenuIcon";
+
+/**
+ * Close/X icon for closing modals, menus, etc.
+ * Memoized as props rarely change
+ */
+export const CloseIcon = memo(function CloseIcon({ 
+  className = "" 
+}: IconProps): JSX.Element {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+});
+
+CloseIcon.displayName = "CloseIcon";
+
+/**
+ * Camera icon for search by photo feature
+ */
+export const CameraIcon = memo(function CameraIcon({ 
+  className = "" 
+}: IconProps): JSX.Element {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2v11z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+});
+
+CameraIcon.displayName = "CameraIcon";
+
+/**
+ * Location/Pin icon for store locator
+ */
+export const LocationIcon = memo(function LocationIcon({ 
+  className = "" 
+}: IconProps): JSX.Element {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+});
+
+LocationIcon.displayName = "LocationIcon";

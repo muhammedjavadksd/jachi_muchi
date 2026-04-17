@@ -116,6 +116,42 @@ export const HERO_BANNER_IMAGES: string[] = [
   "/banner/image.png",
 ];
 
+/**
+ * Hero banner data with text overlays for Lenskart-style design
+ * Each banner can have a badge, title, subtitle, and CTA button
+ */
+export interface HeroBannerData {
+  badge?: string;
+  title: string;
+  subtitle?: string;
+  cta?: string;
+  link?: string;
+}
+
+export const HERO_BANNER_DATA: HeroBannerData[] = [
+  {
+    badge: "New Collection",
+    title: "Premium Eyeglasses Starting ₹999",
+    subtitle: "Free lens included with every frame",
+    cta: "Shop Now",
+    link: "/eyeglasses"
+  },
+  {
+    badge: "Summer Sale",
+    title: "Sunglasses Flat 40% Off",
+    subtitle: "UV protection + Style",
+    cta: "Explore",
+    link: "/sunglasses"
+  },
+  {
+    badge: "Free Eye Test",
+    title: "Book Free Eye Checkup",
+    subtitle: "At your nearest Lenskart store",
+    cta: "Book Now",
+    link: "/eye-checkup"
+  },
+];
+
 export const SECONDARY_BANNERS: string[] = [
   // "/campign/image.png",
   "/campign/4.png",

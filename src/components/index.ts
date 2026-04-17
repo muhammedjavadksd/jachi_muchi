@@ -24,6 +24,9 @@ export { FeaturedGrid } from "./FeaturedGrid/FeaturedGrid";
 export { Footer } from "./Footer/Footer";
 export { WhatsAppButton } from "./WhatsAppButton/WhatsAppButton";
 
+// Navigation
+export { BottomNav } from "./BottomNav/BottomNav";
+
 // Wishlist
 export { WishlistCanvas } from "./WishlistCanvas/WishlistCanvas";
 

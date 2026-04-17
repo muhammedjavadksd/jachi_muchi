@@ -11,7 +11,7 @@ export const WhatsAppButton = memo(function WhatsAppButton(): JSX.Element {
       href="https://wa.me/918447821891"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50"
       aria-label="Chat on WhatsApp"
     >
       <svg width="28" height="28" viewBox="0 0 24 24" fill="white">

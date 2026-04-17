@@ -89,6 +89,10 @@ export interface HeaderProps {
 /** Props for MainNavBar component - main navigation with scroll state */
 export interface MainNavBarProps {
   isScrolled: boolean;
+  mobileMenuOpen?: boolean;
+  onMobileMenuToggle?: () => void;
+  onMobileMenuClose?: () => void;
+  onSearchClick?: () => void;
 }
 
 /** Props for TopCategories component - category grid section */

@@ -106,3 +106,86 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Slide down animation for mobile search */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+/* Responsive typography utilities */
+@layer utilities {
+  .text-responsive-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  .text-responsive-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .text-responsive-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .text-responsive-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  .text-responsive-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  .text-responsive-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  .text-responsive-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  /* Safe area padding for iOS devices */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  @media (min-width: 640px) {
+    .sm\:text-responsive-xs {
+      font-size: 0.75rem;
+    }
+    .sm\:text-responsive-sm {
+      font-size: 0.875rem;
+    }
+    .sm\:text-responsive-base {
+      font-size: 1rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .md\:text-responsive-lg {
+      font-size: 1.125rem;
+    }
+    .md\:text-responsive-xl {
+      font-size: 1.25rem;
+    }
+    .md\:text-responsive-2xl {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .lg\:text-responsive-3xl {
+      font-size: 1.875rem;
+    }
+  }
+}

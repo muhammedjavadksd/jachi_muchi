@@ -46,6 +46,9 @@ createRoot(rootElement).render(
                 <Route path="/account/info" element={<AccountInfoPage />} />
                 <Route path="/account/notifications" element={<ManageNotificationsPage />} />
                 <Route path="/account/address" element={<AddressBookPage />} />
+
+
+                
                 <Route path="/account/*" element={<AccountPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
