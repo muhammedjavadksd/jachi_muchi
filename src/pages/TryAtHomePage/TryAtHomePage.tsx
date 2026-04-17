@@ -114,8 +114,8 @@ export const TryAtHomePage = memo(function TryAtHomePage(): JSX.Element {
       <PromotionHeader />
       <div style={spacerStyle} />
 
-      <main className="flex-1 py-8 sm:py-12">
-        <Container className="max-w-3xl px-4">
+      <main className="flex-1 py-6 sm:py-10 lg:py-12">
+        <Container className="max-w-3xl px-4 sm:px-6 lg:px-8">
           {/* Title */}
           <div className="text-center mb-6">
             <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">Try at Home</h1>

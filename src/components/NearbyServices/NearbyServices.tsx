@@ -3,7 +3,7 @@ import { Container } from "../Container/Container";
 import { NEARBY_SERVICES } from "../../lib/constants";
 
 /**
- * Nearby Services - 2 cols mobile, 4 cols desktop
+ * Nearby Services - responsive grid
  */
 export const NearbyServices = memo(function NearbyServices(): JSX.Element {
   const serviceCards = useMemo(() => (
@@ -31,9 +31,12 @@ export const NearbyServices = memo(function NearbyServices(): JSX.Element {
         <h2 className="text-sm sm:text-base font-semibold mb-2 text-gray-900">
           Nearby Stores & Services
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
+
+        {/* ✅ Merged responsive grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           {serviceCards}
         </div>
+
       </Container>
     </section>
   );

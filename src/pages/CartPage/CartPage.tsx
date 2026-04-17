@@ -69,8 +69,8 @@ const BILL_SUMMARY = {
   totalDiscount: 13740,
   fittingFee: 199,
   totalPayable: 8359,
-  appliedCoupon: "GET60",
-  couponSavings: 2340,
+  appliedCoupon: "",
+  couponSavings: 0,
 };
 
 /**
@@ -80,7 +80,15 @@ const BILL_SUMMARY = {
  */
 export const CartPage = memo(function CartPage(): JSX.Element {
   const [cartItems, setCartItems] = useState<CartItem[]>(CART_ITEMS);
+<<<<<<< HEAD
   const [showBill, setShowBill] = useState(false); // mobile bill toggle
+=======
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponSavings, setCouponSavings] = useState(0);
+  const [couponError, setCouponError] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
@@ -90,6 +98,38 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     setCartItems((prev) => prev.filter((item) => item.id !== id));
   }, []);
 
+<<<<<<< HEAD
+=======
+  /** Handle apply coupon */
+  const handleApplyCoupon = useCallback(() => {
+    if (!couponInput.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+    setIsApplyingCoupon(true);
+    setCouponError("");
+    
+    setTimeout(() => {
+      if (couponInput.toUpperCase() === "GET60") {
+        setAppliedCoupon("GET60");
+        setCouponSavings(2340);
+        setCouponInput("");
+      } else {
+        setCouponError("Invalid coupon code");
+      }
+      setIsApplyingCoupon(false);
+    }, 500);
+  }, [couponInput]);
+
+  /** Handle remove coupon */
+  const handleRemoveCoupon = useCallback(() => {
+    setAppliedCoupon("");
+    setCouponSavings(0);
+    setCouponError("");
+  }, []);
+
+  /** Memoize cart items list */
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
   const cartItemsList = useMemo(() => (
     cartItems.map((item) => (
       <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 relative overflow-hidden">
@@ -314,14 +354,43 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* ── Mobile / Tablet layout: stacked ── */}
           <div className="lg:hidden">
             <h1 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">
               Cart ({cartItems.length} items)
             </h1>
+=======
+              {/* Bill Summary Card */}
+              <div className="bg-white border border-gray-200 rounded-lg p-5 mb-4">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Total item price</span>
+                  <span className="text-gray-900">₹{BILL_SUMMARY.totalItemPrice}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Total discount</span>
+                  <span className="text-green-600">-₹{BILL_SUMMARY.totalDiscount}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Fitting Fee</span>
+                  <span className="text-gray-900">₹{BILL_SUMMARY.fittingFee}</span>
+                </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-600">Coupon ({appliedCoupon})</span>
+                    <span className="text-green-600">-₹{couponSavings}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center py-3 border-t border-gray-200 mt-2">
+                  <span className="text-gray-900 font-semibold">Total payable</span>
+                  <span className="text-gray-900 font-bold text-lg">₹{BILL_SUMMARY.totalPayable - couponSavings}</span>
+                </div>
+              </div>
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
 
             {cartItemsList}
 
+<<<<<<< HEAD
             {/* Collapsible Bill Details */}
             <div className="bg-white border border-gray-200 rounded-lg mb-4 overflow-hidden">
               <button
@@ -342,6 +411,43 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
+=======
+              {/* Coupon Card - Applied or Input */}
+              <div className="bg-white border border-gray-200 rounded-lg p-5 mb-4">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">{appliedCoupon} applied</p>
+                      <p className="text-gray-500 text-sm">You are saving ₹{couponSavings}</p>
+                    </div>
+                    <button onClick={handleRemoveCoupon} className="text-red-500 font-medium text-sm hover:text-red-700">
+                      REMOVE
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-semibold text-gray-900 mb-2">Apply Coupon</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm uppercase"
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={isApplyingCoupon || !couponInput.trim()}
+                        className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      >
+                        {isApplyingCoupon ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-red-500 text-sm mt-2">{couponError}</p>}
+                  </div>
+                )}
+              </div>
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
 
               {showBill && (
                 <div className="px-4 pb-4 border-t border-gray-100 pt-3">

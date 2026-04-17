@@ -1,91 +1,131 @@
-import { memo, useState } from "react";
+import { memo, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { SearchIcon, HeartIcon, CartIcon, UserIcon, CameraIcon, LocationIcon } from "../icons";
-import { BRAND_LOGO_URL } from "../../lib/constants";
+import { SearchIcon, HeartIcon, CartIcon, UserIcon } from "../icons";
+import { BRAND_LOGO_URL, NAV_CATEGORIES } from "../../lib/constants";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
+import { useAuth } from "../../context/AuthContext";
 
-/**
- * Compact mobile-friendly navigation bar
- * Location selector | Search with Camera | Icons
- */
 export const MainNavBar = memo(function MainNavBar({ isScrolled }: { isScrolled?: boolean }): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  const [searchFocused, setSearchFocused] = useState(false);
+
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  /** Header style */
+  const headerClassName = useMemo(() => (
+    `w-full flex justify-between items-center px-4 ${
+      isScrolled ? "bg-white shadow-md" : "bg-black"
+    }`
+  ), [isScrolled]);
+
+  /** Logo style */
+  const logoClassName = useMemo(() => (
+    `h-7 w-auto ${isScrolled ? "" : "brightness-0 invert"}`
+  ), [isScrolled]);
+
+  /** Text color */
+  const textColorStyle = useMemo(() => ({
+    color: isScrolled ? "#111827" : "#ffffff"
+  }), [isScrolled]);
+
+  /** Account button style */
+  const accountButtonStyle = useMemo(() => ({
+    backgroundColor: isScrolled ? "#e5e7eb" : "#374151",
+    color: isScrolled ? "#111827" : "#ffffff",
+  }), [isScrolled]);
 
   return (
-    <header className={`w-full ${isScrolled ? "bg-white" : "bg-white"} shadow-sm`}>
-      <div className="flex items-center gap-2 px-3 py-2">
-        {/* Location Selector */}
-        <button className="flex items-center gap-1 flex-shrink-0">
-          <LocationIcon className="w-4 h-4 text-gray-700" />
-          <div className="flex flex-col items-start">
-            <span className="text-[10px] text-gray-500 leading-none">Deliver to</span>
-            <span className="text-xs font-semibold text-gray-900 leading-tight">Bangalore 56001</span>
-          </div>
-          <svg className="w-3 h-3 text-gray-400 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="6,9 12,15 18,9" />
-          </svg>
-        </button>
+    <header className="relative w-full h-[70px]">
+      <div className={headerClassName}>
 
-        {/* Search Bar with Camera */}
-        <div 
-          className={`flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-3 py-2 mx-1 transition-all ${
-            searchFocused ? "ring-2 ring-blue-500 bg-white" : ""
-          }`}
-        >
-          <SearchIcon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search eyewear..."
-            className="flex-1 bg-transparent outline-none text-sm text-gray-900 placeholder:text-gray-500"
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-          />
-          {/* Camera Icon */}
-          <button className="flex-shrink-0 p-1" aria-label="Camera search">
-            <CameraIcon className="w-5 h-5 text-gray-500" />
-          </button>
+        {/* LEFT SECTION */}
+        <div className="flex items-center gap-6">
+          <img src={BRAND_LOGO_URL} alt="Logo" className={logoClassName} />
+
+          {/* NAV LINKS */}
+          <nav className="hidden lg:flex items-center gap-6">
+            {NAV_CATEGORIES.map((category) => (
+              <span
+                key={category}
+                className="cursor-pointer text-sm font-medium"
+                style={textColorStyle}
+                onMouseEnter={() => setActiveDropdown(category)}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                {category}
+              </span>
+            ))}
+          </nav>
         </div>
 
-        {/* Action Icons */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Wishlist */}
+        {/* RIGHT SECTION */}
+        <div className="flex items-center gap-3">
+
+          {/* SEARCH */}
+          <div className="hidden md:flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-md">
+            <SearchIcon />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="bg-transparent outline-none text-sm"
+            />
+          </div>
+
+          {/* WISHLIST */}
           <button
             onClick={openWishlist}
-            className="relative p-2 text-gray-700"
-            aria-label="Wishlist"
+            className="relative w-10 h-10 flex items-center justify-center"
           >
-            <HeartIcon className="w-5 h-5" />
+            <HeartIcon />
             {wishlistItems.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1 rounded-full">
                 {wishlistItems.length > 9 ? "9+" : wishlistItems.length}
               </span>
             )}
           </button>
 
-          {/* Cart */}
+          {/* CART */}
           <button
             onClick={() => navigate("/cart")}
-            className="relative p-2 text-gray-700"
-            aria-label="Cart"
+            className="w-10 h-10 flex items-center justify-center"
           >
-            <CartIcon className="w-5 h-5" />
-            <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 flex items-center justify-center bg-blue-600 text-white text-[9px] font-bold rounded-full">
-              0
-            </span>
+            <CartIcon />
           </button>
 
-          {/* Profile */}
-          <button
-            onClick={openLoginModal}
-            className="p-2 text-gray-700"
-            aria-label="Sign In"
-          >
-            <UserIcon className="w-5 h-5" />
-          </button>
+          {/* USER */}
+          {isAuthenticated && user ? (
+            <div
+              className="relative"
+              onMouseEnter={() => setShowUserDropdown(true)}
+              onMouseLeave={() => setShowUserDropdown(false)}
+            >
+              <button className="flex items-center gap-2 px-3 py-2 bg-teal-600 text-white rounded-full">
+                <UserIcon />
+                <span className="text-sm">{user.name}</span>
+              </button>
+
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg">
+                  <Link to="/account" className="block px-4 py-2 hover:bg-gray-100">My Account</Link>
+                  <Link to="/account/orders" className="block px-4 py-2 hover:bg-gray-100">Orders</Link>
+                  <Link to="/account/address" className="block px-4 py-2 hover:bg-gray-100">Address</Link>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={openLoginModal}
+              style={accountButtonStyle}
+              className="px-4 py-2 rounded-full"
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </div>
     </header>

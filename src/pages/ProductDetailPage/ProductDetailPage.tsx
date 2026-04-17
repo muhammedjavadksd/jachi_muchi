@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useRef } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
+import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { ProductCard } from "../../components/ProductCard/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../../components/icons";
@@ -52,8 +52,14 @@ const SAMPLE_PRODUCT: ProductDetail = {
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [pincode, setPincode] = useState("");
+<<<<<<< HEAD
   const [mobileImageIndex, setMobileImageIndex] = useState(0);
 
+=======
+  const [lensPanelOpen, setLensPanelOpen] = useState(false);
+  
+  /** Refs for product sliders */
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
   const recentlyViewedRef = useRef<HTMLDivElement>(null);
   const relatedProductsRef = useRef<HTMLDivElement>(null);
 
@@ -264,12 +270,34 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                 <div className="flex items-center gap-3">{colorOptions}</div>
               </div>
 
+<<<<<<< HEAD
               {/* CTA Buttons */}
               <button className="w-full py-3 sm:py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors mb-3 text-sm sm:text-base">
                 SELECT LENS
               </button>
               <button className="w-full py-3 sm:py-4 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors mb-4 flex items-center justify-center gap-2 text-sm sm:text-base">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+=======
+              {/* Select Lens Button */}
+              <button 
+                onClick={() => setLensPanelOpen(true)}
+                className="w-full py-4 bg-teal-700 text-white font-semibold rounded-lg hover:bg-teal-800 transition-colors mb-3"
+              >
+                SELECT LENS
+              </button>
+
+              <LensSelectionPanel
+                isOpen={lensPanelOpen}
+                onClose={() => setLensPanelOpen(false)}
+                productId={SAMPLE_PRODUCT.id}
+                productName={SAMPLE_PRODUCT.name}
+                productPrice={SAMPLE_PRODUCT.price}
+              />
+
+              {/* Try On Button */}
+              <button className="w-full py-4 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors mb-4 flex items-center justify-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>

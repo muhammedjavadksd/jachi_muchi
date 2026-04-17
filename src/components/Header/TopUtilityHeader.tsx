@@ -1,5 +1,4 @@
 import { memo, useMemo } from "react";
-import { Container } from "../Container/Container";
 import { PhoneIcon } from "../icons";
 import { UTILITY_LINKS, SUPPORT_PHONE } from "../../lib/constants";
 
@@ -25,8 +24,7 @@ export const TopUtilityHeader = memo(function TopUtilityHeader(): JSX.Element {
 
   return (
     <div className="w-full bg-white">
-      <Container className="flex justify-between h-10 items-center">
-        {/* <div className="flex items-center gap-4 text-xs text-black"> */}
+      <div className="w-full flex justify-between h-10 items-center px-4">
         <div className="hidden sm:flex items-center gap-4 text-xs text-black">
           {utilityLinksElements}
         </div>
@@ -34,7 +32,7 @@ export const TopUtilityHeader = memo(function TopUtilityHeader(): JSX.Element {
           <PhoneIcon className="text-black" />
           <span className="font-medium">{SUPPORT_PHONE}</span>
         </div>
-      </Container>
+      </div>
     </div>
   );
 });

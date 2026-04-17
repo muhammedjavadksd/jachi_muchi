@@ -36,8 +36,8 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
       <PromotionHeader />
       <div style={spacerStyle} />
 
-      <main className="flex-1 py-10 sm:py-16">
-        <Container className="max-w-5xl space-y-12 px-4">
+      <main className="flex-1 py-8 sm:py-12 lg:py-16">
+        <Container className="max-w-5xl px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
           {/* Page heading */}
           <section className="text-center space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.25em] text-teal-600">

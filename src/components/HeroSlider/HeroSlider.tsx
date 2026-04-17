@@ -75,8 +75,14 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
   ), [getDotClassName, goToSlide]);
 
   return (
+<<<<<<< HEAD
     <section className="w-full relative overflow-hidden bg-gray-100">
       <div className="w-full overflow-hidden">
+=======
+    <section className="w-full relative block" style={{ marginTop: '0px' }}>
+      <div className="w-full relative overflow-hidden" style={{ marginTop: '0px' }}>
+        {/* Slides Container */}
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
         <div
           className="w-full flex transition-transform duration-500 ease-in-out"
           style={sliderStyle}
@@ -89,14 +95,22 @@ export const HeroSlider = memo(function HeroSlider(): JSX.Element {
       <div className="absolute inset-0 z-20 pointer-events-none">
         <button
           onClick={prevSlide}
+<<<<<<< HEAD
           className="absolute top-1/2 -translate-y-1/2 left-2 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 bg-white/25 hover:bg-white/40 backdrop-blur-sm text-white flex items-center justify-center pointer-events-auto rounded-full shadow"
+=======
+          className="absolute bottom-4 sm:bottom-6 left-2 sm:left-6 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors"
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
           aria-label="Previous slide"
         >
           <ChevronLeftIcon className="w-4 h-4" />
         </button>
         <button
           onClick={nextSlide}
+<<<<<<< HEAD
           className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 bg-white/25 hover:bg-white/40 backdrop-blur-sm text-white flex items-center justify-center pointer-events-auto rounded-full shadow"
+=======
+          className="absolute bottom-4 sm:bottom-6 right-2 sm:right-6 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/15 border border-white/30 text-white flex items-center justify-center z-10 hover:bg-white/25 transition-colors"
+>>>>>>> ecdd40ce813f1fe7225e75df122230a08481fe92
           aria-label="Next slide"
         >
           <ChevronRightIcon className="w-4 h-4" />

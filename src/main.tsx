@@ -2,15 +2,17 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
-import { SearchPage, ProductDetailPage, CartPage, CheckoutPage, OrderSuccessPage, OrderFailurePage, AccountPage, My3DModelPage, AccountInfoPage, ManageNotificationsPage, AddressBookPage, TermsPage, PrivacyPage, RefundPolicyPage, ShippingPolicyPage, FAQPage, NotFoundPage, ServerErrorPage, ContactPage, AboutPage, SupportPage, TryAtHomePage, WarrantyPage, CollectionsPage, ServicesPage, HomePage2 } from "./pages";
+import { SearchPage, ProductDetailPage, CartPage, CheckoutPage, OrderSuccessPage, OrderFailurePage, AccountPage, My3DModelPage, AccountInfoPage, ManageNotificationsPage, AddressBookPage, TermsPage, PrivacyPage, RefundPolicyPage, ShippingPolicyPage, FAQPage, NotFoundPage, ServerErrorPage, ContactPage, AboutPage, SupportPage, TryAtHomePage, WarrantyPage, CollectionsPage, ServicesPage, HomePage2, HomeTryOnPage, StoresPage } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
 import { LoginModalProvider } from "./context/LoginModalContext";
 import { SignupModalProvider } from "./context/SignupModalContext";
 import { ForgotPasswordModalProvider } from "./context/ForgotPasswordModalContext";
+import { AuthProvider } from "./context/AuthContext";
 import { WishlistCanvas } from "./components/WishlistCanvas/WishlistCanvas";
 import { LoginModal } from "./components/LoginModal/LoginModal";
 import { SignupModal } from "./components/SignupModal/SignupModal";
 import { ForgotPasswordModal } from "./components/ForgotPasswordModal/ForgotPasswordModal";
+import { ScrollToTop } from "./components/ScrollToTop/ScrollToTop";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
@@ -22,10 +24,12 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter>
-      <LoginModalProvider>
-        <SignupModalProvider>
-          <ForgotPasswordModalProvider>
-            <WishlistProvider>
+      <ScrollToTop />
+      <AuthProvider>
+        <LoginModalProvider>
+          <SignupModalProvider>
+            <ForgotPasswordModalProvider>
+              <WishlistProvider>
               <Routes>
                 <Route path="/" element={<App />} />
                 <Route path="/home-2" element={<HomePage2 />} />
@@ -55,6 +59,8 @@ createRoot(rootElement).render(
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/try-at-home" element={<TryAtHomePage />} />
+                <Route path="/home-try-on" element={<HomeTryOnPage />} />
+                <Route path="/stores" element={<StoresPage />} />
                 <Route path="/warranty" element={<WarrantyPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
                 <Route path="/brands" element={<CollectionsPage />} />
@@ -70,6 +76,7 @@ createRoot(rootElement).render(
           </ForgotPasswordModalProvider>
         </SignupModalProvider>
       </LoginModalProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
