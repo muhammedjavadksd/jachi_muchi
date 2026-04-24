@@ -51,13 +51,17 @@ createRoot(rootElement).render(
 
 
                 <Route path="/terms" element={<TermsPage />} />
+
                 <Route path="/privacy" element={<PrivacyPage />} />
+
                 <Route path="/refund-policy" element={<RefundPolicyPage />} />
+                
                 <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
                 <Route path="/faq" element={<FAQPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/support" element={<SupportPage />} />
+                
                 <Route path="/try-at-home" element={<TryAtHomePage />} />
                 <Route path="/home-try-on" element={<HomeTryOnPage />} />
                 <Route path="/stores" element={<StoresPage />} />
