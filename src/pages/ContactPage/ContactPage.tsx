@@ -1,29 +1,9 @@
 import { memo, useMemo } from "react";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
-
+import { supportCards, serviceLinks, contactInfo } from "@/data/contact.data";
 const HEADER_SPACER_HEIGHT = 140;
 
-const SUPPORT_CARDS = [
-  {
-    title: "About our products & services",
-    description: "Questions about frames, lenses, orders, or store services.",
-  },
-  {
-    title: "Returns & exchanges",
-    description: "Need to adjust, exchange, or return an item you purchased.",
-  },
-  {
-    title: "Account & orders",
-    description: "Help with your account, payments, or order status.",
-  },
-];
 
-const SERVICE_LINKS = [
-  { label: "Warranty & FAQs", href: "/faq" },
-  { label: "Chat with us on WhatsApp", href: "https://wa.me/0000000000" },
-  { label: "Write to customer care", href: "mailto:care@example.com" },
-  { label: "Locate a nearby store", href: "/search?type=stores" },
-];
 
 /**
  * Contact page – provides multiple ways for customers to reach support
@@ -54,9 +34,9 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
 
           {/* Top support categories */}
           <section className="grid gap-6 md:grid-cols-3">
-            {SUPPORT_CARDS.map(card => (
+            {supportCards.map((card, index) => (
               <article
-                key={card.title}
+                key={`${card.title}-${index}`}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center px-6 py-8"
               >
                 <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-teal-600">
@@ -89,10 +69,10 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
             </div>
             <div className="text-left sm:text-right">
               <a
-                href="tel:0000000000"
+                href={`tel:${contactInfo.phone.replace(/-/g, '')}`}
                 className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-6 py-3 text-lg sm:text-2xl font-semibold tracking-wide text-gray-900 hover:bg-white hover:border-teal-500 hover:text-teal-600 transition-colors"
               >
-                0000-000-000
+                {contactInfo.phone}
               </a>
               <p className="mt-2 text-[11px] text-gray-500">
                 Standard call charges may apply.
@@ -136,7 +116,7 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {SERVICE_LINKS.map(link => (
+              {serviceLinks.map(link => (
                 <a
                   key={link.label}
                   href={link.href}
