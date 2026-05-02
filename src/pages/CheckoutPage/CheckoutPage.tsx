@@ -1,10 +1,21 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate } from "react-router-dom";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
+
+/** Cart item interface matching localStorage structure */
+interface CartItem {
+  productId: string;
+  productName: string;
+  productPrice: number;
+  lens: string;
+  lensPrice: number;
+  totalPrice: number;
+  powerType: string;
+}
 
 /** Address interface */
 interface Address {
@@ -15,6 +26,22 @@ interface Address {
   phone: string;
   deliveryDate: string;
   isSelected: boolean;
+}
+
+/** Order pricing breakdown */
+interface OrderPricing {
+  subtotal: number;
+  discount: number;
+  fittingFee: number;
+  total: number;
+}
+
+/** Order structure */
+interface OrderData {
+  items: CartItem[];
+  address: Address;
+  pricing: OrderPricing;
+  createdAt: string;
 }
 
 /** Checkout steps */
@@ -33,19 +60,10 @@ const SAMPLE_ADDRESSES: Address[] = [
     fullAddress: "Edathuruthikaran Holdings, 10/450-2, Kundannoor, Maradu, Ernakulam, Kerala 682304",
     name: "Sbsj",
     phone: "9744727681",
-    deliveryDate: "23 Feb",
+    deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     isSelected: true,
   },
 ];
-
-/** Bill summary data */
-const BILL_SUMMARY = {
-  totalItemPrice: 35100,
-  totalDiscount: 22140,
-  fittingFee: 199,
-  totalPayable: 13159,
-  cashback: 1316,
-};
 
 /**
  * Add Address Modal Component
@@ -94,17 +112,17 @@ const AddAddressModal = memo(function AddAddressModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-200 sticky top-0 bg-white z-10">
           <h2 className="text-xl font-semibold text-gray-900">Add New Address</h2>
-          <button 
+          <button
             onClick={onClose}
             className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
           >
@@ -125,11 +143,10 @@ const AddAddressModal = memo(function AddAddressModal({
                   key={type}
                   type="button"
                   onClick={() => handleTypeSelect(type)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                    formData.type === type
-                      ? "bg-teal-700 text-white shadow-sm"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${formData.type === type
+                    ? "bg-teal-700 text-white shadow-sm"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
                 >
                   {type}
                 </button>
@@ -239,6 +256,26 @@ AddAddressModal.displayName = "AddAddressModal";
  * Checkout Page - Fully Responsive
  */
 export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
+
+  // Load cart from localStorage with safety fallback
+  const [cart, setCart] = useState<CartItem[]>([]);
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("cart") || "[]");
+    setCart(stored);
+  }, []);
+
+  // Correct pricing calculations
+  const subtotal = useMemo(() =>
+    cart.reduce((sum, item) => sum + item.totalPrice, 0), [cart]);
+
+  const discount = useMemo(() =>
+    cart.reduce((sum, item) => sum + (item.productPrice + item.lensPrice - item.totalPrice), 0), [cart]);
+
+  const fittingFee = 199;
+
+  const totalPayable = useMemo(() =>
+    subtotal + fittingFee, [subtotal]);
+
   const [addresses, setAddresses] = useState<Address[]>(SAMPLE_ADDRESSES);
   const [currentStep] = useState("address");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -264,7 +301,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
       ...addressData,
       id: Date.now().toString(),
       isSelected: addresses.length === 0,
-      deliveryDate: "25 Feb",
+      deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     };
     setAddresses(prev => [...prev, newAddress]);
   }, [addresses.length]);
@@ -275,9 +312,8 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const progressSteps = useMemo(() => (
     CHECKOUT_STEPS.map((step, index) => (
       <div key={step.id} className="flex items-center flex-1 min-w-0">
-        <span className={`text-sm font-medium whitespace-nowrap ${
-          step.id === currentStep ? "text-gray-900" : "text-gray-400"
-        }`}>
+        <span className={`text-sm font-medium whitespace-nowrap ${step.id === currentStep ? "text-gray-900" : "text-gray-400"
+          }`}>
           {step.label}
         </span>
         {index < CHECKOUT_STEPS.length - 1 && (
@@ -291,13 +327,12 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
 
   const addressCards = useMemo(() => (
     addresses.map((address) => (
-      <div 
-        key={address.id} 
-        className={`bg-white border-2 rounded-2xl p-5 mb-4 cursor-pointer transition-all active:scale-[0.985] ${
-          address.isSelected 
-            ? "border-teal-600 shadow-sm" 
-            : "border-gray-200 hover:border-gray-300"
-        }`}
+      <div
+        key={address.id}
+        className={`bg-white border-2 rounded-2xl p-5 mb-4 cursor-pointer transition-all active:scale-[0.985] ${address.isSelected
+          ? "border-teal-600 shadow-sm"
+          : "border-gray-200 hover:border-gray-300"
+          }`}
         onClick={() => handleSelectAddress(address.id)}
       >
         <div className="flex items-start justify-between mb-4">
@@ -308,9 +343,8 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
             {address.type}
           </span>
 
-          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-            address.isSelected ? "border-teal-600 bg-teal-600" : "border-gray-300"
-          }`}>
+          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${address.isSelected ? "border-teal-600 bg-teal-600" : "border-gray-300"
+            }`}>
             {address.isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
           </div>
         </div>
@@ -325,13 +359,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
         <div className="flex items-center justify-between pt-5 border-t border-gray-100 mt-5">
           <span className="text-gray-600 text-sm">Get it by {address.deliveryDate}</span>
           <div className="flex items-center gap-5 text-sm">
-            <button 
+            <button
               onClick={(e) => { e.stopPropagation(); handleDeleteAddress(address.id); }}
               className="text-red-600 hover:text-red-700 font-medium"
             >
               Delete
             </button>
-            <button 
+            <button
               onClick={(e) => e.stopPropagation()}
               className="text-gray-500 hover:text-gray-700 font-medium"
             >
@@ -389,7 +423,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </svg>
                   <div>
                     <span className="text-green-700 font-medium">
-                      ₹{BILL_SUMMARY.totalDiscount} saved + ₹{BILL_SUMMARY.cashback} cashback
+                      ₹{discount} saved + ₹0 cashback
                     </span>
                   </div>
                 </div>
@@ -399,29 +433,76 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   <div className="space-y-4">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total item price</span>
-                      <span className="font-medium">₹{BILL_SUMMARY.totalItemPrice}</span>
+                      <span className="font-medium">₹{subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total discount</span>
-                      <span className="text-green-600 font-medium">-₹{BILL_SUMMARY.totalDiscount}</span>
+                      <span className="text-green-600 font-medium">-₹{discount}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Fitting Fee</span>
-                      <span>₹{BILL_SUMMARY.fittingFee}</span>
+                      <span>₹{fittingFee}</span>
                     </div>
 
                     <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-semibold text-lg">Total payable</span>
                       <span className="font-bold text-2xl text-gray-900">
-                        ₹{BILL_SUMMARY.totalPayable}
+                        ₹{totalPayable}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Proceed Button */}
-                <button 
-                  onClick={() => navigate("/order-success")}
+                <button
+                  onClick={async () => {
+                    const selectedAddress = addresses.find(a => a.isSelected);
+
+                    if (!selectedAddress) {
+                      alert("Please select address");
+                      return;
+                    }
+
+                    if (cart.length === 0) {
+                      alert("Your cart is empty");
+                      return;
+                    }
+
+                    try {
+                      const res = await fetch("http://localhost:5000/api/orders", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                          items: cart.map(item => ({
+                            productId: item.productId,
+                            name: item.productName,
+                            price: item.totalPrice,
+                            quantity: 1
+                          })),
+                          addressId: selectedAddress.id,
+                          totalAmount: totalPayable
+                        })
+                      });
+
+                      const data = await res.json();
+
+                      if (!data.success) {
+                        throw new Error("Order failed");
+                      }
+
+                      // Clear cart AFTER success
+                      localStorage.removeItem("cart");
+
+                      navigate("/order-success");
+
+                    } catch (error) {
+                      console.error(error);
+                      alert("Failed to place order");
+                    }
+                  }}
+
                   className="mt-6 w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-base transition-all active:scale-[0.985]"
                 >
                   Save Address & Proceed
@@ -435,7 +516,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
       <Footer />
       <WhatsAppButton />
 
-      <AddAddressModal 
+      <AddAddressModal
         isOpen={isModalOpen}
         onClose={closeModal}
         onSave={handleAddAddress}

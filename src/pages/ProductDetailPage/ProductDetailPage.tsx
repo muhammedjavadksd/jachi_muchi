@@ -5,6 +5,9 @@ import { ProductCard } from "../../components/ProductCard/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../../components/icons";
 import { SAMPLE_PRODUCTS } from "../../lib/constants";
 import type { ProductDetail } from "../../types";
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { api } from "../../api/axios"; // or your axios file
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -57,6 +60,49 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [pincode, setPincode] = useState("");
   const [lensPanelOpen, setLensPanelOpen] = useState(false);
+const { id } = useParams();
+
+const [product, setProduct] = useState<any>(null);
+const [loading, setLoading] = useState(true);
+
+
+
+useEffect(() => {
+  if (!id) return;
+
+  setLoading(true);
+
+  api.get(`/products/${id}`)
+    .then((res) => {
+      setProduct(res.data.data);
+    })
+    .catch((err) => {
+      console.error(err);
+    })
+    .finally(() => setLoading(false));
+
+}, [id]);
+
+
+const safeProduct = {
+  _id: product?._id || "1",
+  brand: product?.brand || "No Brand",
+  name: product?.name || "No Name",
+  description: product?.description || "",
+  price: product?.price || 0,
+  originalPrice: product?.originalPrice || product?.price || 0,
+  discount: product?.discount || 0,
+  rating: product?.rating || 0,
+  reviews: product?.reviewCount || 0,
+  images: product?.images?.length ? product.images : ["/placeholder.png"],
+
+  // keep static for now (backend not ready)
+  colors: SAMPLE_PRODUCT.colors,
+  specs: SAMPLE_PRODUCT.specs,
+  features: SAMPLE_PRODUCT.features,
+  longDescription: SAMPLE_PRODUCT.longDescription,
+  offerBadge: SAMPLE_PRODUCT.offerBadge,
+};
 
   const recentlyViewedRef = useRef<HTMLDivElement>(null);
   const relatedProductsRef = useRef<HTMLDivElement>(null);
@@ -89,6 +135,8 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
     setSelectedColorIndex(index);
   }, []);
 
+
+
   // Main Product Images as Horizontal Slider on Mobile
   const imageSlider = useMemo(() => (
     <div className="relative">
@@ -96,7 +144,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-1 px-1"
         style={{ scrollSnapType: "x mandatory" }}
       >
-        {SAMPLE_PRODUCT.images.map((image, index) => (
+        {safeProduct.images.map((image, index) => (
           <div
             key={index}
             className="flex-shrink-0 w-full max-w-[100vw] snap-center bg-white border border-gray-200 rounded-2xl overflow-hidden aspect-square"
@@ -127,7 +175,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
 
       {/* Scroll Indicator Dots */}
       <div className="flex justify-center gap-2 mt-4">
-        {SAMPLE_PRODUCT.images.slice(0, 4).map((_, index) => (
+        {safeProduct.images.slice(0, 4).map((_, index) => (
           <div
             key={index}
             className="w-2 h-2 rounded-full bg-gray-300"
@@ -135,12 +183,12 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         ))}
       </div>
     </div>
-  ), []);
+  ), [safeProduct.images]);
 
   // Desktop Image Grid (2x2)
   const imageGrid = useMemo(() => (
     <div className="grid grid-cols-2 gap-4">
-      {SAMPLE_PRODUCT.images.slice(0, 4).map((image, index) => (
+      {safeProduct.images.slice(0, 4).map((image, index) => (
         <div
           key={index}
           className="relative bg-white border border-gray-200 rounded-2xl overflow-hidden aspect-square"
@@ -170,7 +218,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   ), []);
 
   const colorOptions = useMemo(() => (
-    SAMPLE_PRODUCT.colors.map((color, index) => (
+    safeProduct.colors.map((color, index) => (
       <button
         key={index}
         onClick={() => handleColorClick(index)}
@@ -186,16 +234,16 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   ), [selectedColorIndex, handleColorClick]);
 
   const specsTable = useMemo(() => (
-    SAMPLE_PRODUCT.specs.map((spec, index) => (
+    safeProduct.specs.map((spec, index) => (
       <div key={index} className="flex py-3 border-b border-gray-100 last:border-b-0 text-sm">
         <span className="w-40 flex-shrink-0 text-gray-500">{spec.label}</span>
         <span className="text-gray-900 font-medium">{spec.value}</span>
       </div>
     ))
-  ), []);
+  ), [safeProduct.specs]);
 
   const featuresList = useMemo(() => (
-    SAMPLE_PRODUCT.features.map((feature, index) => (
+    safeProduct.features.map((feature, index) => (
       <div key={index} className="flex items-center gap-2">
         <svg className="w-5 h-5 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -203,7 +251,15 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         <span className="text-gray-700">{feature}</span>
       </div>
     ))
-  ), []);
+  ), [safeProduct.specs]);
+
+    if (loading) {
+  return <div className="p-10 text-center">Loading product...</div>;
+}
+
+if (!product) {
+  return <div className="p-10 text-center">Product not found</div>;
+}
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
@@ -231,30 +287,30 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               {/* Rating */}
               <div className="flex items-center gap-3 mb-3">
                 <span className="flex items-center gap-1 bg-teal-700 text-white text-sm font-semibold px-3 py-1 rounded-full">
-                  {SAMPLE_PRODUCT.rating}
+                  {safeProduct.rating}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                   </svg>
                 </span>
                 <span className="text-gray-500 text-sm">
-                  {SAMPLE_PRODUCT.reviews.toLocaleString()} Reviews
+                  {safeProduct.reviews.toLocaleString()} Reviews
                 </span>
               </div>
 
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
-                {SAMPLE_PRODUCT.brand}
+                {safeProduct.brand}
               </h1>
-              <h2 className="text-lg md:text-xl text-gray-600 mb-2">{SAMPLE_PRODUCT.name}</h2>
-              <p className="text-gray-500 text-sm md:text-base mb-6">{SAMPLE_PRODUCT.description}</p>
+              <h2 className="text-lg md:text-xl text-gray-600 mb-2">{safeProduct.name}</h2>
+              <p className="text-gray-500 text-sm md:text-base mb-6">{safeProduct.description}</p>
 
               {/* Price */}
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹{SAMPLE_PRODUCT.price}</span>
-                {SAMPLE_PRODUCT.originalPrice && (
-                  <span className="text-2xl text-gray-400 line-through">₹{SAMPLE_PRODUCT.originalPrice}</span>
+                <span className="text-4xl font-bold text-gray-900">₹{safeProduct.price}</span>
+                {safeProduct.originalPrice && (
+                  <span className="text-2xl text-gray-400 line-through">₹{safeProduct.originalPrice}</span>
                 )}
-                {SAMPLE_PRODUCT.discount && (
-                  <span className="text-green-600 font-bold text-xl">({SAMPLE_PRODUCT.discount}% OFF)</span>
+                {safeProduct.discount && (
+                  <span className="text-green-600 font-bold text-xl">({safeProduct.discount}% OFF)</span>
                 )}
               </div>
 
@@ -285,12 +341,12 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               </div>
 
               {/* Offer Badge */}
-              {SAMPLE_PRODUCT.offerBadge && (
+              {safeProduct.offerBadge && (
                 <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl mb-6">
                   <svg className="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" />
                   </svg>
-                  <span className="font-semibold text-amber-800 text-base">{SAMPLE_PRODUCT.offerBadge}</span>
+                  <span className="font-semibold text-amber-800 text-base">{safeProduct.offerBadge}</span>
                 </div>
               )}
 
@@ -334,11 +390,11 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               </div>
 
               {/* Long Description */}
-              {SAMPLE_PRODUCT.longDescription && (
+              {safeProduct.longDescription && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    {SAMPLE_PRODUCT.longDescription}
+                    {safeProduct.longDescription}
                   </p>
                 </div>
               )}
@@ -374,7 +430,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
           <Container>
             <div className="flex items-center justify-between mb-6 px-4 md:px-0">
               <h2 className="text-xl font-bold text-gray-900">
-                Products Related to {SAMPLE_PRODUCT.brand}
+                Products Related to {safeProduct.brand}
               </h2>
               <div className="flex gap-2">
                 <button onClick={() => scrollLeft(relatedProductsRef)} className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-50">
@@ -402,9 +458,9 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
       <LensSelectionPanel
         isOpen={lensPanelOpen}
         onClose={() => setLensPanelOpen(false)}
-        productId={SAMPLE_PRODUCT.id}
-        productName={SAMPLE_PRODUCT.name}
-        productPrice={SAMPLE_PRODUCT.price}
+        productId={safeProduct._id}
+        productName={safeProduct.name}
+        productPrice={safeProduct.price}
       />
     </div>
   );

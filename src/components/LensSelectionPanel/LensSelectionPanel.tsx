@@ -122,19 +122,33 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   }, [step, selectedPowerType, onClose]);
 
   const handleAddToCart = useCallback(() => {
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
     const cartItem = {
       productId,
       productName,
       productPrice,
-      powerType: selectedPowerType,
-      lens: selectedLens?.id,
-      lensPrice: selectedLens?.price,
-      powerDetails: selectedPowerType === "with-power" || selectedPowerType === "progressive" ? powerDetails : null,
+      lens: selectedLens?.name || "",
+      lensPrice: selectedLens?.price || 0,
+      totalPrice: productPrice + (selectedLens?.price || 0),
+      powerType: selectedPowerType || "",
     };
-    console.log("Adding to cart:", cartItem);
+
+    cart.push(cartItem);
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
     onClose();
     navigate("/cart");
-  }, [productId, productName, productPrice, selectedPowerType, selectedLens, powerDetails, navigate, onClose]);
+  }, [
+    productId,
+    productName,
+    productPrice,
+    selectedPowerType,
+    selectedLens,
+    navigate,
+    onClose,
+  ]);
 
   const completedSteps = step - 1;
 

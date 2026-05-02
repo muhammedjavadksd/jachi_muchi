@@ -1,39 +1,14 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
+import { collections } from "@/data/collections.data";
 
 const HEADER_SPACER_HEIGHT = 140;
 
 /** Placeholder image for collection tiles when no asset is set */
 const PLACEHOLDER_IMAGE = "/category/image.png";
 
-const COLLECTIONS: { name: string; image?: string; link: string }[] = [
-  { name: "AIR", link: "/search?collection=air" },
-  { name: "ESSENTIAL", link: "/search?collection=essential" },
-  { name: "THE ONE", link: "/search?collection=the-one" },
-  { name: "Graph Belle", link: "/search?collection=graph-belle" },
-  { name: "John Dillinger", link: "/search?collection=john-dillinger" },
-  { name: "K.moriyama", link: "/search?collection=kmoriyama" },
-  { name: "Junni", link: "/search?collection=junni" },
-  { name: "BLACK × BLACK", link: "/search?collection=black" },
-  { name: "MOVE", link: "/search?collection=move" },
-  { name: "AUR", link: "/search?collection=aur" },
-  { name: "PC", link: "/search?collection=pc" },
-  { name: "Vuttohru", link: "/search?collection=vuttohru" },
-  { name: "Stranger Things", link: "/search?collection=stranger-things" },
-  { name: "Harry Potter", link: "/search?collection=harry-potter" },
-  { name: "SQUID GAME", link: "/search?collection=squid-game" },
-  { name: "Tom & Jerry", link: "/search?collection=tom-jerry" },
-  { name: "Pompompurin", link: "/search?collection=pompompurin" },
-  { name: "Toy Story", link: "/search?collection=toy-story" },
-  { name: "Hello Kitty", link: "/search?collection=hello-kitty" },
-  { name: "Kuromi", link: "/search?collection=kuromi" },
-  { name: "Demon Slayer", link: "/search?collection=demon-slayer" },
-  { name: "Frozen", link: "/search?collection=frozen" },
-  { name: "Fluff & Fun", link: "/search?collection=fluff-fun" },
-  { name: "HUAWEI Eyewear", link: "/search?collection=huawei" },
-  { name: "FREAK STORE", link: "/search?collection=freak-store" },
-];
+
 
 /**
  * Collections (brands) page – grid of collection tiles with image and name overlay
@@ -75,7 +50,7 @@ export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
 
           {/* Collections grid – 2 columns mobile, 3 tablet, 4 desktop */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-5">
-            {COLLECTIONS.map((collection) => (
+            {collections.map((collection) => (
               <Link
                 key={collection.name}
                 to={collection.link}
