@@ -290,3 +290,34 @@ export interface UseSliderReturn {
   /** Navigate to specific slide by index */
   goToSlide: (index: number) => void;
 }
+
+// ============================================
+// AUTH TYPES
+// ============================================
+
+/** User data from API */
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  role: "user" | "admin";
+  createdAt: string;
+}
+
+/** Signup request payload */
+export interface SignupRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
+/** Signup API response */
+export interface SignupResponse {
+  success: boolean;
+  message: string;
+  user?: User;
+  token?: string;
+}
