@@ -40,7 +40,7 @@ createRoot(rootElement).render(
                 <Route path="/product/:id" element={<ProductDetailPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/order-success" element={<OrderSuccessPage />} />
+                <Route path="/order-success/:id" element={<OrderSuccessPage />} />
                 <Route path="/order-failure" element={<OrderFailurePage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/account/3d-model" element={<My3DModelPage />} />

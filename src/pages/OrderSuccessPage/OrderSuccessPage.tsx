@@ -1,7 +1,8 @@
 import { memo, useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
+import { getOrderById } from "../../api/order";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -40,83 +41,114 @@ interface OrderData {
 }
 
 export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
-  const [order, setOrder] = useState<OrderData>({});
+  const { id } = useParams();
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem("order") || "{}");
-    setOrder(data);
-  }, []);
+    if (!id) return;
+
+    const fetchOrder = async () => {
+      try {
+        setLoading(true);
+        const response = await getOrderById(id);
+
+        if (!response || !response.success || !response.data) {
+          setOrder(null);
+          return;
+        }
+
+        const order = response.data;
+
+        setOrder({
+          orderId: order._id,
+          createdAt: order.createdAt,
+          paymentMethod: order.paymentMethod,
+          items: (order.items || []).map((item: any) => ({
+            productId: item.productId,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          total: order.totalAmount,
+          address: {
+            name: order.address?.name || "User",
+            fullAddress: order.address?.fullAddress || "Saved Address",
+            phone: order.address?.phone || "N/A"
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching order:", error);
+        setOrder(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [id]);
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
   }), []);
 
-  const safeItems = useMemo(() => order.items || [], [order.items]);
+  const safeItems = useMemo(() => order?.items || [], [order]);
 
-  const orderId = useMemo(() =>
-    order.orderId || `ORD${Date.now()}`, [order.orderId]);
+  const orderId = useMemo(() => order?.orderId, [order]);
 
   const orderDate = useMemo(() =>
-    order.createdAt
+    order?.createdAt
       ? new Date(order.createdAt).toLocaleDateString()
-      : new Date().toLocaleDateString(), [order.createdAt]);
+      : "", [order]);
 
   const estimatedDelivery = useMemo(() =>
-    order.estimatedDelivery || "3-5 days", [order.estimatedDelivery]);
+    order?.estimatedDelivery || "3-5 days", [order]);
 
   const subtotal = useMemo(() =>
-    order.subtotal ?? safeItems.reduce((sum, item) =>
-      sum + (item.productPrice || item.price || 0), 0), [order.subtotal, safeItems]);
+    order?.subtotal ?? safeItems.reduce((sum, item) =>
+      sum + (item.price || 0), 0), [order, safeItems]);
 
-  const total = useMemo(() => order.total ?? subtotal, [order.total, subtotal]);
+  const total = useMemo(() =>
+    order?.total ?? subtotal, [order, subtotal]);
 
   const discount = useMemo(() => {
-    if (order.discount !== undefined) return order.discount;
+    if (order?.discount !== undefined) return order.discount;
     return subtotal > total ? subtotal - total : 0;
-  }, [order.discount, subtotal, total]);
+  }, [order, subtotal, total]);
 
   const fittingFee = 199;
 
-  const orderItemsList = useMemo(() => (
-    safeItems.map((item, index) => {
-      const id = item.productId || item.id || `item-${index}`;
-      const name = item.name || "Unnamed Product";
-      const quantity = item.quantity || 1;
-      const price = item.totalPrice || item.productPrice || item.price || 0;
-      return (
-        <div
-          key={id}
-          className="flex gap-4 py-5 border-b border-gray-100 last:border-b-0"
-        >
-          <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden shrink-0 border border-gray-100">
-            <img
-              src="/category/image.png"
-              alt={name}
-              className="w-full h-full object-contain p-2"
-              loading="lazy"
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-gray-900 leading-snug mb-1 line-clamp-2">
-              {name}
-            </h4>
-            <p className="text-gray-500 text-sm">Qty: {quantity}</p>
-          </div>
-          <div className="text-right shrink-0">
-            {price === 0 ? (
-              <span className="text-teal-600 font-bold text-base">FREE</span>
-            ) : (
-              <span className="font-semibold text-gray-900">₹{price}</span>
-            )}
-          </div>
-        </div>
-      );
-    })
-  ), [safeItems]);
+  const addressName = order?.address?.name || "N/A";
+  const addressFull = order?.address?.fullAddress || "";
+  const addressPhone = order?.address?.phone || "N/A";
 
-  const addressName = order.address?.name || "N/A";
-  const addressFull = order.address?.fullAddress || "";
-  const addressPhone = order.address?.phone || "N/A";
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen flex flex-col bg-gray-50">
+        <PromotionHeader />
+        <div style={spacerStyle} />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-gray-500 text-lg">Loading order...</p>
+        </main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="w-full min-h-screen flex flex-col bg-gray-50">
+        <PromotionHeader />
+        <div style={spacerStyle} />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-gray-500 text-lg">Order not found</p>
+        </main>
+        <Footer />
+        <WhatsAppButton />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
@@ -182,7 +214,16 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
               {/* Ordered Items */}
               <h3 className="text-base font-semibold text-gray-700 mb-4">Items Ordered</h3>
               <div className="divide-y divide-gray-100">
-                {orderItemsList}
+                {/* {orderItemsList} */}
+                {safeItems.map((item, index) => (
+                  <div key={index} className="flex justify-between py-3">
+                    <div>
+                      <p className="font-medium text-gray-900">{item.name}</p>
+                      <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
+                    </div>
+                    <p className="font-medium text-gray-900">₹{item.price}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Price Summary */}
