@@ -1,85 +1,69 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
 }
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (accessToken: string, refreshToken: string, userData: User) => void;
   logout: () => void;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = "lenskart_user";
-const DEMO_USER: User = {
-  id: "1",
-  name: "Demo User",
-  email: "demo@lenskart.com",
-  phone: "9876543210",
-};
+const USER_KEY = "app_user";
+const TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
 
 export function AuthProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    const storedUser = localStorage.getItem(USER_KEY);
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedUser && storedToken) {
       try {
-        const parsed = JSON.parse(stored);
+        const parsed = JSON.parse(storedUser);
         setUser(parsed);
+        setIsAuthenticated(true);
       } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
       }
     }
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    setIsLoading(true);
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (password.length >= 6 && (email.includes("@") || /^\d{10,}$/.test(email))) {
-      const loggedInUser: User = {
-        ...DEMO_USER,
-        email: email.includes("@") ? email : `${email}@demo.com`,
-        name: email.split("@")[0] || "Demo User",
-      };
-      setUser(loggedInUser);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
-      setIsLoading(false);
-      return true;
-    }
-    
-    setIsLoading(false);
-    return false;
+  const login = useCallback((accessToken: string, refreshToken: string, userData: User) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }, []);
 
   const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    setIsAuthenticated(false);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
   }, []);
 
-  const value = useMemo(
-    () => ({
-      isAuthenticated: !!user,
-      user,
-      login,
-      logout,
-      isLoading,
-    }),
-    [user, login, logout, isLoading]
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

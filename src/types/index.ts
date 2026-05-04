@@ -306,18 +306,94 @@ export interface User {
   createdAt: string;
 }
 
+/** API user data (from signup/verify responses) */
+export interface ApiUser {
+  _id?: string;
+  id?: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 /** Signup request payload */
 export interface SignupRequest {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  mobile: string;
   password: string;
-  phone?: string;
 }
 
 /** Signup API response */
 export interface SignupResponse {
   success: boolean;
   message: string;
+  data?: {
+    email?: string;
+    token?: string;
+    user?: ApiUser;
+  };
   user?: User;
   token?: string;
+}
+
+/** OTP verification request payload */
+export interface OtpVerifyRequest {
+  email: string;
+  otp: string;
+}
+
+/** OTP verification API response */
+export interface OtpVerifyResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    token: string;
+    user: ApiUser;
+  };
+  user?: User;
+  token?: string;
+}
+
+/** Login request payload */
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+/** Login API response */
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    accessToken: string;
+    refreshToken: string;
+    user: ApiUser;
+  };
+}
+
+/** User profile data */
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobile?: string;
+  gender?: string;
+  avatar?: string;
+}
+
+/** Fetch user profile API response */
+export interface UserProfileResponse {
+  success: boolean;
+  message: string;
+  data?: UserProfile;
+}
+
+/** Update profile request payload */
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
+  gender?: string;
 }

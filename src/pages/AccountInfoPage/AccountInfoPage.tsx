@@ -1,7 +1,10 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
+import { authApi } from "../../api/authApi";
+import { useAuth } from "../../context/AuthContext";
+import type { UserProfile } from "../../types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -25,29 +28,33 @@ const SIDEBAR_MENU = [
   { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
 ];
 
-/** Account info interface */
-interface AccountInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  gender: string;
-}
-
 export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
+  const { user: authUser } = useAuth();
   const [activeMenu] = useState("account-info");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Account info state
-  const [accountInfo, setAccountInfo] = useState<AccountInfo>({
-    firstName: "Muhammed",
-    lastName: "Javad",
-    email: "muhammedjavad119144@gmail.com",
-    gender: "",
-  });
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
-  const [editForm, setEditForm] = useState<AccountInfo>(accountInfo);
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await authApi.getProfile();
+        if (res.success && res.data) {
+          setProfile(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -57,21 +64,35 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const spacerStyle = useMemo(() => ({ height: `${PROMOTION_HEADER_HEIGHT}px` }), []);
 
   const handleEditClick = useCallback(() => {
-    setEditForm(accountInfo);
+    if (profile) {
+      setEditForm({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        mobile: profile.mobile || "",
+        gender: profile.gender || "",
+      });
+    }
     setIsEditing(true);
-  }, [accountInfo]);
+  }, [profile]);
 
   const handleCancelEdit = useCallback(() => {
-    setEditForm(accountInfo);
+    setEditForm({});
     setIsEditing(false);
-  }, [accountInfo]);
+  }, []);
 
-  const handleSave = useCallback(() => {
-    setAccountInfo(editForm);
-    setIsEditing(false);
+  const handleSave = useCallback(async () => {
+    try {
+      const res = await authApi.updateProfile(editForm);
+      if (res.success && res.data) {
+        setProfile(res.data);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
   }, [editForm]);
 
-  const handleFormChange = useCallback((field: keyof AccountInfo, value: string) => {
+  const handleFormChange = useCallback((field: keyof Partial<UserProfile>, value: string) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
@@ -85,6 +106,12 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   }, []);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
+
+  const firstName = profile?.firstName || authUser?.name?.split(" ")[0] || "User";
+  const lastName = profile?.lastName || authUser?.name?.split(" ").slice(1).join(" ") || "";
+  const email = profile?.email || authUser?.email || "user@example.com";
+  const mobile = profile?.mobile || "";
+  const gender = profile?.gender || "";
 
   // Desktop Sidebar
   const desktopSidebar = useMemo(() => (
@@ -197,6 +224,19 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                   </button>
                 )}
 
+                {loading ? (
+                  <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    <div className="p-6 space-y-5">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2" />
+                          <div className="h-12 bg-gray-100 rounded-2xl" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
                 {/* Personal Details Card */}
                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                   <div className="bg-gray-50 px-5 py-4 border-b border-gray-200">
@@ -208,18 +248,15 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-1.5">First Name</label>
                       <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
-                        {accountInfo.firstName}
+                        {firstName}
                       </div>
                     </div>
 
-                    {/* Last Name with WhatsApp Icon */}
+                    {/* Last Name */}
                     <div className="relative">
                       <label className="block text-sm font-medium text-gray-600 mb-1.5">Last Name</label>
-                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 flex items-center justify-between">
-                        {accountInfo.lastName}
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xl">💬</span> {/* WhatsApp style icon */}
-                        </div>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
+                        {lastName}
                       </div>
                     </div>
 
@@ -227,7 +264,15 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-1.5">Email Address</label>
                       <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900 break-all">
-                        {accountInfo.email}
+                        {email}
+                      </div>
+                    </div>
+
+                    {/* Mobile */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 mb-1.5">Mobile</label>
+                      <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
+                        {mobile || "Not provided"}
                       </div>
                     </div>
 
@@ -235,11 +280,77 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-1.5">Gender</label>
                       <div className="px-4 py-3.5 bg-gray-50 border border-gray-300 rounded-2xl text-gray-900">
-                        {GENDER_OPTIONS.find(g => g.value === accountInfo.gender)?.label || "Not specified"}
+                        {gender ? GENDER_OPTIONS.find(g => g.value === gender)?.label || "Not specified" : "Not specified"}
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Edit Form */}
+                {isEditing && (
+                  <div className="mt-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    <div className="bg-gray-50 px-5 py-4 border-b border-gray-200">
+                      <h2 className="font-semibold text-gray-900">Edit Personal Details</h2>
+                    </div>
+                    <div className="p-5 md:p-6 space-y-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">First Name</label>
+                        <input
+                          type="text"
+                          value={editForm.firstName || ""}
+                          onChange={(e) => handleFormChange("firstName", e.target.value)}
+                          className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">Last Name</label>
+                        <input
+                          type="text"
+                          value={editForm.lastName || ""}
+                          onChange={(e) => handleFormChange("lastName", e.target.value)}
+                          className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">Mobile</label>
+                        <input
+                          type="tel"
+                          value={editForm.mobile || ""}
+                          onChange={(e) => handleFormChange("mobile", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                          className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600 mb-1.5">Gender</label>
+                        <select
+                          value={editForm.gender || ""}
+                          onChange={(e) => handleFormChange("gender", e.target.value)}
+                          className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        >
+                          {GENDER_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={handleCancelEdit}
+                          className="flex-1 py-3.5 bg-gray-100 text-gray-700 font-medium rounded-2xl hover:bg-gray-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSave}
+                          className="flex-1 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                  </>
+                )}
 
                 {/* Security Section */}
                 <div className="mt-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
