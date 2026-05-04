@@ -1,7 +1,9 @@
-import { memo, useMemo, useState, useCallback } from "react";
+import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
+import { authApi } from "../../api/authApi";
+import type { AddressData, SaveAddressRequest } from "../../types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -16,50 +18,8 @@ const SIDEBAR_MENU = [
   { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
 ];
 
-/** Address interface */
-interface Address {
-  id: string;
-  name: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  pincode: string;
-  type: "home" | "work" | "other";
-  isDefault: boolean;
-}
-
-/** Sample addresses */
-const SAMPLE_ADDRESSES: Address[] = [
-  {
-    id: "1",
-    name: "Muhammed Javad",
-    phone: "+91 9876543210",
-    addressLine1: "Edathuruthikaran Holdings",
-    addressLine2: "Kundannoor Junction",
-    city: "Maradu",
-    state: "Kerala",
-    pincode: "682304",
-    type: "home",
-    isDefault: true,
-  },
-  {
-    id: "2",
-    name: "Muhammed Javad",
-    phone: "+91 9876543210",
-    addressLine1: "TechPark Building, 4th Floor",
-    addressLine2: "Infopark SEZ",
-    city: "Kochi",
-    state: "Kerala",
-    pincode: "682042",
-    type: "work",
-    isDefault: false,
-  },
-];
-
 /** Empty address template */
-const EMPTY_ADDRESS: Omit<Address, "id"> = {
+const EMPTY_ADDRESS: SaveAddressRequest = {
   name: "",
   phone: "",
   addressLine1: "",
@@ -73,11 +33,32 @@ const EMPTY_ADDRESS: Omit<Address, "id"> = {
 
 export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
   const [activeMenu] = useState("address");
-  const [addresses, setAddresses] = useState<Address[]>(SAMPLE_ADDRESSES);
+  const [addresses, setAddresses] = useState<AddressData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  const [formData, setFormData] = useState<Omit<Address, "id">>(EMPTY_ADDRESS);
+  const [editingAddress, setEditingAddress] = useState<AddressData | null>(null);
+  const [formData, setFormData] = useState<SaveAddressRequest>(EMPTY_ADDRESS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({ open: false, id: null, name: "" });
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await authApi.getAddresses();
+      if (res.success && res.data) {
+        setAddresses(res.data.map(addr => ({ ...addr, id: (addr as any)._id || addr.id })));
+      }
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`
@@ -86,10 +67,11 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
   const handleAddNew = useCallback(() => {
     setEditingAddress(null);
     setFormData(EMPTY_ADDRESS);
+    setApiError("");
     setShowModal(true);
   }, []);
 
-  const handleEdit = useCallback((address: Address) => {
+  const handleEdit = useCallback((address: AddressData) => {
     setEditingAddress(address);
     setFormData({
       name: address.name,
@@ -102,52 +84,74 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
       type: address.type,
       isDefault: address.isDefault,
     });
+    setApiError("");
     setShowModal(true);
   }, []);
 
-  const handleDelete = useCallback((id: string) => {
-    setAddresses(prev => prev.filter(addr => addr.id !== id));
+  const handleDelete = useCallback(async (id: string, name: string) => {
+    if (!deleteModal.open) {
+      setDeleteModal({ open: true, id, name });
+      return;
+    }
+    try {
+      const res = await authApi.deleteAddress(id);
+      if (res.success) {
+        setAddresses(prev => prev.filter(addr => addr.id !== id));
+      }
+      setDeleteModal({ open: false, id: null, name: "" });
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+      setDeleteModal({ open: false, id: null, name: "" });
+    }
+  }, [deleteModal.open]);
+
+  const handleSetDefault = useCallback(async (id: string) => {
+    try {
+      const res = await authApi.setDefaultAddress(id);
+      if (res.success) {
+        fetchAddresses();
+      }
+    } catch (error) {
+      console.error("Failed to set default address:", error);
+    }
   }, []);
 
-  const handleSetDefault = useCallback((id: string) => {
-    setAddresses(prev => prev.map(addr => ({
-      ...addr,
-      isDefault: addr.id === id,
-    })));
-  }, []);
-
-  const handleFormChange = useCallback((field: keyof Omit<Address, "id">, value: string | boolean) => {
+  const handleFormChange = useCallback((field: keyof SaveAddressRequest, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSave = useCallback(() => {
-    if (editingAddress) {
-      setAddresses(prev => prev.map(addr => 
-        addr.id === editingAddress.id 
-          ? { ...formData, id: editingAddress.id }
-          : formData.isDefault ? { ...addr, isDefault: false } : addr
-      ));
-    } else {
-      const newAddress: Address = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      setAddresses(prev => {
-        if (formData.isDefault) {
-          return [...prev.map(addr => ({ ...addr, isDefault: false })), newAddress];
-        }
-        return [...prev, newAddress];
-      });
+  const handleSave = useCallback(async () => {
+    setApiError("");
+    if (!formData.name || !formData.phone || !formData.addressLine1 || !formData.city || !formData.state || !formData.pincode) {
+      setApiError("Please fill all required fields");
+      return;
     }
-    setShowModal(false);
-    setEditingAddress(null);
-    setFormData(EMPTY_ADDRESS);
+    setSaving(true);
+    try {
+      let res;
+      if (editingAddress) {
+        res = await authApi.updateAddress(editingAddress.id, formData);
+      } else {
+        res = await authApi.addAddress(formData);
+      }
+      if (res.success) {
+        fetchAddresses();
+        handleCloseModal();
+      } else {
+        setApiError(res.message || "Failed to save address");
+      }
+    } catch (error: any) {
+      setApiError(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   }, [editingAddress, formData]);
 
   const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setEditingAddress(null);
     setFormData(EMPTY_ADDRESS);
+    setApiError("");
   }, []);
 
   // Desktop Sidebar
@@ -206,7 +210,7 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
                     </svg>
-                  )}
+      )}
                 </div>
               </Link>
             ))}
@@ -261,7 +265,7 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
             Edit
           </button>
           <button
-            onClick={() => handleDelete(address.id)}
+            onClick={() => handleDelete(address.id, address.name)}
             className="text-sm font-medium text-red-600 hover:text-red-700 flex items-center gap-1.5"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +331,22 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
                 </button>
 
                 {/* Address Grid */}
-                {addresses.length > 0 ? (
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                    {[1, 2].map(i => (
+                      <div key={i} className="p-6 bg-white border-2 border-gray-200 rounded-2xl animate-pulse">
+                        <div className="h-5 bg-gray-200 rounded-xl w-1/4 mb-4" />
+                        <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
+                        <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
+                        <div className="h-4 bg-gray-100 rounded w-full" />
+                        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+                          <div className="h-5 bg-gray-100 rounded w-16" />
+                          <div className="h-5 bg-gray-100 rounded w-16" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : addresses.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                     {addressCards}
                   </div>
@@ -378,6 +397,9 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
               </div>
 
               <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                {apiError && (
+                  <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-xl">{apiError}</p>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                   <input
@@ -491,8 +513,50 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
 
               <div className="flex gap-3 px-6 py-5 border-t bg-gray-50">
                 <button onClick={handleCloseModal} className="flex-1 py-3.5 bg-gray-100 rounded-2xl font-medium">Cancel</button>
-                <button onClick={handleSave} className="flex-1 py-3.5 bg-teal-600 text-white rounded-2xl font-medium">
-                  {editingAddress ? "Save Changes" : "Add Address"}
+                <button onClick={handleSave} disabled={saving} className={`flex-1 py-3.5 rounded-2xl font-medium transition-colors ${saving ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-teal-600 text-white hover:bg-teal-700"}`}>
+                  {saving ? "Saving..." : editingAddress ? "Save Changes" : "Add Address"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.open && (
+        <>
+          <div className="fixed inset-0 bg-black/60 z-[100]" onClick={() => setDeleteModal({ open: false, id: null, name: "" })} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md px-4 z-[101]">
+            <div className="bg-white rounded-3xl shadow-2xl p-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Delete Address</h3>
+                <p className="text-gray-500 mb-1">Are you sure you want to delete this address?</p>
+                {deleteModal.name && (
+                  <p className="text-sm font-medium text-gray-700 bg-gray-50 px-4 py-2 rounded-xl mb-4">
+                    {deleteModal.name}
+                  </p>
+                )}
+                <p className="text-sm text-red-500 mb-6">This action cannot be undone</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setDeleteModal({ open: false, id: null, name: "" })} 
+                  className="flex-1 py-3.5 bg-gray-100 text-gray-700 rounded-2xl font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => deleteModal.id && handleDelete(deleteModal.id, deleteModal.name)} 
+                  className="flex-1 py-3.5 bg-red-600 text-white rounded-2xl font-medium hover:bg-red-700 transition-colors"
+                >
+                  Delete
                 </button>
               </div>
             </div>
