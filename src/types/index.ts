@@ -290,3 +290,110 @@ export interface UseSliderReturn {
   /** Navigate to specific slide by index */
   goToSlide: (index: number) => void;
 }
+
+// ============================================
+// AUTH TYPES
+// ============================================
+
+/** User data from API */
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  role: "user" | "admin";
+  createdAt: string;
+}
+
+/** API user data (from signup/verify responses) */
+export interface ApiUser {
+  _id?: string;
+  id?: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+/** Signup request payload */
+export interface SignupRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  password: string;
+}
+
+/** Signup API response */
+export interface SignupResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    email?: string;
+    token?: string;
+    user?: ApiUser;
+  };
+  user?: User;
+  token?: string;
+}
+
+/** OTP verification request payload */
+export interface OtpVerifyRequest {
+  email: string;
+  otp: string;
+}
+
+/** OTP verification API response */
+export interface OtpVerifyResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    token: string;
+    user: ApiUser;
+  };
+  user?: User;
+  token?: string;
+}
+
+/** Login request payload */
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+/** Login API response */
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    accessToken: string;
+    refreshToken: string;
+    user: ApiUser;
+  };
+}
+
+/** User profile data */
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  mobile?: string;
+  gender?: string;
+  avatar?: string;
+}
+
+/** Fetch user profile API response */
+export interface UserProfileResponse {
+  success: boolean;
+  message: string;
+  data?: UserProfile;
+}
+
+/** Update profile request payload */
+export interface UpdateProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
+  gender?: string;
+}
