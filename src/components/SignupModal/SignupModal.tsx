@@ -1,6 +1,9 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSignupModal } from "../../context/SignupModalContext";
 import { useLoginModal } from "../../context/LoginModalContext";
+import { authApi } from "../../api/authApi";
+import { useAuth } from "../../context/AuthContext";
 
 function isValidEmail(value: string): boolean {
   const trimmed = value.trim();
@@ -19,6 +22,8 @@ function isValidPassword(value: string): boolean {
 export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   const { isOpen, close } = useSignupModal();
   const { open: openLoginModal } = useLoginModal();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -27,6 +32,19 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   const [password, setPassword] = useState("");
   const [whatsappUpdates, setWhatsappUpdates] = useState(true);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [step, setStep] = useState<"signup" | "otp">("signup");
+  const [otp, setOtp] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPayload, setSignupPayload] = useState({
+    firstName: "",
+    lastName: "",
+    mobile: "",
+    email: "",
+    password: "",
+  });
 
   const mobileDigits = mobile.replace(/\D/g, "");
   const mobileValid = mobileDigits.length === 10 && /^[6-9]/.test(mobileDigits);
@@ -38,7 +56,7 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
 
   const showError = (field: string) => touched[field] ?? false;
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     close();
     setFirstName("");
     setLastName("");
@@ -46,31 +64,113 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
     setEmail("");
     setPassword("");
     setTouched({});
-  }, [close]);
+    setApiError("");
+    setLoading(false);
+    setStep("signup");
+    setOtp("");
+    setOtpLoading(false);
+    setSignupEmail("");
+    setSignupPayload({
+      firstName: "",
+      lastName: "",
+      mobile: "",
+      email: "",
+      password: "",
+    });
+  };
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      setTouched({
-        firstName: true,
-        mobile: true,
-        email: true,
-        password: true,
-      });
-      if (!formValid) return;
-      handleClose();
-    },
-    [formValid, handleClose]
-  );
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched({ firstName: true, mobile: true, email: true, password: true });
+    if (!formValid) return;
 
-  const handleSignInClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      close();
-      openLoginModal();
-    },
-    [close, openLoginModal]
-  );
+    setLoading(true);
+    setApiError("");
+    const payload = {
+      firstName,
+      lastName,
+      email,
+      mobile,
+      password,
+    };
+
+    try {
+      const response = await authApi.signup(payload);
+      if (response.success) {
+        setSignupEmail(email);
+        setSignupPayload(payload);
+        setStep("otp");
+      } else {
+        setApiError(response.message || "Signup failed");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Something went wrong";
+      setApiError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length < 6) {
+      setApiError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setOtpLoading(true);
+    setApiError("");
+    try {
+      const response = await authApi.verifyOtp({ email: signupEmail, otp });
+      const token = response.data?.token || response.token;
+      const apiUser = response.data?.user;
+
+      if (response.success && token && apiUser) {
+        login(token, token, {
+          id: apiUser._id || apiUser.id || "",
+          name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
+          email: apiUser.email,
+          phone: signupPayload.mobile,
+        });
+        close();
+        navigate("/");
+      } else {
+        setApiError(response.message || "Invalid response from server");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Something went wrong";
+      setApiError(errorMsg);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setApiError("");
+    try {
+      const response = await authApi.resendOtp(signupEmail);
+      if (response.success) {
+        setApiError("OTP resent successfully");
+      } else {
+        setApiError(response.message || "Failed to resend OTP");
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || "Something went wrong";
+      setApiError(errorMsg);
+    }
+  };
+
+  const handleBackToSignup = () => {
+    setStep("signup");
+    setOtp("");
+    setSignupEmail("");
+  };
+
+  const handleSignInClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    close();
+    openLoginModal();
+  };
 
   if (!isOpen) return null;
 
@@ -90,7 +190,7 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
           <h2 id="signup-modal-title" className="text-xl font-bold text-gray-900">
-            Create an Account
+            {step === "otp" ? "Verify OTP" : "Create an Account"}
           </h2>
           <button
             type="button"
@@ -105,8 +205,64 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {step === "otp" ? (
+          <form onSubmit={handleOtpSubmit} className="p-6 space-y-4">
+            <p className="text-sm text-gray-600">
+              We sent a 6-digit code to <span className="font-semibold text-gray-900">{signupEmail}</span>
+            </p>
+
+            <div>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Enter 6-digit OTP"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl tracking-widest text-gray-900 placeholder-gray-400 outline-none focus:border-teal-600 transition-colors"
+                maxLength={6}
+                autoFocus
+              />
+            </div>
+
+            {apiError && (
+              <p className={`text-sm ${apiError.includes("resent") ? "text-green-600" : "text-red-500"}`}>
+                {apiError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={otpLoading || otp.length < 6}
+              className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                otpLoading || otp.length < 6
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-teal-600 text-white hover:bg-teal-700"
+              }`}
+            >
+              {otpLoading ? "Verifying..." : "Verify OTP"}
+            </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                className="text-sm text-teal-600 underline hover:text-teal-700"
+              >
+                Resend OTP
+              </button>
+            </div>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={handleBackToSignup}
+                className="text-sm text-gray-600 underline hover:text-gray-900"
+              >
+                Back to Signup
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
             <input
               type="text"
@@ -194,6 +350,10 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
             )}
           </div>
 
+          {apiError && (
+            <p className="text-sm text-red-500">{apiError}</p>
+          )}
+
           <button
             type="button"
             className="text-sm text-gray-600 hover:text-teal-600 hover:underline"
@@ -223,14 +383,14 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
 
           <button
             type="submit"
-            disabled={!formValid}
+            disabled={!formValid || loading}
             className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-              formValid
+              formValid && !loading
                 ? "bg-teal-600 text-white hover:bg-teal-700"
                 : "bg-gray-200 text-gray-500 cursor-not-allowed"
             }`}
           >
-            Create an Account
+            {loading ? "Creating Account..." : "Create an Account"}
           </button>
 
           <p className="text-center text-sm text-gray-600 pt-1">
@@ -243,7 +403,8 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               Sign In
             </button>
           </p>
-        </form>
+          </form>
+        )}
       </div>
     </>
   );

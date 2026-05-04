@@ -1,9 +1,10 @@
-import { memo, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { memo, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Container } from "../Container/Container";
 import { PhoneIcon, SearchIcon, HeartIcon, CartIcon } from "../icons";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
+import { useAuth } from "../../context/AuthContext";
 import { 
   UTILITY_LINKS, 
   SUPPORT_PHONE, 
@@ -19,7 +20,15 @@ import {
 export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setShowUserDropdown(false);
+    navigate("/");
+  };
 
   /** Memoize utility links */
   const utilityLinksElements = useMemo(() => (
@@ -99,17 +108,52 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
               Track Orders
             </a>
 
-            {/* Sign In - Hidden on mobile, show icon only */}
-            <button
-              type="button"
-              onClick={openLoginModal}
-              className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-800 hover:bg-gray-200"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="hidden sm:inline">Sign In</span>
-            </button>
+            {/* Sign In / Profile */}
+            {isAuthenticated && user ? (
+              <div className="relative" onMouseEnter={() => setShowUserDropdown(true)} onMouseLeave={() => setShowUserDropdown(false)}>
+                <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-teal-600 rounded-full text-sm font-medium text-white hover:bg-teal-700">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
+                </button>
+                {showUserDropdown && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <div className="py-1">
+                      <Link to="/account" onClick={() => setShowUserDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        Profile
+                      </Link>
+                      <Link to="/account/orders" onClick={() => setShowUserDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                        Orders
+                      </Link>
+                    </div>
+                    <div className="border-t border-gray-100">
+                      <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m-8.25 4H3m12-8.25a4.5 4.5 0 010 8.25H8.25a4.5 4.5 0 010-8.25H15" /></svg>
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={openLoginModal}
+                className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 rounded-full text-sm font-medium text-gray-800 hover:bg-gray-200"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="hidden sm:inline">Sign In</span>
+              </button>
+            )}
 
             {/* Wishlist */}
             <button

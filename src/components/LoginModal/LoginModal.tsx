@@ -1,8 +1,10 @@
 import { memo, useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useSignupModal } from "../../context/SignupModalContext";
 import { useForgotPasswordModal } from "../../context/ForgotPasswordModalContext";
 import { useAuth } from "../../context/AuthContext";
+import { authApi } from "../../api/authApi";
 
 const LOGIN_IMAGE =
   "https://images.unsplash.com/photo-1522335789203-aabd1b54eaea?w=480&h=240&fit=crop";
@@ -26,6 +28,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
   const { open: openSignupModal } = useSignupModal();
   const { open: openForgotPasswordModal } = useForgotPasswordModal();
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [step, setStep] = useState<LoginStep>("email");
   const [mobileOrEmail, setMobileOrEmail] = useState("");
@@ -65,15 +68,34 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
       if (step !== "password" || !canSignIn) return;
       setIsLoading(true);
       setLoginError("");
-      const success = await login(mobileOrEmail, password);
-      setIsLoading(false);
-      if (success) {
-        handleClose();
-      } else {
-        setLoginError("Invalid email or password");
+      try {
+        const response = await authApi.login({
+          email: mobileOrEmail,
+          password,
+        });
+        if (response.success && response.data) {
+          const { accessToken, refreshToken, user: apiUser } = response.data;
+          if (accessToken && refreshToken && apiUser) {
+            login(accessToken, refreshToken, {
+              id: apiUser._id || apiUser.id || "",
+              name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
+              email: apiUser.email,
+            });
+            close();
+            navigate("/");
+          } else {
+            setLoginError(response.message || "Invalid email or password");
+          }
+        } else {
+          setLoginError(response.message || "Invalid email or password");
+        }
+      } catch (error: any) {
+        setLoginError(error.response?.data?.message || "Something went wrong");
+      } finally {
+        setIsLoading(false);
       }
     },
-    [step, canSignIn, handleClose, mobileOrEmail, password, login]
+    [step, canSignIn, mobileOrEmail, password, login, close, navigate]
   );
 
   const handleBack = useCallback(() => {
