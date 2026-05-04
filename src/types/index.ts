@@ -397,3 +397,63 @@ export interface UpdateProfileRequest {
   mobile?: string;
   gender?: string;
 }
+
+/** Change password request payload */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/** Change password API response */
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+/** Address data */
+export interface AddressData {
+  id: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  type: "home" | "work" | "other";
+  isDefault: boolean;
+}
+
+/** Add/Update address request payload */
+export interface SaveAddressRequest {
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  type: "home" | "work" | "other";
+  isDefault?: boolean;
+}
+
+/** Address list API response */
+export interface AddressListResponse {
+  success: boolean;
+  message: string;
+  data?: AddressData[];
+}
+
+/** Single address API response */
+export interface AddressResponse {
+  success: boolean;
+  message: string;
+  data?: AddressData;
+}
+
+/** Delete address API response */
+export interface DeleteAddressResponse {
+  success: boolean;
+  message: string;
+}

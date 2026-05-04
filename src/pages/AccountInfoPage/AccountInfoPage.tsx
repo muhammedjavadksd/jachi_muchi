@@ -100,10 +100,34 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handlePasswordSubmit = useCallback(() => {
-    setShowPasswordModal(false);
-    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  }, []);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const handlePasswordSubmit = useCallback(async () => {
+    setPasswordError("");
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const res = await authApi.changePassword(passwordForm);
+      if (res.success) {
+        setShowPasswordModal(false);
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      } else {
+        setPasswordError(res.message || "Failed to change password");
+      }
+    } catch (error: any) {
+      setPasswordError(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setPasswordLoading(false);
+    }
+  }, [passwordForm]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
 
@@ -392,6 +416,9 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                 <button onClick={() => setShowPasswordModal(false)} className="text-2xl text-gray-400 hover:text-gray-600">×</button>
               </div>
               <div className="p-6 space-y-5">
+                {passwordError && (
+                  <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-xl">{passwordError}</p>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                   <input type="password" value={passwordForm.currentPassword} onChange={(e) => handlePasswordChange("currentPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
@@ -407,7 +434,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
               </div>
               <div className="flex gap-3 px-6 py-5 border-t bg-gray-50">
                 <button onClick={() => setShowPasswordModal(false)} className="flex-1 py-3.5 bg-gray-100 rounded-2xl font-medium">Cancel</button>
-                <button onClick={handlePasswordSubmit} className="flex-1 py-3.5 bg-teal-600 text-white rounded-2xl font-medium">Update Password</button>
+                <button onClick={handlePasswordSubmit} disabled={passwordLoading} className={`flex-1 py-3.5 rounded-2xl font-medium transition-colors ${passwordLoading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-teal-600 text-white hover:bg-teal-700"}`}>{passwordLoading ? "Updating..." : "Update Password"}</button>
               </div>
             </div>
           </div>
