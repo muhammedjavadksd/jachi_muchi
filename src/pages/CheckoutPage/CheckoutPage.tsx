@@ -2,6 +2,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate } from "react-router-dom";
+import { createOrder } from "../../api/order";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -469,34 +470,26 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                     }
 
                     try {
-                      const res = await fetch("http://localhost:5000/api/orders", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                          items: cart.map(item => ({
-                            productId: item.productId,
-                            name: item.productName,
-                            price: item.totalPrice,
-                            quantity: 1
-                          })),
-                          addressId: selectedAddress.id,
-                          totalAmount: totalPayable
-                        })
+                      const res = await createOrder({
+                        items: cart.map(item => ({
+                          productId: item.productId,
+                          name: item.productName,
+                          price: item.totalPrice,
+                          quantity: 1
+                        })),
+                        addressId: selectedAddress.id,
+                        totalAmount: totalPayable
                       });
 
-                      const data = await res.json();
-
-                      if (!data.success) {
+                      if (!res.success) {
                         throw new Error("Order failed");
                       }
 
-                      // Clear cart AFTER success
+                      const orderId = res.data?.orderId; 
+
                       localStorage.removeItem("cart");
 
-                      navigate("/order-success");
-
+                      navigate(`/order-success/${orderId}`);
                     } catch (error) {
                       console.error(error);
                       alert("Failed to place order");

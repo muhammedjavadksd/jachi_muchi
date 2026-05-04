@@ -2,7 +2,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
-import { api } from "../../api/axios";
+import { getMyOrders, cancelOrder } from "../../api/order";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -53,7 +53,11 @@ interface Order {
   deliveryDate?: string;
   paymentMethod?: string;
   address?: string;
-  trackingSteps?: { label: string; date: string; completed: boolean }[];
+
+  statusTimeline?: {
+    status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled" | "refunded";
+    date: string;
+  }[];
 }
 
 /**
@@ -63,11 +67,15 @@ const OrderDrawer = memo(function OrderDrawer({
   order,
   isOpen,
   onClose,
+  onCancelSuccess,
 }: {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
+  onCancelSuccess?: (orderId: string) => void;
 }): JSX.Element | null {
+
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   /** Disable body scroll when drawer is open */
   useEffect(() => {
@@ -87,6 +95,102 @@ const OrderDrawer = memo(function OrderDrawer({
 
   const displayStatus = order.status || "pending";
   const items = order.items || [];
+
+  const subtotal = items.reduce(
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
+    0
+  );
+
+  const shipping = (order.totalAmount || 0) - subtotal;
+
+  const safeShipping = shipping > 0 ? shipping : 0;
+
+  const handleCancelOrder = async () => {
+    try {
+      setCancelLoading(true);
+
+      const res = await cancelOrder(order._id!);
+
+      if (!res.success) {
+        throw new Error("Cancel failed");
+      }
+
+      alert("Order cancelled successfully");
+
+      if (onCancelSuccess && order._id) {
+        onCancelSuccess(order._id);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to cancel order");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const getTrackingSteps = () => {
+  const timeline = order.statusTimeline || [];
+
+  const statusIcons: Record<string, JSX.Element> = {
+    pending: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    confirmed: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    shipped: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    ),
+    delivered: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+      </svg>
+    ),
+    cancelled: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  };
+
+  // If cancelled → show full history till cancelled
+  if (order.status === "cancelled") {
+    const stepsOrder = ["pending", "confirmed", "cancelled"];
+
+    return stepsOrder.map((step) => {
+      const matched = timeline.find(t => t.status === step);
+
+      return {
+        label: step.charAt(0).toUpperCase() + step.slice(1),
+        date: matched ? new Date(matched.date).toLocaleDateString() : "",
+        completed: !!matched,
+        icon: statusIcons[step]
+      };
+    });
+  }
+
+  const stepsOrder = ["pending", "confirmed", "shipped", "delivered"];
+
+  return stepsOrder.map((step) => {
+    const matched = timeline.find(t => t.status === step);
+
+    return {
+      label: step.charAt(0).toUpperCase() + step.slice(1),
+      date: matched ? new Date(matched.date).toLocaleDateString() : "",
+      completed: !!matched,
+      icon: statusIcons[step]
+    };
+  });
+};
+
 
   /** Get display label for status (capitalize first letter) */
   const getStatusLabel = (status: string) => {
@@ -182,9 +286,9 @@ const OrderDrawer = memo(function OrderDrawer({
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex justify-between py-2">
                 <span className="text-gray-600 text-sm">Subtotal</span>
-                <span className="text-gray-900 text-sm">₹{order.subtotal || 0}</span>
+                <span className="text-gray-900 text-sm">₹{subtotal}</span>
               </div>
-              {order.discount > 0 && (
+              {(order.discount ?? 0) > 0 && (
                 <div className="flex justify-between py-2">
                   <span className="text-gray-600 text-sm">Discount</span>
                   <span className="text-green-600 text-sm">-₹{order.discount}</span>
@@ -192,7 +296,7 @@ const OrderDrawer = memo(function OrderDrawer({
               )}
               <div className="flex justify-between py-2">
                 <span className="text-gray-600 text-sm">Shipping</span>
-                <span className="text-gray-900 text-sm">{order.shipping === 0 ? "FREE" : `₹${order.shipping}`}</span>
+                <span className="text-gray-900 text-sm">{safeShipping === 0 ? "FREE" : `₹${safeShipping}`}</span>
               </div>
               <div className="flex justify-between py-2 border-t border-gray-200 mt-2">
                 <span className="text-gray-900 font-semibold">Total</span>
@@ -207,41 +311,56 @@ const OrderDrawer = memo(function OrderDrawer({
             </div>
           </div>
 
-          {/* Order Status / Tracking */}
-          {order.trackingSteps && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Order Status</h3>
-              <div className="relative">
-                {order.trackingSteps.map((step, idx) => (
-                  <div key={idx} className="flex gap-4 pb-4 last:pb-0">
-                    {/* Line */}
-                    {idx < order.trackingSteps!.length - 1 && (
-                      <div className={`absolute left-[11px] top-6 w-0.5 ${step.completed ? "bg-teal-500" : "bg-gray-200"
-                        }`} style={{ transform: `translateY(${idx * 56}px)`, height: "40px" }} />
-                    )}
-                    {/* Dot */}
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${step.completed ? "bg-teal-500" : "bg-gray-200"
-                      }`}>
-                      {step.completed && (
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </div>
-                    {/* Content */}
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${step.completed ? "text-gray-900" : "text-gray-400"}`}>
-                        {step.label}
-                      </p>
-                      {step.date && (
-                        <p className="text-xs text-gray-500 mt-0.5">{step.date}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+           {/* Order Status / Tracking */}
+           {/* {order.trackingSteps && ( */}
+           {getTrackingSteps().length > 0 && (
+             <div className="mb-6">
+               <h3 className="text-sm font-semibold text-gray-700 mb-3">Order Status</h3>
+               <div className="relative">
+                 {getTrackingSteps().map((step, idx) => (
+                   <div key={idx} className="flex gap-4 pb-4 last:pb-0">
+                     {/* Line */}
+                     {idx < getTrackingSteps().length - 1 && (
+                       <div className={`absolute left-[11px] top-6 w-0.5 ${step.completed ? "bg-teal-500" : "bg-gray-200"
+                         }`} style={{ transform: `translateY(${idx * 56}px)`, height: "40px" }} />
+                     )}
+                     {/* Dot */}
+                     <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${step.completed ? "bg-teal-500" : "bg-gray-200"
+                       }`}>
+                       {step.completed && (
+                         <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                         </svg>
+                       )}
+                     </div>
+                     {/* Content */}
+                     <div className="flex-1">
+                       <p className={`text-sm font-medium ${step.completed ? "text-gray-900" : "text-gray-400"} flex items-center gap-2`}>
+                         {step.completed && step.icon && (
+                           <span className="text-teal-600">{step.icon}</span>
+                         )}
+                         {step.label}
+                       </p>
+                       {step.date && (
+                         <p className="text-xs text-gray-500 mt-0.5">{step.date}</p>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+               </div>
+               {order.status === "cancelled" && (
+                 <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                   <p className="text-sm text-red-700 font-medium">Order Cancelled</p>
+                   <button
+                     onClick={onClose}
+                     className="mt-3 w-full py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                   >
+                     Got it
+                   </button>
+                 </div>
+               )}
+             </div>
+           )}
 
           {/* Delivery Address */}
           {order.address && (
@@ -267,9 +386,13 @@ const OrderDrawer = memo(function OrderDrawer({
               Download Invoice
             </button>
 
-            {displayStatus === "pending" || displayStatus === "confirmed" || displayStatus === "shipped" ? (
-              <button className="w-full py-3 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200">
-                Cancel Order
+            {/* {displayStatus === "pending" || displayStatus === "confirmed" || displayStatus === "shipped" ? ( */}
+            {["pending", "confirmed"].includes(displayStatus) ? (
+              <button
+                onClick={handleCancelOrder}
+                disabled={cancelLoading}
+                className="w-full py-3 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50">
+                {cancelLoading ? "Cancelling..." : "Cancel Order"}
               </button>
             ) : null}
 
@@ -326,9 +449,14 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/orders/my");
-        const data = response.data?.data || [];
-        setOrders(data);
+        const response = await getMyOrders();
+
+        if (!response || !response.success) {
+          setOrders([]);
+          return;
+        }
+
+        setOrders(response.data || []);
       } catch (error) {
         console.error("Error fetching orders:", error);
         setOrders([]);
@@ -356,6 +484,42 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
     setSelectedOrder(null);
   }, []);
 
+  /** Handle order cancel success - update state without reload */
+  const handleOrderCancel = useCallback((orderId: string) => {
+    setOrders(prev =>
+      prev.map(order =>
+        order._id === orderId
+          ? {
+              ...order,
+              status: "cancelled" as const,
+              statusTimeline: [
+                ...(order.statusTimeline || []),
+                {
+                  status: "cancelled" as const,
+                  date: new Date().toISOString()
+                }
+              ]
+            }
+          : order
+      )
+    );
+    setSelectedOrder(prev =>
+    prev && prev._id === orderId
+      ? {
+          ...prev,
+          status: "cancelled",
+          statusTimeline: [
+            ...(prev.statusTimeline || []),
+            {
+              status: "cancelled",
+              date: new Date().toISOString()
+            }
+          ]
+        }
+      : prev
+  );
+  }, []);
+
   /** Memoize sidebar menu - highlight based on URL */
   const sidebarMenu = useMemo(() => (
     SIDEBAR_MENU.map((item) => {
@@ -365,8 +529,8 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
           key={item.id}
           to={item.link}
           className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${isActive
-              ? "bg-teal-600 text-white"
-              : "text-gray-700 hover:bg-gray-100"
+            ? "bg-teal-600 text-white"
+            : "text-gray-700 hover:bg-gray-100"
             }`}
         >
           <span>{item.label}</span>
@@ -386,9 +550,9 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
       <span
         key={index}
         className={`text-sm font-bold ${brand === "B+L" ? "text-blue-600" :
-            brand === "Alcon" ? "text-teal-600" :
-              brand === "J&J" ? "text-red-600" :
-                "text-blue-800"
+          brand === "Alcon" ? "text-teal-600" :
+            brand === "J&J" ? "text-red-600" :
+              "text-blue-800"
           }`}
       >
         {brand}
@@ -427,6 +591,9 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
       items: order.items || [],
       total: order.total || order.totalAmount || 0,
     })), [orders]);
+
+
+  
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white overflow-x-hidden">
@@ -575,10 +742,10 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                               <p className="font-semibold text-gray-900 text-xs sm:text-sm lg:text-base">₹{order.total}</p>
                             </div>
                           </div>
-                           {/* Status Badge */}
-                           <span className={`px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${colors.badge} ${colors.text}`}>
-                             {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : "Pending"}
-                           </span>
+                          {/* Status Badge */}
+                          <span className={`px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${colors.badge} ${colors.text}`}>
+                            {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : "Pending"}
+                          </span>
                         </div>
                       </div>
 
@@ -623,6 +790,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         order={selectedOrder}
         isOpen={isDrawerOpen}
         onClose={closeOrderDrawer}
+        onCancelSuccess={handleOrderCancel}
       />
     </div>
   );

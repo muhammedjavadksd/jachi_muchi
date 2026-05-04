@@ -59,10 +59,25 @@ createRoot(rootElement).render(
           <SignupModalProvider>
             <ForgotPasswordModalProvider>
               <WishlistProvider>
-                <Routes>
-                  <Route path="/" element={<App />} />
-                  <Route path="/home-2" element={<HomePage2 />} />
-                  <Route path="/search" element={<SearchPage />} />
+              <Routes>
+                <Route path="/" element={<App />} />
+                <Route path="/home-2" element={<HomePage2 />} />
+                <Route path="/search" element={<SearchPage />} />
+                
+                <Route path="/search/:category" element={<SearchPage />} />
+                <Route path="/category/:category" element={<SearchPage />} />
+                <Route path="/product/:id" element={<ProductDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/order-success/:id" element={<OrderSuccessPage />} />
+                <Route path="/order-failure" element={<OrderFailurePage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/account/3d-model" element={<My3DModelPage />} />
+                <Route path="/account/info" element={<AccountInfoPage />} />
+                <Route path="/account/notifications" element={<ManageNotificationsPage />} />
+                <Route path="/account/address" element={<AddressBookPage />} />
+                <Route path="/account/*" element={<AccountPage />} />
+
 
                   <Route path="/search/:category" element={<SearchPage />} />
                   <Route path="/category/:category" element={<SearchPage />} />
