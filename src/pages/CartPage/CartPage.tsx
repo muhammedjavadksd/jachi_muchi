@@ -11,10 +11,16 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
-  lens: string;
-  lensPrice: number;
+  quantity?: number;
+  color: { name: string; id: string } | null;
+  lens: {
+    id?: string;
+    name: string;
+    price: number;
+  } | null;
+  lensPrice?: number;
   totalPrice: number;
-  powerType: string;
+  powerType?: string;
 }
 
 /** Coupon data interface */
@@ -90,7 +96,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   // Total discount: sum of (productPrice + lensPrice - totalPrice)
   const totalDiscount = useMemo(() =>
-    cartItems.reduce((sum, item) => sum + (item.productPrice + item.lensPrice - item.totalPrice), 0), [cartItems]);
+    cartItems.reduce((sum, item) => {
+      const lensPrice = item.lens?.price || 0;
+      return sum + (item.productPrice + lensPrice - item.totalPrice);
+    }, 0),
+    [cartItems]);
 
   const fittingFee = 199;
 
@@ -114,26 +124,29 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             />
           </div>
 
-          {/* Product Details */}
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start gap-4">
-              <h3 className="text-base font-medium text-gray-900 leading-snug pr-2 line-clamp-2">
-                {item.productName}
-              </h3>
-              <div className="text-right shrink-0">
-                <span className="text-gray-400 line-through text-sm">₹{item.productPrice + item.lensPrice}</span>
+            {/* Product Details */}
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start gap-4">
+                <h3 className="text-base font-medium text-gray-900 leading-snug pr-2 line-clamp-2">
+                  {item.productName}
+                </h3>
+                <div className="text-right shrink-0">
+                  <span className="text-gray-400 line-through text-sm">₹{item.totalPrice}</span>
+                </div>
               </div>
-            </div>
 
-            {/* Lens Info */}
+              {/* Color Info */}
+              {item.color && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: item.color.name }} />
+                  <span className="text-gray-600 text-sm">Color: {item.color.name}</span>
+                </div>
+              )}
+
+              {/* Lens Info */}
             {item.lens && (
               <div className="flex justify-between items-center my-3">
-                <span className="text-gray-600 text-sm">{item.lens} ({item.powerType})</span>
-                {item.lensPrice > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-400 line-through text-sm">₹{item.lensPrice}</span>
-                  </div>
-                )}
+                <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? ` (+₹${item.lens.price})` : ''}</span>
               </div>
             )}
 
@@ -141,7 +154,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             <div className="flex justify-between items-center py-3 border-t border-gray-100">
               <span className="text-gray-700 font-medium">Final Price</span>
               <div className="text-right">
-                <span className="font-bold text-gray-900 text-xl">₹{item.totalPrice}</span>
+                <span className="font-bold text-gray-900 text-xl">₹{item.productPrice + (item.lens?.price || 0)}</span>
               </div>
             </div>
 

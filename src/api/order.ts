@@ -1,11 +1,50 @@
 import { api } from "./axios";
 
+/** Color variant data for order item */
+export interface OrderItemColor {
+  id: string;
+  name: string;
+}
+
+/** Lens data for order item */
+export interface OrderItemLens {
+  id?: string;
+  name: string;
+  price: number;
+}
+
 /** Order item for creating an order */
 export interface CreateOrderItem {
   productId: string;
   name: string;
   price: number;
   quantity: number;
+  color?: OrderItemColor;
+  lens?: OrderItemLens;
+  powerDetails?: OrderItemPowerDetails;
+}
+
+/** Power details for prescription lenses */
+export interface OrderItemPowerDetails {
+  leftSPH?: string;
+  rightSPH?: string;
+  leftCYL?: string | null;
+  rightCYL?: string | null;
+  isSamePower?: boolean;
+  hasCylindrical?: boolean;
+  customerName: string;
+  customerPhone: string;
+  knowPowerLater?: boolean;
+}
+
+/** Order item for creating an order */
+export interface CreateOrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  lens?: OrderItemLens;
+  powerDetails?: OrderItemPowerDetails;
 }
 
 /** Payload for creating an order */
@@ -13,6 +52,7 @@ export interface CreateOrderPayload {
   items: CreateOrderItem[];
   addressId: string;
   totalAmount: number;
+  paymentMethod?: string;
 }
 
 export const getMyOrders = async () => {

@@ -4,56 +4,28 @@ import { Container } from "../../components/Container/Container";
 import { ProductCard } from "../../components/ProductCard/ProductCard";
 import { ChevronLeftIcon, ChevronRightIcon } from "../../components/icons";
 import { SAMPLE_PRODUCTS } from "../../lib/constants";
-import type { ProductDetail } from "../../types";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
-import { api } from "../../api/axios"; // or your axios file
+import { api } from "../../api/axios";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
 
-const SAMPLE_PRODUCT: ProductDetail = {
-  id: "1",
-  brand: "Lenskart Air",
-  name: "Hustlr | Medium",
-  description: "Full Rim Rectangle TR 90 & Metal Eyeglasses",
-  price: 1400,
-  originalPrice: 2000,
-  discount: 30,
-  rating: 4.5,
-  reviews: 2917,
-  images: [
-    "/category/image.png",
-    "/banner/image.png",
-    "/category/image.png",
-    "/banner/image.png",
-    "/category/image.png",
-    "/banner/image.png",
-  ],
-  colors: [
-    { colorCode: "#000000", image: "/category/image.png" },
-    { colorCode: "#8b4513", image: "/banner/image.png" },
-    { colorCode: "#c0c0c0", image: "/category/image.png" },
-  ],
-  specs: [
-    { label: "Product ID", value: "146481" },
-    { label: "Model No", value: "AIR OP E13D1" },
-    { label: "Frame Size", value: "Medium" },
-    { label: "Frame Width", value: "136 mm" },
-    { label: "Frame Dimensions", value: "52-18-145" },
-    { label: "Frame Color", value: "Black" },
-    { label: "Frame Material", value: "TR 90 & Metal" },
-    { label: "Frame Type", value: "Full Rim" },
-    { label: "Frame Shape", value: "Rectangle" },
-    { label: "Collection", value: "Hustlr" },
-  ],
-  features: [
-    "Light & Durable",
-    "Adjustable Nose Pads",
-    "Sweat Resistant",
-  ],
-  longDescription: "Stylish full rim rectangle eyeglasses made with premium TR 90 & Metal material. Perfect for everyday wear with excellent durability and comfort.",
-  offerBadge: "Buy 1 GET 1 FREE",
+const COLOR_MAP: Record<string, string> = {
+  black: "#000000",
+  blue: "#1e40af",
+  pink: "#ec4899",
+  red: "#dc2626",
+  green: "#16a34a",
+  gold: "#d4a017",
+  silver: "#c0c0c0",
+  grey: "#6b7280",
+  brown: "#8b4513",
+  transparent: "#f0f0f0",
+  purple: "#7c3aed",
+  "rose-gold": "#b76e79",
+  gunmetal: "#2c3539",
+  white: "#ffffff",
 };
 
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
@@ -83,11 +55,42 @@ useEffect(() => {
 
 }, [id]);
 
+useEffect(() => {
+  setSelectedColorIndex(0);
+}, [product]);
+
+
+const variants = product?.variants || [];
+
+const dynamicColors = variants.length > 0
+  ? variants.map((v: any) => ({
+      colorCode: COLOR_MAP[v.color?.toLowerCase()] || v.colorCode || "#888888",
+      image: product?.images?.length ? product.images[0] : "/placeholder.png",
+      name: v.color,
+      size: v.size,
+      stock: v.stock,
+      _id: v._id,
+    }))
+  : [];
+
+console.log("dynamicColors", dynamicColors);
+
+const selectedVariant = variants.find((v: any) => v.color === dynamicColors[selectedColorIndex]?.name) || variants[0];
+
+const dynamicSpecs = [
+  { label: "Product ID", value: product?._id || "N/A" },
+  { label: "Brand", value: product?.brand || "N/A" },
+  { label: "Category", value: product?.category || "N/A" },
+  { label: "Shape", value: product?.shape || "N/A" },
+  { label: "Frame Type", value: product?.frameType || "N/A" },
+  { label: "Frame Color", value: dynamicColors[selectedColorIndex]?.name || "N/A" },
+  ...(product?.description ? [{ label: "Description", value: product.description }] : []),
+];
 
 const safeProduct = {
-  _id: product?._id || "1",
-  brand: product?.brand || "No Brand",
-  name: product?.name || "No Name",
+  _id: product?._id || "",
+  brand: product?.brand || "",
+  name: product?.name || "",
   description: product?.description || "",
   price: product?.price || 0,
   originalPrice: product?.originalPrice || product?.price || 0,
@@ -95,17 +98,9 @@ const safeProduct = {
   rating: product?.rating || 0,
   reviews: product?.reviewCount || 0,
   images: product?.images?.length ? product.images : ["/placeholder.png"],
-
-  // keep static for now (backend not ready)
-  colors: SAMPLE_PRODUCT.colors,
-  specs: SAMPLE_PRODUCT.specs,
-  features: SAMPLE_PRODUCT.features,
-  longDescription: SAMPLE_PRODUCT.longDescription,
-  offerBadge: SAMPLE_PRODUCT.offerBadge,
+  colors: dynamicColors,
+  specs: dynamicSpecs,
 };
-
-  const recentlyViewedRef = useRef<HTMLDivElement>(null);
-  const relatedProductsRef = useRef<HTMLDivElement>(null);
 
   const handlePincodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPincode(e.target.value);
@@ -114,6 +109,9 @@ const safeProduct = {
   const handleCheckDelivery = useCallback(() => {
     console.log("Checking delivery for pincode:", pincode);
   }, [pincode]);
+
+  const recentlyViewedRef = useRef<HTMLDivElement>(null);
+  const relatedProductsRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = useCallback((ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
@@ -221,34 +219,32 @@ const safeProduct = {
     safeProduct.colors.map((color, index) => (
       <button
         key={index}
+        type="button"
+        title={color.name}
         onClick={() => handleColorClick(index)}
-        className={`w-9 h-9 border-2 transition-all rounded-md ${
-          selectedColorIndex === index
-            ? "border-gray-900 scale-110 shadow-sm"
-            : "border-gray-200 hover:border-gray-400"
-        }`}
-        style={{ backgroundColor: color.colorCode }}
-        aria-label={`Select color ${index + 1}`}
-      />
+        className={`
+          w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center
+          ${selectedColorIndex === index
+            ? "border-black scale-110 shadow-md"
+            : "border-gray-300 hover:border-gray-500"}
+        `}
+        style={{
+          backgroundColor: color.colorCode,
+        }}
+        aria-label={`Select ${color.name}`}
+      >
+        {selectedColorIndex === index && (
+          <div className="w-3 h-3 bg-white rounded-full border border-gray-400" />
+        )}
+      </button>
     ))
-  ), [selectedColorIndex, handleColorClick]);
+  ), [safeProduct.colors, selectedColorIndex, handleColorClick]);
 
   const specsTable = useMemo(() => (
     safeProduct.specs.map((spec, index) => (
       <div key={index} className="flex py-3 border-b border-gray-100 last:border-b-0 text-sm">
         <span className="w-40 flex-shrink-0 text-gray-500">{spec.label}</span>
         <span className="text-gray-900 font-medium">{spec.value}</span>
-      </div>
-    ))
-  ), [safeProduct.specs]);
-
-  const featuresList = useMemo(() => (
-    safeProduct.features.map((feature, index) => (
-      <div key={index} className="flex items-center gap-2">
-        <svg className="w-5 h-5 text-teal-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-        </svg>
-        <span className="text-gray-700">{feature}</span>
       </div>
     ))
   ), [safeProduct.specs]);
@@ -315,12 +311,14 @@ if (!product) {
               </div>
 
               {/* Color Selection */}
-              <div className="mb-6">
-                <p className="text-sm text-gray-600 mb-3">Select Color</p>
-                <div className="flex items-center gap-4">
-                  {colorOptions}
+              {dynamicColors.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-sm text-gray-600 mb-3">Select Color</p>
+                  <div className="flex items-center gap-4">
+                    {colorOptions}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-3 mb-8">
@@ -331,24 +329,14 @@ if (!product) {
                   SELECT LENS
                 </button>
 
-                <button className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-base transition-colors flex items-center justify-center gap-2">
+                {/* <button className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-base transition-colors flex items-center justify-center gap-2">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                   TRY ON
-                </button>
+                </button> */}
               </div>
-
-              {/* Offer Badge */}
-              {safeProduct.offerBadge && (
-                <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl mb-6">
-                  <svg className="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm2.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6.207.293a1 1 0 00-1.414 0l-6 6a1 1 0 101.414 1.414l6-6a1 1 0 000-1.414zM12.5 10a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" clipRule="evenodd" />
-                  </svg>
-                  <span className="font-semibold text-amber-800 text-base">{safeProduct.offerBadge}</span>
-                </div>
-              )}
 
               {/* Delivery Check */}
               <div className="mb-8">
@@ -381,29 +369,18 @@ if (!product) {
                 </div>
               </div>
 
-              {/* Features */}
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Features</h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {featuresList}
-                </div>
-              </div>
-
-              {/* Long Description */}
-              {safeProduct.longDescription && (
-                <div>
+              {/* Description */}
+              {product?.description && (
+                <div className="mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {safeProduct.longDescription}
-                  </p>
+                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
                 </div>
               )}
             </div>
           </div>
         </Container>
 
-        {/* Recently Viewed & Related Products remain the same (horizontal scroll) */}
-        <section className="py-10 bg-white">
+        {/* <section className="py-10 bg-white">
           <Container>
             <div className="flex items-center justify-between mb-6 px-4 md:px-0">
               <h2 className="text-xl font-bold text-gray-900">Recently Viewed Products</h2>
@@ -449,7 +426,7 @@ if (!product) {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
       </main>
 
       <Footer />
@@ -461,6 +438,7 @@ if (!product) {
         productId={safeProduct._id}
         productName={safeProduct.name}
         productPrice={safeProduct.price}
+        selectedColor={selectedVariant ? { name: selectedVariant.color, id: selectedVariant._id } : undefined}
       />
     </div>
   );

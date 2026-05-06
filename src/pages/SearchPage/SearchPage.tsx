@@ -9,6 +9,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { SEARCH_FILTERS } from "../../lib/constants";
 import { X, SlidersHorizontal } from "lucide-react";
 import { getProducts } from "../../api/product";
+import { getBrands } from "../../api/brand";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -17,24 +18,53 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
 
   const { category } = useParams();
   const [searchParams] = useSearchParams();
   const shape = searchParams.get("shape");
 
-  // ✅ API CALL
+  // Fetch brands and inject into filter config
+  const [filterConfig, setFilterConfig] = useState(SEARCH_FILTERS);
+
+  useEffect(() => {
+    getBrands().then((brands) => {
+      setFilterConfig((prev) =>
+        prev.map((g) =>
+          g.id === "brands"
+            ? {
+                ...g,
+                options: brands.map((b) => ({
+                  id: b._id,
+                  label: b.name,
+                })),
+              }
+            : g
+        )
+      );
+    }).catch(() => {});
+  }, []);
+
+  // API CALL with filters
   useEffect(() => {
     setLoading(true);
 
-    getProducts({
+    const params: Record<string, any> = {
       category,
-      shape,
-    })
+    };
+
+    if (shape) params.shape = shape;
+    if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
+    if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
+    if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
+    if (filters["brands"]?.length) params.brand = filters["brands"].join(",");
+
+    getProducts(params)
       .then((res) => {
         setProducts(res.data.products || []);
       })
       .finally(() => setLoading(false));
-  }, [category, shape]);
+  }, [category, shape, filters]);
 
   const spacerStyle = useMemo(
     () => ({
@@ -51,34 +81,58 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   );
 
   const handleFilterChange = useCallback(
-    (filters: Record<string, string[]>) => {
-      console.log("Filters changed:", filters);
-      // future filtering logic
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters);
     },
     []
   );
 
   const productCards = useMemo(
     () =>
-      products.map((product: any, index) => (
-        <ProductCard
-          key={product._id || index}
-          images={
-            product.images && product.images.length > 0
-              ? product.images
-              : ["/placeholder.png"]
-          }
-          name={product.name}
-          description={product.description || ""}
-          price={product.price}
-          originalPrice={product.originalPrice || product.price}
-          discount={product.discount || 0}
-          rating={product.rating || 4}
-          reviews={product.reviews || 0}
-          colors={product.colors || []}
-          link={`/product/${product._id}`}
-        />
-      )),
+      products.map((product: any, index) => {
+        const colors = (product.variants || []).map((v: any) => ({
+          colorCode:
+            {
+              black: "#000000",
+              blue: "#1e40af",
+              pink: "#ec4899",
+              red: "#dc2626",
+              green: "#16a34a",
+              gold: "#d4a017",
+              silver: "#c0c0c0",
+              grey: "#6b7280",
+              brown: "#8b4513",
+              transparent: "#f0f0f0",
+              purple: "#7c3aed",
+              "rose-gold": "#b76e79",
+              gunmetal: "#2c3539",
+              white: "#ffffff",
+            }[v.color?.toLowerCase()] || v.image || "#888888",
+          image: v.image || product.images?.[0] || "/placeholder.png",
+          name: v.color,
+        }));
+
+        const images =
+          product.images && product.images.length > 0
+            ? product.images
+            : ["/placeholder.png"];
+
+        return (
+          <ProductCard
+            key={product._id || index}
+            images={images}
+            name={product.name}
+            description={product.description || ""}
+            price={product.price}
+            originalPrice={product.originalPrice}
+            discount={product.discount}
+            rating={product.rating || undefined}
+            reviews={product.reviewCount || undefined}
+            colors={colors.length > 0 ? colors : undefined}
+            link={`/product/${product._id}`}
+          />
+        );
+      }),
     [products]
   );
 
@@ -116,7 +170,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
 
               <div className="lg:pr-4 lg:pb-6 p-4 lg:p-0">
                 <FilterSidebar
-                  filters={SEARCH_FILTERS}
+                  filters={filterConfig}
                   onFilterChange={handleFilterChange}
                 />
               </div>
@@ -162,7 +216,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
 
               {/* PRODUCT GRID */}
               <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6">
-                <Grid columns={1} sm={2} lg={3} xl={4} gap={5}>
+                <Grid columns={4} gap={5}>
                   {products.length === 0 ? (
                     <p className="text-center col-span-full py-10">
                       No products found

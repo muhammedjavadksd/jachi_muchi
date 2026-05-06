@@ -38,66 +38,42 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<UserProfileResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.get<UserProfileResponse>("/auth/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.get<UserProfileResponse>("/auth/profile");
     return response.data;
   },
 
   updateProfile: async (data: UpdateProfileRequest): Promise<UserProfileResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.put<UserProfileResponse>("/auth/profile", data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.put<UserProfileResponse>("/auth/profile", data);
     return response.data;
   },
 
   changePassword: async (data: ChangePasswordRequest): Promise<ChangePasswordResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.post<ChangePasswordResponse>("/auth/change-password", data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.post<ChangePasswordResponse>("/auth/change-password", data);
     return response.data;
   },
 
   getAddresses: async (): Promise<AddressListResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.get<AddressListResponse>("/address", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.get<AddressListResponse>("/address");
     return response.data;
   },
 
   addAddress: async (data: SaveAddressRequest): Promise<AddressResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.post<AddressResponse>("/address", data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.post<AddressResponse>("/address", data);
     return response.data;
   },
 
   updateAddress: async (id: string, data: SaveAddressRequest): Promise<AddressResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.put<AddressResponse>(`/address/${id}`, data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.put<AddressResponse>(`/address/${id}`, data);
     return response.data;
   },
 
   deleteAddress: async (id: string): Promise<DeleteAddressResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.delete<DeleteAddressResponse>(`/address/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.delete<DeleteAddressResponse>(`/address/${id}`);
     return response.data;
   },
 
   setDefaultAddress: async (id: string): Promise<AddressResponse> => {
-    const token = localStorage.getItem("access_token");
-    const response = await axiosInstance.put<AddressResponse>(`/address/${id}/default`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await axiosInstance.put<AddressResponse>(`/address/${id}/default`, {});
     return response.data;
   },
 };

@@ -43,3 +43,6 @@ export { LensSelectionPanel } from "./LensSelectionPanel/LensSelectionPanel";
 
 // Icons
 export * from "./icons";
+
+// Route Protection
+export { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute";

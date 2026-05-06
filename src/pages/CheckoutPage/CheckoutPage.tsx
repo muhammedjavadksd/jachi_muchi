@@ -3,6 +3,8 @@ import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate } from "react-router-dom";
 import { createOrder } from "../../api/order";
+import { createRazorpayOrder } from "../../api/payment";
+import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -12,10 +14,27 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
-  lens: string;
-  lensPrice: number;
+  quantity?: number;
+  color: { name: string; id: string } | null;
+  lens: {
+    id?: string;
+    name: string;
+    price: number;
+  } | null;
+  lensPrice?: number;
   totalPrice: number;
-  powerType: string;
+  powerType?: string;
+  powerDetails?: {
+    leftSPH?: string;
+    rightSPH?: string;
+    leftCYL?: string | null;
+    rightCYL?: string | null;
+    isSamePower?: boolean;
+    hasCylindrical?: boolean;
+    customerName?: string;
+    customerPhone?: string;
+    knowPowerLater?: boolean;
+  } | null;
 }
 
 /** Address interface */
@@ -51,19 +70,6 @@ const CHECKOUT_STEPS = [
   { id: "address", label: "Shipping Address" },
   { id: "payment", label: "Payment" },
   { id: "summary", label: "Summary" },
-];
-
-/** Sample addresses */
-const SAMPLE_ADDRESSES: Address[] = [
-  {
-    id: "1",
-    type: "HOME",
-    fullAddress: "Edathuruthikaran Holdings, 10/450-2, Kundannoor, Maradu, Ernakulam, Kerala 682304",
-    name: "Sbsj",
-    phone: "9744727681",
-    deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    isSelected: true,
-  },
 ];
 
 /**
@@ -265,22 +271,55 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     setCart(stored);
   }, []);
 
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addressLoading, setAddressLoading] = useState(true);
+  const [currentStep] = useState("address");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("COD");
+  const [orderLoading, setOrderLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadAddresses = async () => {
+      try {
+        setAddressLoading(true);
+        const backendAddresses = await fetchAddresses();
+        const mapped: Address[] = backendAddresses.map((addr: BackendAddress, idx: number) => ({
+          id: addr._id,
+          type: (addr.type === "home" ? "HOME" : addr.type === "work" ? "OFFICE" : "OTHER") as "HOME" | "OFFICE" | "OTHER",
+          fullAddress: `${addr.addressLine1}${addr.addressLine2 ? ", " + addr.addressLine2 : ""}, ${addr.city}, ${addr.state} ${addr.pincode}`,
+          name: addr.name,
+          phone: addr.phone,
+          deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          isSelected: addr.isDefault && idx === 0,
+        }));
+
+        if (mapped.length > 0 && !mapped.some(a => a.isSelected)) {
+          mapped[0].isSelected = true;
+        }
+
+        setAddresses(mapped);
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+
+    loadAddresses();
+  }, []);
+
   // Correct pricing calculations
   const subtotal = useMemo(() =>
     cart.reduce((sum, item) => sum + item.totalPrice, 0), [cart]);
 
   const discount = useMemo(() =>
-    cart.reduce((sum, item) => sum + (item.productPrice + item.lensPrice - item.totalPrice), 0), [cart]);
+    cart.reduce((sum, item) => sum + (item.productPrice + (item.lens?.price || 0) - item.totalPrice), 0), [cart]);
 
   const fittingFee = 199;
 
   const totalPayable = useMemo(() =>
     subtotal + fittingFee, [subtotal]);
-
-  const [addresses, setAddresses] = useState<Address[]>(SAMPLE_ADDRESSES);
-  const [currentStep] = useState("address");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
@@ -293,19 +332,50 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     })));
   }, []);
 
-  const handleDeleteAddress = useCallback((id: string) => {
-    setAddresses(prev => prev.filter(addr => addr.id !== id));
+  const handleDeleteAddress = useCallback(async (id: string) => {
+    try {
+      await deleteAddressApi(id);
+      setAddresses(prev => {
+        const filtered = prev.filter(addr => addr.id !== id);
+        if (filtered.length > 0 && !filtered.some(a => a.isSelected)) {
+          filtered[0].isSelected = true;
+        }
+        return filtered;
+      });
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+    }
   }, []);
 
-  const handleAddAddress = useCallback((addressData: Omit<Address, "id" | "isSelected" | "deliveryDate">) => {
-    const newAddress: Address = {
-      ...addressData,
-      id: Date.now().toString(),
-      isSelected: addresses.length === 0,
-      deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    };
-    setAddresses(prev => [...prev, newAddress]);
-  }, [addresses.length]);
+  const handleAddAddress = useCallback(async (addressData: Omit<Address, "id" | "isSelected" | "deliveryDate">) => {
+    try {
+      const res = await saveAddress({
+        name: addressData.name,
+        phone: addressData.phone,
+        addressLine1: addressData.fullAddress.split(',')[0],
+        addressLine2: addressData.fullAddress.split(',').slice(1, -2).join(',').trim() || undefined,
+        city: addressData.fullAddress.split(',').slice(-2)[0].trim(),
+        state: addressData.fullAddress.split(' ')[0],
+        pincode: addressData.fullAddress.split(' ').slice(-1)[0],
+        type: addressData.type === "HOME" ? "home" : addressData.type === "OFFICE" ? "work" : "other",
+      });
+
+      if (res.success && res.data) {
+        const newAddr: Address = {
+          id: res.data._id,
+          type: addressData.type,
+          fullAddress: addressData.fullAddress,
+          name: addressData.name,
+          phone: addressData.phone,
+          deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          isSelected: true,
+        };
+        setAddresses(prev => prev.map(a => ({ ...a, isSelected: false })).concat(newAddr));
+      }
+    } catch (error) {
+      console.error("Failed to save address:", error);
+    }
+  }, []);
 
   const openModal = useCallback(() => setIsModalOpen(true), []);
   const closeModal = useCallback(() => setIsModalOpen(false), []);
@@ -403,12 +473,17 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                 Add New Delivery Address
               </button>
 
-              {addressCards}
-
-              {addresses.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  No addresses added yet. Please add a delivery address.
-                </div>
+              {addressLoading ? (
+                <div className="text-center py-12 text-gray-500">Loading addresses...</div>
+              ) : (
+                <>
+                  {addressCards}
+                  {addresses.length === 0 && (
+                    <div className="text-center py-12 text-gray-500">
+                      No addresses added yet. Please add a delivery address.
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -454,8 +529,38 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </div>
                 </div>
 
+                {/* Payment Method */}
+                <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
+                  <p className="font-semibold text-gray-900 mb-3">Payment Method</p>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="COD"
+                        checked={paymentMethod === "COD"}
+                        onChange={() => setPaymentMethod("COD")}
+                        className="w-4 h-4 text-teal-600"
+                      />
+                      <span className="text-sm text-gray-700">Cash on Delivery</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="ONLINE"
+                        checked={paymentMethod === "ONLINE"}
+                        onChange={() => setPaymentMethod("ONLINE")}
+                        className="w-4 h-4 text-teal-600"
+                      />
+                      <span className="text-sm text-gray-700">Pay Online (Razorpay)</span>
+                    </label>
+                  </div>
+                </div>
+
                 {/* Proceed Button */}
                 <button
+                  disabled={orderLoading}
                   onClick={async () => {
                     const selectedAddress = addresses.find(a => a.isSelected);
 
@@ -469,36 +574,118 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       return;
                     }
 
+                    setOrderLoading(true);
+
+                    const orderPayload = {
+                      items: cart.map(item => ({
+                        productId: item.productId,
+                        name: item.productName,
+                        price: item.productPrice,
+                        quantity: item.quantity || 1,
+                        color: item.color || undefined,
+                        lens: item.lens
+                          ? {
+                            id: item.lens.id,
+                            name: item.lens.name,
+                            price: item.lens.price,
+                          }
+                          : undefined,
+                        powerDetails: item.powerDetails || undefined,
+                      })),
+                      addressId: selectedAddress.id,
+                      totalAmount: totalPayable,
+                      paymentMethod,
+                    };
+
                     try {
-                      const res = await createOrder({
-                        items: cart.map(item => ({
-                          productId: item.productId,
-                          name: item.productName,
-                          price: item.totalPrice,
-                          quantity: 1
-                        })),
-                        addressId: selectedAddress.id,
-                        totalAmount: totalPayable
-                      });
+                      if (paymentMethod === "COD") {
+                        const res = await createOrder(orderPayload);
 
-                      if (!res.success) {
-                        throw new Error("Order failed");
+                        if (!res.success) {
+                          throw new Error("Order failed");
+                        }
+
+                        const orderId = res.data?.orderId;
+                        localStorage.removeItem("cart");
+                        navigate(`/order-success/${orderId}`);
+                      } else {
+                        const res = await createRazorpayOrder(totalPayable );
+
+                        if ( !res.data.success) {
+                          throw new Error("Payment order creation failed");
+                        }
+
+                        const razorpayOrderId = res.data.data.id;
+
+                        const options = {
+                          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                          amount: totalPayable * 100,
+                          currency: "INR",
+                          name: "Hustlr Eyewear",
+                          description: `Order #${razorpayOrderId}`,
+                          order_id: razorpayOrderId,
+                          handler: async function (response: {
+                            razorpay_payment_id: string;
+                            razorpay_order_id: string;
+                            razorpay_signature: string;
+                          }) {
+                            try {
+                              const orderRes = await createOrder({
+                                ...orderPayload,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature,
+                              });
+
+                              if (!orderRes.success) {
+                                throw new Error("Order failed after payment");
+                              }
+
+                              const orderId = orderRes.data?.orderId;
+                              localStorage.removeItem("cart");
+                              navigate(`/order-success/${orderId}`);
+                            } catch (error) {
+                              console.error(error);
+                              alert("Order creation failed after payment. Please contact support.");
+                            }
+                          },
+                          prefill: {
+                            name: selectedAddress.name,
+                            contact: selectedAddress.phone,
+                          },
+                          theme: {
+                            color: "#0d9488",
+                          },
+                        };
+
+                        const rzp = new (window as any).Razorpay(options);
+
+                        rzp.on("payment.failed", function (response: {
+                          error: {
+                            code: string;
+                            description: string;
+                          };
+                        }) {
+                          alert(`Payment failed: ${response.error.description}`);
+                        });
+
+                        rzp.open();
                       }
-
-                      const orderId = res.data?.orderId; 
-
-                      localStorage.removeItem("cart");
-
-                      navigate(`/order-success/${orderId}`);
                     } catch (error) {
                       console.error(error);
                       alert("Failed to place order");
+                    } finally {
+                      setOrderLoading(false);
                     }
                   }}
 
-                  className="mt-6 w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-base transition-all active:scale-[0.985]"
+                  className="mt-6 w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-base transition-all active:scale-[0.985] disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  Save Address & Proceed
+                  {orderLoading
+                    ? "Processing..."
+                    : paymentMethod === "COD"
+                      ? "Place Order (COD)"
+                      : `Pay ₹${totalPayable}`}
                 </button>
               </div>
             </div>
