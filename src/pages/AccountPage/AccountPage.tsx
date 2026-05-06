@@ -106,6 +106,10 @@ const OrderDrawer = memo(function OrderDrawer({
   const safeShipping = shipping > 0 ? shipping : 0;
 
   const handleCancelOrder = async () => {
+    if (!confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
     try {
       setCancelLoading(true);
 
@@ -664,10 +668,9 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
               </div>
 
               {/* Contact Lens Orders Card */}
-              <div className="border border-gray-200 rounded-lg p-3 sm:p-4 lg:p-5 mb-4 md:mb-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              {/* <div className="border border-gray-200 rounded-lg p-3 sm:p-4 lg:p-5 mb-4 md:mb-6"> */}
+                {/* <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                   <div className="flex items-start gap-3 sm:gap-4 w-full sm:w-auto">
-                    {/* Icon */}
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-100 rounded-full flex items-center justify-center shrink-0">
                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -677,14 +680,12 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Contact Lens orders</h3>
                       <p className="text-gray-500 text-xs sm:text-sm">View orders from these brands</p>
-                      {/* Brand Logos */}
                       <div className="flex items-center gap-3 sm:gap-4 mt-1 sm:mt-2">
                         {brandLogos}
                       </div>
                     </div>
                   </div>
 
-                  {/* View Orders Button */}
                   <Link
                     to="/account/contact-lens-orders"
                     className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 transition-colors"
@@ -694,8 +695,8 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
-                </div>
-              </div>
+                </div> */}
+              {/* </div> */}
 
               {/* Orders List */}
               <div className="space-y-3 sm:space-y-4">

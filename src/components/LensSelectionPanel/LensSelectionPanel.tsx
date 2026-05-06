@@ -1,59 +1,16 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getLenses } from "../../api/lens";
+import type { LensItem } from "../../api/lens";
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
 
-interface LensOption {
-  id: string;
-  name: string;
-  features: string[];
-  warranty: string;
-  price: number;
-  originalPrice: number;
-  discount?: number;
-  badge?: string;
-}
-
-const LENS_OPTIONS: LensOption[] = [
-  {
-    id: "basic",
-    name: "Basic Lens",
-    features: ["CRCB Lens", "Scratch Resistant"],
-    warranty: "6 months",
-    price: 299,
-    originalPrice: 499,
-    discount: 40,
-  },
-  {
-    id: "anti-glare",
-    name: "Anti-Glare Premium",
-    features: ["Anti-Glare Coating", "UV 400", "Scratch Resistant"],
-    warranty: "1 year",
-    price: 799,
-    originalPrice: 1299,
-    discount: 38,
-    badge: "Bestseller",
-  },
-  {
-    id: "blue-light",
-    name: "Blue Light Shield",
-    features: ["Blue Light Filter", "Anti-Fatigue", "Anti-Glare"],
-    warranty: "1 year",
-    price: 999,
-    originalPrice: 1499,
-    discount: 33,
-    badge: "Screen Friendly",
-  },
-  {
-    id: "premium-plus",
-    name: "Premium Plus",
-    features: ["Ultra Thin", "High Index", "Anti-Glare", "UV 400"],
-    warranty: "2 years",
-    price: 1499,
-    originalPrice: 2499,
-    discount: 40,
-  },
-];
+const LENS_TYPE_MAP: Record<PowerType, string> = {
+  "with-power": "with_power",
+  "zero-power": "zero_power",
+  "progressive": "progressive",
+  "frame-only": "frame_only",
+};
 
 interface LensSelectionPanelProps {
   isOpen: boolean;
@@ -61,6 +18,7 @@ interface LensSelectionPanelProps {
   productId: string;
   productName: string;
   productPrice: number;
+  selectedColor?: { name: string; id: string };
 }
 
 export const LensSelectionPanel = memo(function LensSelectionPanel({
@@ -69,11 +27,14 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   productId,
   productName,
   productPrice,
+  selectedColor,
 }: LensSelectionPanelProps): JSX.Element | null {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedPowerType, setSelectedPowerType] = useState<PowerType | null>(null);
-  const [selectedLens, setSelectedLens] = useState<LensOption | null>(null);
+  const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
+  const [lenses, setLenses] = useState<LensItem[]>([]);
+  const [lensLoading, setLensLoading] = useState(false);
   const [samePowerBothEyes, setSamePowerBothEyes] = useState(false);
   const [hasCylindrical, setHasCylindrical] = useState(false);
   const [powerDetails, setPowerDetails] = useState({
@@ -88,6 +49,26 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     knowPowerLater: false,
   });
 
+  useEffect(() => {
+    if (!selectedPowerType || selectedPowerType === "frame-only") return;
+
+    const fetchLenses = async () => {
+      try {
+        setLensLoading(true);
+        const apiType = LENS_TYPE_MAP[selectedPowerType];
+        const result = await getLenses(apiType);
+        setLenses(result);
+      } catch (error) {
+        console.error("Failed to fetch lenses:", error);
+        setLenses([]);
+      } finally {
+        setLensLoading(false);
+      }
+    };
+
+    fetchLenses();
+  }, [selectedPowerType]);
+
   const handlePowerTypeSelect = useCallback((type: PowerType) => {
     setSelectedPowerType(type);
     if (type === "frame-only") {
@@ -97,10 +78,14 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     }
   }, []);
 
-  const handleLensSelect = useCallback((lens: LensOption) => {
+  const handleLensSelect = useCallback((lens: LensItem) => {
     setSelectedLens(lens);
-    setStep(3);
-  }, []);
+    if (selectedPowerType === "zero-power") {
+      setStep(4);
+    } else {
+      setStep(3);
+    }
+  }, [selectedPowerType]);
 
   const handleBack = useCallback(() => {
     if (step === 1) {
@@ -108,15 +93,17 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     } else if (step === 2) {
       setStep(1);
       setSelectedPowerType(null);
+      setLenses([]);
     } else if (step === 3) {
       setStep(2);
-      setSelectedLens(null);
     } else if (step === 4) {
       if (selectedPowerType === "frame-only") {
         setStep(1);
         setSelectedPowerType(null);
-      } else {
+      } else if (selectedPowerType === "zero-power") {
         setStep(2);
+      } else {
+        setStep(3);
       }
     }
   }, [step, selectedPowerType, onClose]);
@@ -128,10 +115,44 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
       productId,
       productName,
       productPrice,
-      lens: selectedLens?.name || "",
-      lensPrice: selectedLens?.price || 0,
-      totalPrice: productPrice + (selectedLens?.price || 0),
-      powerType: selectedPowerType || "",
+
+      color: selectedColor || null,
+
+      lens: selectedLens
+        ? {
+          id: selectedLens._id,
+          name: selectedLens.name,
+          price: selectedLens.price,
+        }
+        : null,
+
+      powerType: selectedPowerType,
+
+      powerDetails:
+        selectedPowerType === "with-power" || selectedPowerType === "progressive"
+          ? {
+            leftSPH: powerDetails.leftSph,
+            rightSPH: samePowerBothEyes
+              ? powerDetails.leftSph
+              : powerDetails.rightSph,
+
+            leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
+            rightCYL: hasCylindrical
+              ? samePowerBothEyes
+                ? powerDetails.leftCyl
+                : powerDetails.rightCyl
+              : null,
+
+            isSamePower: samePowerBothEyes,
+            hasCylindrical,
+            customerName: powerDetails.name,
+            customerPhone: powerDetails.phone,
+            knowPowerLater: powerDetails.knowPowerLater,
+          }
+          : null,
+
+      totalPrice:
+        productPrice + (selectedLens?.price || 0),
     };
 
     cart.push(cartItem);
@@ -146,6 +167,10 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     productPrice,
     selectedPowerType,
     selectedLens,
+    powerDetails,
+    samePowerBothEyes,
+    hasCylindrical,
+    selectedColor,
     navigate,
     onClose,
   ]);
@@ -189,29 +214,47 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     </div>
   );
 
-  const renderStep2 = () => (
-    <div className="flex flex-col gap-4">
-      {LENS_OPTIONS.map((lens) => (
-        <button key={lens.id} onClick={() => handleLensSelect(lens)} className="flex items-start gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-          <img src="/category/image.png" alt={lens.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <p className="font-medium text-gray-900">{lens.name}</p>
-              {lens.badge && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{lens.badge}</span>}
+  const renderStep2 = () => {
+    if (lensLoading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-gray-500">Loading lenses...</p>
+        </div>
+      );
+    }
+
+    if (lenses.length === 0) {
+      return (
+        <div className="text-center py-12 text-gray-500">
+          No lenses available for this type
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex flex-col gap-4">
+        {lenses.map((lens) => (
+          <button key={lens._id || lens.id || lens.name} onClick={() => handleLensSelect(lens)} className="flex items-start gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
+            <img src="/category/image.png" alt={lens.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-medium text-gray-900">{lens.name}</p>
+                {lens.badge && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{lens.badge}</span>}
+              </div>
+              {lens.features && <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>}
+              <div className="flex items-center gap-2">
+                {lens.originalPrice && <span className="text-sm text-gray-400 line-through">₹{lens.originalPrice}</span>}
+                <span className="font-semibold text-gray-900">₹{lens.price}</span>
+                {lens.discount && <span className="text-xs text-green-600 font-medium">{lens.discount}% OFF</span>}
+              </div>
+              {lens.warranty && <p className="text-xs text-gray-400 mt-1">{lens.warranty} warranty</p>}
             </div>
-            <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400 line-through">₹{lens.originalPrice}</span>
-              <span className="font-semibold text-gray-900">₹{lens.price}</span>
-              {lens.discount && <span className="text-xs text-green-600 font-medium">{lens.discount}% OFF</span>}
-            </div>
-            <p className="text-xs text-gray-400 mt-1">{lens.warranty} warranty</p>
-          </div>
-          <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600 mt-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-        </button>
-      ))}
-    </div>
-  );
+            <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600 mt-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   const renderStep3 = () => (
     <div className="flex flex-col">
@@ -230,19 +273,26 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
       <input type="text" placeholder="Name (required)" value={powerDetails.name} onChange={(e) => setPowerDetails({ ...powerDetails, name: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg mb-3" />
       <input type="tel" placeholder="Phone Number (required)" value={powerDetails.phone} onChange={(e) => setPowerDetails({ ...powerDetails, phone: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg mb-4" />
       <p className="text-sm text-gray-500 text-center">Can't find your power? Call <span className="font-medium text-teal-600">+91 8470007367</span></p>
-      <button onClick={handleAddToCart} disabled={!powerDetails.name || !powerDetails.phone || (!powerDetails.knowPowerLater && !powerDetails.leftSph)} className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Save & Proceed</button>
+      <button onClick={handleAddToCart} disabled={
+        selectedPowerType !== "frame-only" &&
+        selectedPowerType !== "zero-power" &&
+        (!powerDetails.name ||
+          !powerDetails.phone ||
+          (!powerDetails.knowPowerLater && !powerDetails.leftSph))
+      } className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Save & Proceed</button>
     </div>
   );
 
   const renderStep4 = () => {
-    const totalPrice = productPrice + (selectedLens?.price || 0);
+    const lensPrice = selectedLens?.price || 0;
+    const totalPrice = productPrice + lensPrice;
     return (
       <div className="flex flex-col">
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
           <div className="flex items-center gap-4 mb-3"><img src="/category/image.png" alt="Product" className="w-16 h-16 rounded-lg object-cover" /><div><p className="font-medium text-gray-900">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div></div>
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
-            {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name}</span></div>}
+            {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+₹{selectedLens.price})</span></div>}
             <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t border-gray-200"><span>Total</span><span>₹{totalPrice}</span></div>
           </div>
         </div>
@@ -267,6 +317,8 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
               const stepNum = idx + 1;
               const isActive = step === stepNum;
               const isCompleted = completedSteps >= stepNum;
+              const isZeroPowerSkip = selectedPowerType === "zero-power" && stepNum === 3;
+              if (isZeroPowerSkip) return null;
               const isVisible = selectedPowerType !== "frame-only" || stepNum === 1;
               if (!isVisible) return null;
               return (

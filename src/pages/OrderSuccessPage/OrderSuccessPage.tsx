@@ -16,6 +16,7 @@ interface OrderItem {
   price?: number;
   totalPrice?: number;
   productPrice?: number;
+  color?: { id: string; name: string } | null;
 }
 
 /** Address interface */
@@ -60,6 +61,15 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
 
         const order = response.data;
 
+        const addr = order.shippingAddress || order.address || {};
+        const fullAddress = [
+          addr.addressLine1,
+          addr.addressLine2,
+          addr.city,
+          addr.state,
+          addr.pincode,
+        ].filter(Boolean).join(", ");
+
         setOrder({
           orderId: order._id,
           createdAt: order.createdAt,
@@ -68,13 +78,14 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
             productId: item.productId,
             name: item.name,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            color: item.color || null,
           })),
           total: order.totalAmount,
           address: {
-            name: order.address?.name || "User",
-            fullAddress: order.address?.fullAddress || "Saved Address",
-            phone: order.address?.phone || "N/A"
+            name: addr.name || "User",
+            fullAddress: fullAddress || "N/A",
+            phone: addr.phone || "N/A"
           }
         });
       } catch (error) {
@@ -220,6 +231,9 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                     <div>
                       <p className="font-medium text-gray-900">{item.name}</p>
                       <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
+                      {item.color && (
+                        <p className="text-sm text-gray-500">Color: {item.color.name}</p>
+                      )}
                     </div>
                     <p className="font-medium text-gray-900">₹{item.price}</p>
                   </div>

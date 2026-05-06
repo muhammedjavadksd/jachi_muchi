@@ -457,3 +457,48 @@ export interface DeleteAddressResponse {
   success: boolean;
   message: string;
 }
+
+// ============================================
+// LENS TYPES
+// ============================================
+
+/** Lens item from API */
+export interface LensItem {
+  _id?: string;
+  id?: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  discount?: number;
+  features?: string[];
+  warranty?: string;
+  badge?: string;
+  type?: string;
+}
+
+/** Cart item with lens data */
+export interface CartItemData {
+  productId: string;
+  productName: string;
+  productPrice: number;
+  quantity: number;
+  lens?: {
+    name: string;
+    price: number;
+  };
+  lensPrice?: number;
+  totalPrice: number;
+  powerType?: string;
+}
+
+
+export interface PowerDetails {
+  leftSPH?: string;
+  rightSPH?: string;
+  leftCYL?: string;
+  rightCYL?: string;
+  isSamePower: boolean;
+  hasCylindrical: boolean;
+  customerName: string;
+  customerPhone: string;
+}
