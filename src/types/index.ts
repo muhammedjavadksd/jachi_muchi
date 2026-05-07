@@ -74,6 +74,7 @@ export interface ShapeSectionProps {
   title: string;
   shape?: ShapeType;
   items: ShapeItem[];
+  categorySlug?: string;
 }
 
 /** Props for HeroSlider component - homepage banner carousel */

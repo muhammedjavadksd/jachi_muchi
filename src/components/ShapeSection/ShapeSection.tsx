@@ -2,6 +2,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Container } from "../Container/Container";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import type { ShapeSectionProps } from "../../types";
+import { useNavigate } from "react-router-dom";
 
 function getItemsPerView(width: number): number {
   // Breakpoints aligned to typical Tailwind defaults
@@ -20,8 +21,10 @@ function getItemsPerView(width: number): number {
 export const ShapeSection = memo(function ShapeSection({ 
   title, 
   shape = "box", 
-  items 
+  items,
+  categorySlug,
 }: ShapeSectionProps): JSX.Element {
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(() => {
     if (typeof window === "undefined") return 7;
@@ -76,9 +79,15 @@ export const ShapeSection = memo(function ShapeSection({
   /** Memoize shape items to prevent recreation */
   const shapeItems = useMemo(() => (
     items.map((item, index) => (
-      <div 
-        key={index} 
-        className="shrink-0 flex flex-col items-center gap-2 md:gap-3 lg:gap-4 px-2 sm:px-3"
+      <button
+        key={index}
+        type="button"
+        onClick={() => {
+          if (categorySlug) {
+            navigate(`/search/${categorySlug}?shape=${item.label}`);
+          }
+        }}
+        className="shrink-0 flex flex-col items-center gap-2 md:gap-3 lg:gap-4 px-2 sm:px-3 cursor-pointer hover:opacity-80 transition-opacity"
         style={{ width: `${itemWidthPercent}%` }}
       >
         {/* Card Container - Square aspect ratio for proper circle/box shape */}
@@ -105,9 +114,9 @@ export const ShapeSection = memo(function ShapeSection({
         >
           {item.label}
         </span>
-      </div>
+      </button>
     ))
-  ), [items, borderRadius, itemWidthPercent]);
+  ), [items, borderRadius, itemWidthPercent, categorySlug, navigate]);
 
   return (
     <section

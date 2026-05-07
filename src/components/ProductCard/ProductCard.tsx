@@ -100,10 +100,10 @@ export const ProductCard = memo(function ProductCard({
         {/* Price Section */}
         <div className="flex items-center gap-2 mt-3">
           <span className="text-lg font-bold text-black">₹{price}</span>
-          {originalPrice && (
+          {originalPrice && originalPrice > price && (
             <span className="text-sm text-gray-400 line-through">₹{originalPrice}</span>
           )}
-          {discount && (
+          {discount && discount > 0 && (
             <span className="text-green-600 text-xs font-semibold">({discount}% OFF)</span>
           )}
         </div>

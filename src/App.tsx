@@ -1,8 +1,9 @@
 import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
 import { NavTab } from "./components/BottomNav/BottomNav";
-import { EYEGLASS_SHAPES, HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
+import { HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
+import { api } from "./api/axios";
 
 /** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
@@ -17,6 +18,15 @@ export default function App(): JSX.Element {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
   const [orderCount] = useState(2);
   const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.get("/categories")
+      .then((res) => {
+        setCategories(res.data?.data?.categories || []);
+      })
+      .catch(() => setCategories([]));
+  }, []);
 
   // Fake countdown for Hustlr Club (like in screenshot)
   const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 8, minutes: 51, seconds: 44 });
@@ -103,15 +113,20 @@ export default function App(): JSX.Element {
           </div>
         </div>
 
-        {/* Eyeglasses Section */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ShapeSection title="Eyeglasses" shape="circle" items={EYEGLASS_SHAPES} />
-        </Suspense>
-
-        {/* Sunglasses Section */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <ShapeSection title="Sunglasses" shape="circle" items={EYEGLASS_SHAPES} />
-        </Suspense>
+        {/* Dynamic Category Shape Sections */}
+        {categories.filter((c) => c.isActive).map((category) => (
+          <Suspense key={category._id} fallback={<LoadingSkeleton />}>
+            <ShapeSection
+              title={category.name}
+              shape="circle"
+              categorySlug={category.slug}
+              items={(category.shapes || []).map((shape: any) => ({
+                label: shape.name,
+                image: shape.image || "https://placehold.co/200x200?text=Shape",
+              }))}
+            />
+          </Suspense>
+        ))}
 
         {/* Nearby Services */}
         <Suspense fallback={<LoadingSkeleton />}>
