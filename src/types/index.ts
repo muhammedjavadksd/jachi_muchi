@@ -492,6 +492,45 @@ export interface CartItemData {
   powerType?: string;
 }
 
+// ============================================
+// WISHLIST API TYPES
+// ============================================
+
+/** Wishlist item from API */
+export interface ApiWishlistItem {
+  _id?: string;
+  id?: string;
+  productId: string;
+  name: string;
+  image: string;
+  link: string;
+  price: number;
+  addedAt?: string;
+}
+
+/** Add to wishlist request payload */
+export interface AddToWishlistRequest {
+  productId: string;
+  name: string;
+  image: string;
+  link: string;
+  price: number;
+}
+
+/** Wishlist API response */
+export interface WishlistResponse {
+  success: boolean;
+  message: string;
+  data?: ApiWishlistItem[];
+}
+
+/** Single wishlist item response */
+export interface WishlistItemResponse {
+  success: boolean;
+  message: string;
+  data?: ApiWishlistItem;
+}
+
 
 export interface PowerDetails {
   leftSPH?: string;

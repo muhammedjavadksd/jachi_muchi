@@ -78,9 +78,20 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
   onView,
 }: {
   item: WishlistItemType;
-  onRemove: () => void;
+  onRemove: () => Promise<void>;
   onView: () => void;
 }): JSX.Element {
+  const [removing, setRemoving] = useState(false);
+
+  const handleRemove = async () => {
+    setRemoving(true);
+    try {
+      await onRemove();
+    } finally {
+      setRemoving(false);
+    }
+  };
+
   return (
     <li className="flex gap-3 p-3 rounded-lg border border-gray-200 bg-gray-50/50">
       <a
@@ -112,10 +123,11 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
           </button>
           <button
             type="button"
-            onClick={onRemove}
-            className="px-3 py-1.5 text-xs font-medium bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            onClick={handleRemove}
+            disabled={removing}
+            className="px-3 py-1.5 text-xs font-medium bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50"
           >
-            Remove
+            {removing ? "Removing..." : "Remove"}
           </button>
         </div>
       </div>

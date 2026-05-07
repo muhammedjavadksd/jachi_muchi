@@ -18,7 +18,8 @@ export const ProductCard = memo(function ProductCard({
   link,
 }: ProductCardProps): JSX.Element {
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
-  const { addItem: addToWishlist, isInWishlist } = useWishlist();
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
   const inWishlist = isInWishlist(link);
 
   const primaryImage = useMemo(() => {
@@ -33,6 +34,26 @@ export const ProductCard = memo(function ProductCard({
     e.stopPropagation();
     setSelectedColorIndex(index);
   }, []);
+
+  const handleWishlistClick = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (wishlistLoading) return;
+
+    setWishlistLoading(true);
+    try {
+      if (inWishlist) {
+        await removeFromWishlist(link);
+      } else {
+        await addToWishlist({ name, image: primaryImage, link, price });
+      }
+    } catch (error) {
+      console.error("Wishlist action failed:", error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  }, [inWishlist, link, name, primaryImage, price, addToWishlist, removeFromWishlist, wishlistLoading]);
 
   return (
     <a
@@ -51,13 +72,10 @@ export const ProductCard = memo(function ProductCard({
         {/* Wishlist Button */}
         <button
           type="button"
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:shadow-md transition-shadow z-10"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            addToWishlist({ name, image: primaryImage, link, price });
-          }}
-          aria-label={inWishlist ? "In wishlist" : "Add to wishlist"}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:shadow-md transition-shadow z-10 disabled:opacity-50"
+          onClick={handleWishlistClick}
+          disabled={wishlistLoading}
+          aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
         >
           <svg
             width="15"
