@@ -4,6 +4,7 @@ import { NavTab } from "./components/BottomNav/BottomNav";
 import { HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
 import { api } from "./api/axios";
+import { getBanners } from "./api/banner";
 
 /** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
@@ -19,6 +20,36 @@ export default function App(): JSX.Element {
   const [orderCount] = useState(2);
   const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
   const [categories, setCategories] = useState<any[]>([]);
+
+  const [heroBanners, setHeroBanners] = useState<any[]>([]);
+  const [promoBanners, setPromoBanners] = useState<any[]>([]);
+
+
+  useEffect(() => {
+    api.get("/categories")
+      .then((res) => {
+        setCategories(res.data?.data?.categories || []);
+      })
+      .catch(() => setCategories([]));
+
+    // --- FETCH BANNERS ---
+    getBanners().then((allBanners) => {
+      // Filter out inactive banners
+      const activeBanners = allBanners.filter((b: any) => b.isActive);
+
+      // Separate them by type and sort by position
+      const homepage = activeBanners
+        .filter((b: any) => b.type === "homepage")
+        .sort((a: any, b: any) => a.position - b.position);
+
+      const promotional = activeBanners
+        .filter((b: any) => b.type === "promotional")
+        .sort((a: any, b: any) => a.position - b.position);
+
+      setHeroBanners(homepage);
+      setPromoBanners(promotional);
+    });
+  }, []);
 
   useEffect(() => {
     api.get("/categories")
@@ -57,8 +88,11 @@ export default function App(): JSX.Element {
       <main className="flex-1 pb-20">
         {/* Hero Slider */}
         <Suspense fallback={<LoadingSkeleton />}>
-          <HeroSlider />
-        </Suspense>
+          {heroBanners.length > 0 ? (
+            <HeroSlider banners={heroBanners} />
+          ) : (
+            <div className="h-[250px] bg-gray-100 animate-pulse flex items-center justify-center">Loading Banners...</div>
+          )}        </Suspense>
 
         {/* Secondary Offers */}
         <Suspense fallback={<LoadingSkeleton />}>
@@ -138,9 +172,11 @@ export default function App(): JSX.Element {
           <GridSection title="Exclusively at Lenskart" columns={3} items={EXCLUSIVE_ITEMS} />
         </div>
 
-        {/* Campaign Banner */}
+        {/* Campaign Banners */}
         <Suspense fallback={<LoadingSkeleton />}>
-          <Campaign image="/campign/image.png" link="/campaign" />
+          {promoBanners.map((promo, index) => (
+             <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
+          ))}
         </Suspense>
 
         {/* Premium Eyewear */}
@@ -156,8 +192,9 @@ export default function App(): JSX.Element {
 
         {/* Extra Campaign Banners */}
         <Suspense fallback={<LoadingSkeleton />}>
-          <Campaign image="/campign/4.png" link="/campaign/3" />
-          <Campaign image="/campign/5.png" link="/campaign/4" />
+          {promoBanners.slice(2).map((promo, index) => (
+            <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
+          ))}
         </Suspense>
       </main>
 
