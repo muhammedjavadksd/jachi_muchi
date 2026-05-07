@@ -8,6 +8,7 @@ const PROMOTION_HEADER_HEIGHT = 140;
 
 /** Cart item interface matching localStorage structure */
 interface CartItem {
+  cartItemId?: string;
   productId: string;
   productName: string;
   productPrice: number;
@@ -54,9 +55,10 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     height: `${PROMOTION_HEADER_HEIGHT}px`,
   }), []);
 
-  const handleRemoveItem = useCallback((productId: string) => {
+  const handleRemoveItem = useCallback((cartItemIdToRemove: string) => {
     setCartItems(prev => {
-      const updated = prev.filter(item => item.productId !== productId);
+      // Filter by cartItemId instead of productId
+      const updated = prev.filter(item => item.cartItemId !== cartItemIdToRemove);
       localStorage.setItem("cart", JSON.stringify(updated));
       return updated;
     });
@@ -106,13 +108,13 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   const fittingFee = 199;
 
-  const totalPayable = useMemo(() =>
-    totalItemPrice + fittingFee - couponSavings, [totalItemPrice, couponSavings]);
-
+ const totalPayable = useMemo(() =>
+    totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
+ 
   const cartItemsList = useMemo(() => (
-    cartItems.map((item) => (
+    cartItems.map((item, index) => (
       <div
-        key={item.productId}
+        key={item.cartItemId || `${item.productId}-${index}`}
         className="bg-white border border-gray-200 rounded-2xl p-5 mb-5 relative overflow-hidden"
       >
         <div className="flex flex-col sm:flex-row gap-5">
@@ -164,8 +166,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             {/* Action Buttons */}
             <div className="flex items-center gap-5 text-sm pt-2">
               <button
-                onClick={() => handleRemoveItem(item.productId)}
-                className="text-red-600 font-medium hover:text-red-700 transition-colors"
+                onClick={() => handleRemoveItem(item.cartItemId!)} className="text-red-600 font-medium hover:text-red-700 transition-colors"
               >
                 Remove
               </button>

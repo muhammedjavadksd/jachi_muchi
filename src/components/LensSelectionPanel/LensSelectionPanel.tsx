@@ -114,6 +114,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
     const cartItem = {
+      cartItemId: Date.now().toString(),
       productId,
       productName,
       productPrice,
