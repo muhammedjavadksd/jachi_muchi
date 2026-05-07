@@ -18,6 +18,7 @@ interface LensSelectionPanelProps {
   productId: string;
   productName: string;
   productPrice: number;
+  productMrp: number;
   selectedColor?: { name: string; id: string };
 }
 
@@ -27,6 +28,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   productId,
   productName,
   productPrice,
+  productMrp,
   selectedColor,
 }: LensSelectionPanelProps): JSX.Element | null {
   const navigate = useNavigate();
@@ -115,9 +117,8 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
       productId,
       productName,
       productPrice,
-
+      mrp: productMrp,
       color: selectedColor || null,
-
       lens: selectedLens
         ? {
           id: selectedLens._id,

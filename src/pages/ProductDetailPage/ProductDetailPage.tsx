@@ -93,8 +93,8 @@ const safeProduct = {
   name: product?.name || "",
   description: product?.description || "",
   price: product?.price || 0,
-  originalPrice: product?.originalPrice || product?.price || 0,
-  discount: product?.discount || 0,
+  originalPrice: product?.mrp > product?.price ? product.mrp : 0,
+  discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
   rating: product?.rating || 0,
   reviews: product?.reviewCount || 0,
   images: product?.images?.length ? product.images : ["/placeholder.png"],
@@ -300,12 +300,13 @@ if (!product) {
               <p className="text-gray-500 text-sm md:text-base mb-6">{safeProduct.description}</p>
 
               {/* Price */}
+              {/* Price */}
               <div className="flex items-center gap-3 mb-6">
                 <span className="text-4xl font-bold text-gray-900">₹{safeProduct.price}</span>
-                {safeProduct.originalPrice && (
+                {safeProduct.originalPrice > safeProduct.price && (
                   <span className="text-2xl text-gray-400 line-through">₹{safeProduct.originalPrice}</span>
                 )}
-                {safeProduct.discount && (
+                {safeProduct.discount > 0 && (
                   <span className="text-green-600 font-bold text-xl">({safeProduct.discount}% OFF)</span>
                 )}
               </div>
@@ -438,6 +439,7 @@ if (!product) {
         productId={safeProduct._id}
         productName={safeProduct.name}
         productPrice={safeProduct.price}
+        productMrp={safeProduct.originalPrice}
         selectedColor={selectedVariant ? { name: selectedVariant.color, id: selectedVariant._id } : undefined}
       />
     </div>

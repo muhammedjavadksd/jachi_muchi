@@ -14,6 +14,7 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
+  mrp?: number;
   quantity?: number;
   color: { name: string; id: string } | null;
   lens: {
@@ -310,17 +311,20 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   }, []);
 
   // Correct pricing calculations
-  const subtotal = useMemo(() =>
-    cart.reduce((sum, item) => sum + item.totalPrice, 0), [cart]);
-
-  const discount = useMemo(() =>
-    cart.reduce((sum, item) => sum + (item.productPrice + (item.lens?.price || 0) - item.totalPrice), 0), [cart]);
-
   const fittingFee = 199;
 
-  const totalPayable = useMemo(() =>
-    subtotal + fittingFee, [subtotal]);
 
+  const subtotal = useMemo(() =>
+    cart.reduce((sum, item) => sum + ((item.mrp || item.productPrice) * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
+
+  const totalSellingPrice = useMemo(() =>
+    cart.reduce((sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
+
+  const discount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
+
+  const totalPayable = useMemo(() => totalSellingPrice + fittingFee, [totalSellingPrice]);
+
+  
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
   }), []);
@@ -609,9 +613,9 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                         localStorage.removeItem("cart");
                         navigate(`/order-success/${orderId}`);
                       } else {
-                        const res = await createRazorpayOrder(totalPayable );
+                        const res = await createRazorpayOrder(totalPayable);
 
-                        if ( !res.data.success) {
+                        if (!res.data.success) {
                           throw new Error("Payment order creation failed");
                         }
 

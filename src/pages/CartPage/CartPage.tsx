@@ -11,6 +11,7 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
+  mrp?: number;
   quantity?: number;
   color: { name: string; id: string } | null;
   lens: {
@@ -90,17 +91,18 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     localStorage.removeItem("coupon");
   }, []);
 
-  // Total item price: sum of totalPrice (product + lens)
+  // Total MRP (Original Price of everything)
   const totalItemPrice = useMemo(() =>
-    cartItems.reduce((sum, item) => sum + item.totalPrice, 0), [cartItems]);
-
-  // Total discount: sum of (productPrice + lensPrice - totalPrice)
-  const totalDiscount = useMemo(() =>
-    cartItems.reduce((sum, item) => {
-      const lensPrice = item.lens?.price || 0;
-      return sum + (item.productPrice + lensPrice - item.totalPrice);
-    }, 0),
+    cartItems.reduce((sum, item) => sum + ((item.mrp || item.productPrice) * (item.quantity || 1)) + (item.lens?.price || 0), 0),
     [cartItems]);
+
+  // Total Selling Price (What they actually pay for the items)
+  const totalSellingPrice = useMemo(() =>
+    cartItems.reduce((sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0),
+    [cartItems]);
+
+  // Total Discount (Difference between MRP and Selling Price)
+  const totalDiscount = useMemo(() => totalItemPrice - totalSellingPrice, [totalItemPrice, totalSellingPrice]);
 
   const fittingFee = 199;
 
@@ -124,26 +126,27 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             />
           </div>
 
-            {/* Product Details */}
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start gap-4">
-                <h3 className="text-base font-medium text-gray-900 leading-snug pr-2 line-clamp-2">
-                  {item.productName}
-                </h3>
-                <div className="text-right shrink-0">
-                  <span className="text-gray-400 line-through text-sm">₹{item.totalPrice}</span>
-                </div>
+          {/* Product Details */}
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start gap-4">
+              <h3 className="text-base font-medium text-gray-900 leading-snug pr-2 line-clamp-2">
+                {item.productName}
+              </h3>
+              <div className="text-right shrink-0">
+                {item.mrp && item.mrp > item.productPrice && (
+                  <span className="text-gray-400 line-through text-sm">₹{item.mrp}</span>
+                )}                </div>
+            </div>
+
+            {/* Color Info */}
+            {item.color && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: item.color.name }} />
+                <span className="text-gray-600 text-sm">Color: {item.color.name}</span>
               </div>
+            )}
 
-              {/* Color Info */}
-              {item.color && (
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: item.color.name }} />
-                  <span className="text-gray-600 text-sm">Color: {item.color.name}</span>
-                </div>
-              )}
-
-              {/* Lens Info */}
+            {/* Lens Info */}
             {item.lens && (
               <div className="flex justify-between items-center my-3">
                 <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? ` (+₹${item.lens.price})` : ''}</span>
