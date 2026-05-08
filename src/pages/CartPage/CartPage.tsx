@@ -25,30 +25,13 @@ interface CartItem {
   powerType?: string;
 }
 
-/** Coupon data interface */
-interface CouponData {
-  code: string;
-  savings: number;
-}
-
 export const CartPage = memo(function CartPage(): JSX.Element {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [couponInput, setCouponInput] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState("");
-  const [couponSavings, setCouponSavings] = useState(0);
-  const [couponError, setCouponError] = useState("");
-  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  // Load cart and coupon from localStorage on mount
+  // Load cart from localStorage on mount
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(stored);
-
-    const savedCoupon = JSON.parse(localStorage.getItem("coupon") || "null");
-    if (savedCoupon && savedCoupon.code && savedCoupon.savings) {
-      setAppliedCoupon(savedCoupon.code);
-      setCouponSavings(savedCoupon.savings);
-    }
   }, []);
 
   const spacerStyle = useMemo(() => ({
@@ -62,35 +45,6 @@ export const CartPage = memo(function CartPage(): JSX.Element {
       localStorage.setItem("cart", JSON.stringify(updated));
       return updated;
     });
-  }, []);
-
-  const handleApplyCoupon = useCallback(() => {
-    if (!couponInput.trim()) {
-      setCouponError("Please enter a coupon code");
-      return;
-    }
-    setIsApplyingCoupon(true);
-    setCouponError("");
-
-    setTimeout(() => {
-      if (couponInput.toUpperCase() === "GET60") {
-        const couponData: CouponData = { code: "GET60", savings: 2340 };
-        setAppliedCoupon(couponData.code);
-        setCouponSavings(couponData.savings);
-        setCouponInput("");
-        localStorage.setItem("coupon", JSON.stringify(couponData));
-      } else {
-        setCouponError("Invalid coupon code");
-      }
-      setIsApplyingCoupon(false);
-    }, 500);
-  }, [couponInput]);
-
-  const handleRemoveCoupon = useCallback(() => {
-    setAppliedCoupon("");
-    setCouponSavings(0);
-    setCouponError("");
-    localStorage.removeItem("coupon");
   }, []);
 
   // Total MRP (Original Price of everything)
@@ -108,8 +62,8 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   const fittingFee = 199;
 
- const totalPayable = useMemo(() =>
-    totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
+  const totalPayable = useMemo(() =>
+    totalSellingPrice + fittingFee, [totalSellingPrice]);
  
   const cartItemsList = useMemo(() => (
     cartItems.map((item, index) => (
@@ -221,13 +175,6 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                       <span>₹{fittingFee}</span>
                     </div>
 
-                    {appliedCoupon && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Coupon ({appliedCoupon})</span>
-                        <span className="text-green-600">-₹{couponSavings}</span>
-                      </div>
-                    )}
-
                     <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-semibold text-lg">Total payable</span>
                       <span className="font-bold text-2xl text-gray-900">
@@ -237,52 +184,27 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* Coupon Section */}
-                <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
-                  {appliedCoupon ? (
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">{appliedCoupon} applied</p>
-                        <p className="text-green-600 text-sm">You saved ₹{couponSavings}</p>
-                      </div>
-                      <button
-                        onClick={handleRemoveCoupon}
-                        className="text-red-600 font-medium text-sm hover:underline"
-                      >
-                        REMOVE
-                      </button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="font-semibold text-gray-900 mb-3">Apply Coupon</p>
-                      <div className="flex gap-3">
-                        <input
-                          type="text"
-                          value={couponInput}
-                          onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                          placeholder="Enter coupon code"
-                          className="flex-1 px-5 py-3 border border-gray-300 rounded-2xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        />
-                        <button
-                          onClick={handleApplyCoupon}
-                          disabled={isApplyingCoupon || !couponInput.trim()}
-                          className="px-7 py-3 bg-teal-700 text-white font-medium rounded-2xl hover:bg-teal-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isApplyingCoupon ? "..." : "Apply"}
-                        </button>
-                      </div>
-                      {couponError && <p className="text-red-500 text-sm mt-3">{couponError}</p>}
-                    </div>
-                  )}
-                </div>
-
                 {/* Checkout Button */}
-                <Link
-                  to="/checkout"
-                  className="block w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-center text-base transition-all active:scale-[0.985]"
-                >
-                  Proceed To Checkout →
-                </Link>
+                {cartItems.length > 0 ? (
+                  <Link
+                    to="/checkout"
+                    className="block w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-center text-base transition-all active:scale-[0.985]"
+                  >
+                    Proceed To Checkout →
+                  </Link>
+                ) : (
+                  <div className="space-y-3">
+                    <button
+                      disabled
+                      className="block w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-2xl text-center text-base cursor-not-allowed"
+                    >
+                      Cart is Empty
+                    </button>
+                    <p className="text-center text-sm text-gray-500">
+                      Add items to cart to proceed to checkout
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

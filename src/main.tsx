@@ -33,6 +33,7 @@ import {
   StoresPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
+import { CartProvider } from "./context/CartContext";
 import { LoginModalProvider } from "./context/LoginModalContext";
 import { SignupModalProvider } from "./context/SignupModalContext";
 import { ForgotPasswordModalProvider } from "./context/ForgotPasswordModalContext";
@@ -56,6 +57,7 @@ createRoot(rootElement).render(
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
+        <CartProvider>
         <LoginModalProvider>
           <SignupModalProvider>
             <ForgotPasswordModalProvider>
@@ -103,6 +105,7 @@ createRoot(rootElement).render(
             </ForgotPasswordModalProvider>
           </SignupModalProvider>
         </LoginModalProvider>
+      </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
