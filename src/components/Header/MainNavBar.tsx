@@ -5,6 +5,7 @@ import { BRAND_LOGO_URL, NAV_CATEGORIES } from "../../lib/constants";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import type { MainNavBarProps } from "../../types";
 
 /**
@@ -15,6 +16,7 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
   const { isAuthenticated, user, logout } = useAuth();
+  const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
@@ -53,8 +55,13 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
             )}
           </button>
 
-          <button type="button" onClick={() => navigate("/cart")} className="flex items-center justify-center w-10 h-10 text-white" aria-label="Cart">
+          <button type="button" onClick={() => navigate("/cart")} className="relative flex items-center justify-center w-10 h-10 text-white" aria-label="Cart">
             <CartIcon />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
           </button>
 
           {isAuthenticated && user ? (

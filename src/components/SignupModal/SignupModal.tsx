@@ -4,6 +4,7 @@ import { useSignupModal } from "../../context/SignupModalContext";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { authApi } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
+import { WelcomeCouponModal } from "../WelcomeCouponModal/WelcomeCouponModal";
 
 function isValidEmail(value: string): boolean {
   const trimmed = value.trim();
@@ -43,8 +44,8 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
     lastName: "",
     mobile: "",
     email: "",
-    password: "",
   });
+  const [showWelcomeCoupon, setShowWelcomeCoupon] = useState(false);
 
   const mobileDigits = mobile.replace(/\D/g, "");
   const mobileValid = mobileDigits.length === 10 && /^[6-9]/.test(mobileDigits);
@@ -62,7 +63,6 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
     setLastName("");
     setMobile("");
     setEmail("");
-    setPassword("");
     setTouched({});
     setApiError("");
     setLoading(false);
@@ -75,8 +75,22 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
       lastName: "",
       mobile: "",
       email: "",
-      password: "",
     });
+    setShowWelcomeCoupon(false);
+  };
+
+  const handleWelcomeCouponClose = () => {
+    setShowWelcomeCoupon(false);
+    // Save welcome coupon to localStorage for checkout page
+    localStorage.setItem("welcomeCoupon", JSON.stringify({
+      code: "WELCOME100",
+      discount: 100,
+      minOrder: 999,
+      validDays: 7,
+      applied: false,
+    }));
+    close();
+    navigate("/");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,8 +146,8 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
           email: apiUser.email,
           phone: signupPayload.mobile,
         });
-        close();
-        navigate("/");
+        // Show welcome coupon modal instead of closing directly
+        setShowWelcomeCoupon(true);
       } else {
         setApiError(response.message || "Invalid response from server");
       }
@@ -172,10 +186,19 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
     openLoginModal();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !showWelcomeCoupon) return null;
 
   return (
     <>
+      <WelcomeCouponModal
+        isOpen={showWelcomeCoupon}
+        onClose={handleWelcomeCouponClose}
+        couponCode="WELCOME100"
+        discount={100}
+        minOrder={999}
+        validDays={7}
+      />
+
       <div
         className="fixed inset-0 bg-black/50 z-[100]"
         onClick={handleClose}
