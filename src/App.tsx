@@ -23,8 +23,7 @@ export default function App(): JSX.Element {
 
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
-
-
+  const [collections, setCollections] = useState<any[]>([]);
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
@@ -172,17 +171,19 @@ export default function App(): JSX.Element {
           <GridSection title="Exclusively at Lenskart" columns={3} items={EXCLUSIVE_ITEMS} />
         </div>
 
-        {/* Campaign Banners */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          {promoBanners.map((promo, index) => (
-             <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
-          ))}
-        </Suspense>
-
         {/* Premium Eyewear */}
         <Suspense fallback={<LoadingSkeleton />}>
           <FeaturedGrid title="Premium Eyewear" items={PREMIUM_EYEWEAR} />
         </Suspense>
+
+        {/* Campaign Banners */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          {promoBanners.map((promo, index) => (
+            <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
+          ))}
+        </Suspense>
+
+
 
         {/* Our Brands + Free Eye Checkup */}
         <div className="px-4 space-y-8 mt-8">
