@@ -16,7 +16,7 @@ const auth = require('../middleware/auth');
  */
 router.post('/apply', auth, async (req, res) => {
   try {
-    const { code } = req.body;
+    const code = req.body.couponCode || req.body.code;
 
     if (!code) {
       return res.status(400).json({
@@ -323,6 +323,87 @@ router.get('/list', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching coupons',
+    });
+  }
+});
+
+/**
+ * GET /api/coupons/available
+ * Get all available coupons for the user
+ */
+router.get('/available', async (req, res) => {
+  try {
+    const now = new Date();
+    const coupons = await Coupon.find({
+      isActive: true,
+      expiresAt: { $gt: now },
+      $or: [
+        { usageLimit: { $exists: false } },
+        { $expr: { $lt: ['$usedCount', '$usageLimit'] } }
+      ]
+    }).sort({ createdAt: -1 });
+
+    const mappedCoupons = coupons.map(c => ({
+      code: c.code,
+      discountType: c.discountType,
+      discountValue: c.discountValue,
+      minPurchase: c.minOrderAmount || 0,
+      maxDiscount: c.maxDiscount,
+      description: c.description,
+      expiresAt: c.expiresAt,
+      isNewUserOnly: c.isNewUserOnly || false,
+    }));
+
+    res.json({
+      success: true,
+      data: mappedCoupons,
+    });
+  } catch (error) {
+    console.error('Available coupons error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching coupons',
+    });
+  }
+});
+
+/**
+ * GET /api/coupons/welcome
+ * Get welcome coupon for new users
+ */
+router.get('/welcome', auth, async (req, res) => {
+  try {
+    const welcomeCoupon = await Coupon.findOne({
+      isActive: true,
+      isNewUserOnly: true,
+      expiresAt: { $gt: new Date() },
+      code: { $regex: /welcome/i }
+    }).sort({ createdAt: -1 });
+
+    if (!welcomeCoupon) {
+      return res.status(404).json({
+        success: false,
+        message: 'No welcome coupon available',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        code: welcomeCoupon.code,
+        discountType: welcomeCoupon.discountType,
+        discountValue: welcomeCoupon.discountValue,
+        minPurchase: welcomeCoupon.minOrderAmount || 0,
+        maxDiscount: welcomeCoupon.maxDiscount,
+        description: welcomeCoupon.description,
+        validDays: Math.ceil((welcomeCoupon.expiresAt - new Date()) / (1000 * 60 * 60 * 24)),
+      },
+    });
+  } catch (error) {
+    console.error('Welcome coupon error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching welcome coupon',
     });
   }
 });

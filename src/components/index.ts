@@ -46,3 +46,8 @@ export * from "./icons";
 
 // Route Protection
 export { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute";
+
+// Coupon Components
+export { CouponCard } from "./CouponCard/CouponCard";
+export { OffersSection } from "./OffersSection/OffersSection";
+export { WelcomeCouponModal } from "./WelcomeCouponModal/WelcomeCouponModal";
