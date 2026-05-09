@@ -5,7 +5,7 @@ import { HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } 
 import { TopCategories } from "./components/TopCategories/TopCategories";
 import { api } from "./api/axios";
 import { getBanners } from "./api/banner";
-import { getCollections } from "./api/collection";
+import { OffersSection } from "./components/OffersSection/OffersSection";
 
 /** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
@@ -104,6 +104,11 @@ export default function App(): JSX.Element {
         {/* Secondary Offers */}
         <Suspense fallback={<LoadingSkeleton />}>
           <SecondaryBannerCarousel />
+        </Suspense>
+
+        {/* Offers For You Section */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          <OffersSection />
         </Suspense>
 
         {/* Top Categories */}

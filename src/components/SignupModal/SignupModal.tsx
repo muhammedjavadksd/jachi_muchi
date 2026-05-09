@@ -81,14 +81,6 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
 
   const handleWelcomeCouponClose = () => {
     setShowWelcomeCoupon(false);
-    // Save welcome coupon to localStorage for checkout page
-    localStorage.setItem("welcomeCoupon", JSON.stringify({
-      code: "WELCOME100",
-      discount: 100,
-      minOrder: 999,
-      validDays: 7,
-      applied: false,
-    }));
     close();
     navigate("/");
   };
@@ -193,10 +185,6 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
       <WelcomeCouponModal
         isOpen={showWelcomeCoupon}
         onClose={handleWelcomeCouponClose}
-        couponCode="WELCOME100"
-        discount={100}
-        minOrder={999}
-        validDays={7}
       />
 
       <div

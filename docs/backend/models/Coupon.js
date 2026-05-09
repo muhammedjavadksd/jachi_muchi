@@ -39,6 +39,10 @@ const couponSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  isNewUserOnly: {
+    type: Boolean,
+    default: false,
+  },
   usageLimit: {
     type: Number,
     default: null, // Max number of times this coupon can be used

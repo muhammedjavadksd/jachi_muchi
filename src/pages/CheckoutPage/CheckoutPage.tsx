@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { createOrder } from "../../api/order";
 import { createRazorpayOrder } from "../../api/payment";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
@@ -281,6 +281,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [orderLoading, setOrderLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Coupon states
   const [couponInput, setCouponInput] = useState("");
@@ -289,28 +290,61 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  // Load coupon from localStorage on mount
+  // Load coupon from localStorage and URL params on mount
   useEffect(() => {
-    // Check for welcome coupon first
-    const welcomeCoupon = JSON.parse(localStorage.getItem("welcomeCoupon") || "null");
-    if (welcomeCoupon && !welcomeCoupon.applied) {
-      setCouponInput(welcomeCoupon.code);
-      // Auto-apply welcome coupon
+    // Check URL params first (from OffersSection "Apply Now")
+    const couponFromUrl = searchParams.get("coupon");
+    if (couponFromUrl && !appliedCoupon) {
+      setCouponInput(couponFromUrl.toUpperCase());
+      // Auto-apply after a brief delay
       setTimeout(() => {
-        setCouponInput(welcomeCoupon.code);
+        setCouponInput(couponFromUrl.toUpperCase());
       }, 100);
+    }
+
+    // Check for welcome coupon (from signup)
+    const welcomeCoupon = JSON.parse(localStorage.getItem("welcomeCoupon") || "null");
+    if (welcomeCoupon && !welcomeCoupon.applied && !appliedCoupon && !couponFromUrl) {
+      setCouponInput(welcomeCoupon.code);
       // Mark as applied so it doesn't auto-apply again
       welcomeCoupon.applied = true;
       localStorage.setItem("welcomeCoupon", JSON.stringify(welcomeCoupon));
+      // Auto-apply after a brief delay
+      setTimeout(() => {
+        setCouponInput(welcomeCoupon.code);
+      }, 100);
     }
 
-    // Load regular coupon
+    // Load regular coupon from localStorage (if previously applied)
     const savedCoupon = JSON.parse(localStorage.getItem("coupon") || "null");
-    if (savedCoupon && savedCoupon.code && savedCoupon.savings) {
+    if (savedCoupon && savedCoupon.code && savedCoupon.savings && !couponFromUrl && !welcomeCoupon) {
       setAppliedCoupon(savedCoupon.code);
       setCouponSavings(savedCoupon.savings);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-apply coupon when couponInput is set from URL or welcome coupon
+  useEffect(() => {
+    const couponFromUrl = searchParams.get("coupon");
+    const welcomeCoupon = JSON.parse(localStorage.getItem("welcomeCoupon") || "null");
+
+    if (couponInput &&
+        !appliedCoupon &&
+        !isApplyingCoupon &&
+        (couponFromUrl || (welcomeCoupon && welcomeCoupon.applied && !welcomeCoupon.skipped))) {
+      // Small delay to ensure state is updated
+      const timer = setTimeout(() => {
+        handleApplyCoupon();
+        // Clear URL param after applying
+        if (couponFromUrl) {
+          window.history.replaceState({}, '', '/checkout');
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [couponInput]);
 
   const handleApplyCoupon = useCallback(async () => {
     const trimmedCode = couponInput.trim().toUpperCase();

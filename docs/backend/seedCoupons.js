@@ -28,6 +28,7 @@ const sampleCoupons = [
     maxDiscount: null,
     expiresAt: new Date('2026-12-31'),
     isActive: true,
+    isNewUserOnly: true,
     usageLimit: 1000,
     description: 'Welcome coupon - ₹100 off on orders above ₹500',
     applicableCategories: [],
