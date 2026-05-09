@@ -24,8 +24,7 @@ export default function App(): JSX.Element {
 
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
-
-
+  const [collections, setCollections] = useState<any[]>([]);
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
@@ -50,6 +49,13 @@ export default function App(): JSX.Element {
       setHeroBanners(homepage);
       setPromoBanners(promotional);
     });
+
+    // --- FETCH COLLECTIONS ---
+    getCollections()
+      .then((cols) => {
+        setCollections(cols || []);
+      })
+      .catch(() => setCollections([]));
   }, []);
 
   useEffect(() => {
@@ -173,22 +179,37 @@ export default function App(): JSX.Element {
           <NearbyServices />
         </Suspense>
 
-        {/* Exclusively at Lenskart */}
-        <div className="px-4 mt-8">
-          <GridSection title="Exclusively at Lenskart" columns={3} items={EXCLUSIVE_ITEMS} />
-        </div>
+        {/* Collections from backend (dynamic) */}
+        {collections
+          .filter((col) => col.isActive && (col.productIds?.length > 0))
+          .map((col) => {
+            const formattedItems = (col.productIds || []).map((prod: any) => ({
+              title: prod.name,
+              image: prod.images?.length > 0 ? prod.images[0] : "https://placehold.co/400x300?text=No+Image",
+              link: '/product/' + prod._id,
+            }));
+
+            return (
+              <div key={col._id} className="px-4 mt-8">
+                <Suspense fallback={<LoadingSkeleton />}>
+                  {col.layout === 'featured' ? (
+                    <FeaturedGrid title={col.name} items={formattedItems} />
+                  ) : (
+                    <GridSection title={col.name} columns={3} items={formattedItems} />
+                  )}
+                </Suspense>
+              </div>
+            );
+          })}
 
         {/* Campaign Banners */}
         <Suspense fallback={<LoadingSkeleton />}>
           {promoBanners.map((promo, index) => (
-             <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
+            <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
           ))}
         </Suspense>
 
-        {/* Premium Eyewear */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <FeaturedGrid title="Premium Eyewear" items={PREMIUM_EYEWEAR} />
-        </Suspense>
+
 
         {/* Our Brands + Free Eye Checkup */}
         <div className="px-4 space-y-8 mt-8">

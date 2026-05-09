@@ -1,6 +1,7 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
 import { supportCards, serviceLinks, contactInfo } from "@/data/contact.data";
+import { submitContactMessage } from "../../api/contact";
 const HEADER_SPACER_HEIGHT = 140;
 
 
@@ -10,6 +11,48 @@ const HEADER_SPACER_HEIGHT = 140;
  */
 export const ContactPage = memo(function ContactPage(): JSX.Element {
   const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.email || !form.message) {
+      // prefer toast if available, fallback to alert
+      try {
+        const t = await import("react-hot-toast");
+        t.toast.error("Please fill name, email and message fields.");
+      } catch {
+        alert("Please fill name, email and message fields.");
+      }
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await submitContactMessage(form);
+      try {
+        const t = await import("react-hot-toast");
+        t.toast.success("Message sent. We'll get back to you soon.");
+      } catch {
+        alert("Message sent. We'll get back to you soon.");
+      }
+      setForm({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      try {
+        const t = await import("react-hot-toast");
+        t.toast.error("Failed to send message. Please try again.");
+      } catch {
+        alert("Failed to send message. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -270,6 +313,82 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
                 </a>
               </div>
             </article>
+          </section>
+
+          {/* Send us a message (contact form) */}
+          <section className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-7">
+            <header className="mb-4">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                Send us a message
+              </h2>
+              <p className="text-sm text-gray-600">Have a question? Drop us a message and we'll get back to you.</p>
+            </header>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Phone (optional)</label>
+                <input
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
+                <textarea
+                  name="message"
+                  value={form.message}
+                  onChange={handleChange}
+                  rows={5}
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                />
+              </div>
+
+              <div className="text-right">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700 disabled:opacity-60"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" fill="currentColor"></path>
+                    </svg>
+                  ) : (
+                    'Send message'
+                  )}
+                </button>
+              </div>
+            </form>
           </section>
         </Container>
       </main>
