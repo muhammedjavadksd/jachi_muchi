@@ -32,38 +32,38 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [pincode, setPincode] = useState("");
   const [lensPanelOpen, setLensPanelOpen] = useState(false);
-const { id } = useParams();
+  const { id } = useParams();
 
-const [product, setProduct] = useState<any>(null);
-const [loading, setLoading] = useState(true);
-
-
-
-useEffect(() => {
-  if (!id) return;
-
-  setLoading(true);
-
-  api.get(`/products/${id}`)
-    .then((res) => {
-      setProduct(res.data.data);
-    })
-    .catch((err) => {
-      console.error(err);
-    })
-    .finally(() => setLoading(false));
-
-}, [id]);
-
-useEffect(() => {
-  setSelectedColorIndex(0);
-}, [product]);
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
 
-const variants = product?.variants || [];
 
-const dynamicColors = variants.length > 0
-  ? variants.map((v: any) => ({
+  useEffect(() => {
+    if (!id) return;
+
+    setLoading(true);
+
+    api.get(`/products/${id}`)
+      .then((res) => {
+        setProduct(res.data.data);
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => setLoading(false));
+
+  }, [id]);
+
+  useEffect(() => {
+    setSelectedColorIndex(0);
+  }, [product]);
+
+
+  const variants = product?.variants || [];
+
+  const dynamicColors = variants.length > 0
+    ? variants.map((v: any) => ({
       colorCode: COLOR_MAP[v.color?.toLowerCase()] || v.colorCode || "#888888",
       image: product?.images?.length ? product.images[0] : "/placeholder.png",
       name: v.color,
@@ -71,36 +71,36 @@ const dynamicColors = variants.length > 0
       stock: v.stock,
       _id: v._id,
     }))
-  : [];
+    : [];
 
-console.log("dynamicColors", dynamicColors);
+  console.log("dynamicColors", dynamicColors);
 
-const selectedVariant = variants.find((v: any) => v.color === dynamicColors[selectedColorIndex]?.name) || variants[0];
+  const selectedVariant = variants.find((v: any) => v.color === dynamicColors[selectedColorIndex]?.name) || variants[0];
 
-const dynamicSpecs = [
-  { label: "Product ID", value: product?._id || "N/A" },
-  { label: "Brand", value: product?.brand || "N/A" },
-  { label: "Category", value: product?.category || "N/A" },
-  { label: "Shape", value: product?.shape || "N/A" },
-  { label: "Frame Type", value: product?.frameType || "N/A" },
-  { label: "Frame Color", value: dynamicColors[selectedColorIndex]?.name || "N/A" },
-  ...(product?.description ? [{ label: "Description", value: product.description }] : []),
-];
+  const dynamicSpecs = [
+    { label: "Product ID", value: product?._id || "N/A" },
+    { label: "Brand", value: product?.brand?.name || product?.brand || "N/A" },
+    { label: "Category", value: product?.category?.name || product?.category || "N/A" },
+    { label: "Shape", value: product?.shape || "N/A" },
+    { label: "Frame Type", value: product?.frameType || "N/A" },
+    { label: "Frame Color", value: dynamicColors[selectedColorIndex]?.name || "N/A" },
+    ...(product?.description ? [{ label: "Description", value: product.description }] : []),
+  ];
 
-const safeProduct = {
-  _id: product?._id || "",
-  brand: product?.brand || "",
-  name: product?.name || "",
-  description: product?.description || "",
-  price: product?.price || 0,
-  originalPrice: product?.mrp > product?.price ? product.mrp : 0,
-  discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
-  rating: product?.rating || 0,
-  reviews: product?.reviewCount || 0,
-  images: product?.images?.length ? product.images : ["/placeholder.png"],
-  colors: dynamicColors,
-  specs: dynamicSpecs,
-};
+  const safeProduct = {
+    _id: product?._id || "",
+    brand: product?.brand?.name || product?.brand || "",
+    name: product?.name || "",
+    description: product?.description || "",
+    price: product?.price || 0,
+    originalPrice: product?.mrp > product?.price ? product.mrp : 0,
+    discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
+    rating: product?.rating || 0,
+    reviews: product?.reviewCount || 0,
+    images: product?.images?.length ? product.images : ["/placeholder.png"],
+    colors: dynamicColors,
+    specs: dynamicSpecs,
+  };
 
   const handlePincodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setPincode(e.target.value);
@@ -138,7 +138,7 @@ const safeProduct = {
   // Main Product Images as Horizontal Slider on Mobile
   const imageSlider = useMemo(() => (
     <div className="relative">
-      <div 
+      <div
         className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 -mx-1 px-1"
         style={{ scrollSnapType: "x mandatory" }}
       >
@@ -249,13 +249,13 @@ const safeProduct = {
     ))
   ), [safeProduct.specs]);
 
-    if (loading) {
-  return <div className="p-10 text-center">Loading product...</div>;
-}
+  if (loading) {
+    return <div className="p-10 text-center">Loading product...</div>;
+  }
 
-if (!product) {
-  return <div className="p-10 text-center">Product not found</div>;
-}
+  if (!product) {
+    return <div className="p-10 text-center">Product not found</div>;
+  }
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">

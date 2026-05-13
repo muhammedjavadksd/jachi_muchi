@@ -1,7 +1,7 @@
 import { memo, useMemo, useCallback } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { useSlider } from "../../hooks";
-
+import { Link } from "react-router-dom";
 interface Banner {
   _id?: string;
   image: string;
@@ -25,28 +25,30 @@ export const HeroSlider = memo(function HeroSlider({ banners }: HeroSliderProps)
 
   /** Memoize slide elements */
   const slideElements = useMemo(() => (
-    banners.map((banner, index) => (
-      <a 
-        key={banner._id || index} 
-        href={banner.redirectUrl || "#"} 
-        className="w-full flex-shrink-0 relative block"
-      >
-        <img
-          src={banner.image}
-          alt={banner.title || `Banner ${index + 1}`}
-          className="w-full h-[180px] sm:h-[250px] md:h-[320px] lg:h-[400px] object-cover"
-          loading={index === 0 ? "eager" : "lazy"}
-        />
-      </a>
-    ))
+    banners.map((banner, index) => {
+      const imageUrl = banner.image || `https://placehold.co/1200x400/0d9488/FFFFFF?text=${encodeURIComponent(banner.title || 'Banner')}`;
+      return (
+        <Link
+          key={banner._id || index}
+          to={banner.redirectUrl || "#"}
+          className="w-full flex-shrink-0 relative block"
+        >
+          <img
+            src={imageUrl}
+            alt={banner.title || `Banner ${index + 1}`}
+            className="w-full h-[180px] sm:h-[250px] md:h-[320px] lg:h-[400px] object-cover"
+            loading={index === 0 ? "eager" : "lazy"}
+          />
+        </Link>
+      )
+    })
   ), [banners]);
 
   /** Memoize pagination dot class generator */
   const getDotClassName = useCallback((index: number) => (
-    `h-2.5 rounded-full transition-all cursor-pointer ${
-      currentSlide === index
-        ? "w-2.5 bg-white"
-        : "w-2.5 bg-white/40 hover:bg-white/60"
+    `h-2.5 rounded-full transition-all cursor-pointer ${currentSlide === index
+      ? "w-2.5 bg-white"
+      : "w-2.5 bg-white/40 hover:bg-white/60"
     }`
   ), [currentSlide]);
 
