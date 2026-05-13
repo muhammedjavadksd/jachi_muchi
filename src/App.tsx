@@ -5,6 +5,7 @@ import { HEADER_SPACER_HEIGHT, EXCLUSIVE_ITEMS, PREMIUM_EYEWEAR, FREE_CHECKUP } 
 import { TopCategories } from "./components/TopCategories/TopCategories";
 import { api } from "./api/axios";
 import { getBanners } from "./api/banner";
+import { getCollections } from "./api/collection";
 import { OffersSection } from "./components/OffersSection/OffersSection";
 
 /** Lazy loaded components */
@@ -111,6 +112,13 @@ export default function App(): JSX.Element {
           <OffersSection />
         </Suspense>
 
+        {/* First Promotional Banner (placed above Top Categories / Hustlr Club) */}
+        <Suspense fallback={<LoadingSkeleton />}>
+          {promoBanners.length > 0 && promoBanners[0] && (
+            <Campaign key={promoBanners[0]._id || 'promo-0'} image={promoBanners[0].image} link={promoBanners[0].redirectUrl || "#"} />
+          )}
+        </Suspense>
+
         {/* Top Categories */}
         <div className="px-4 pt-6 pb-8">
           <TopCategories />
@@ -181,9 +189,10 @@ export default function App(): JSX.Element {
 
         {/* Collections from backend (dynamic) */}
         {collections
-          .filter((col) => col.isActive && (col.productIds?.length > 0))
-          .map((col) => {
-            const formattedItems = (col.productIds || []).map((prod: any) => ({
+          .filter((col) => col.isActive && col.layout !== 'hidden' && (col.productIds?.length > 0)).map((col) => {
+            const maxItems = col.layout === 'featured' ? 5 : 6;
+            const previewProducts = (col.productIds || []).slice(0, maxItems);
+            const formattedItems = previewProducts.map((prod: any) => ({
               title: prod.name,
               image: prod.images?.length > 0 ? prod.images[0] : "https://placehold.co/400x300?text=No+Image",
               link: '/product/' + prod._id,
@@ -197,16 +206,26 @@ export default function App(): JSX.Element {
                   ) : (
                     <GridSection title={col.name} columns={3} items={formattedItems} />
                   )}
+                  {(col.productIds || []).length > maxItems && (
+                    <div className="flex justify-center mt-6">
+                      <a
+                        href={`/search?collection=${col.slug}`}
+                        className="px-8 py-2.5 border-2 border-teal-600 text-teal-700 font-semibold rounded-full hover:bg-teal-50 transition-colors text-sm"
+                      >
+                        View All
+                      </a>
+                    </div>
+                  )}
                 </Suspense>
               </div>
             );
           })}
 
-        {/* Campaign Banners */}
+        {/* Second Promotional Banner (after Collections) */}
         <Suspense fallback={<LoadingSkeleton />}>
-          {promoBanners.map((promo, index) => (
-            <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
-          ))}
+          {promoBanners.length > 1 && promoBanners[1] && (
+            <Campaign key={promoBanners[1]._id || 'promo-1'} image={promoBanners[1].image} link={promoBanners[1].redirectUrl || "#"} />
+          )}
         </Suspense>
 
 
@@ -217,11 +236,13 @@ export default function App(): JSX.Element {
           <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 
-        {/* Extra Campaign Banners */}
+        {/* Remaining Promotional Banners (bottom of page) */}
         <Suspense fallback={<LoadingSkeleton />}>
-          {promoBanners.slice(2).map((promo, index) => (
-            <Campaign key={promo._id || index} image={promo.image} link={promo.redirectUrl || "#"} />
-          ))}
+          {promoBanners.length > 2 && (
+            promoBanners.slice(2).map((promo, index) => (
+              <Campaign key={promo._id || `promo-${index + 2}`} image={promo.image} link={promo.redirectUrl || "#"} />
+            ))
+          )}
         </Suspense>
       </main>
 

@@ -6,6 +6,7 @@ export const getProducts = async (filters?: {
   brand?: string;
   frameType?: string;
   color?: string;
+  collection?: string;
   [key: string]: any;
 }) => {
   const params: Record<string, any> = {};
@@ -15,6 +16,8 @@ export const getProducts = async (filters?: {
   if (filters?.brand) params.brand = filters.brand;
   if (filters?.frameType) params.frameType = filters.frameType;
   if (filters?.color) params.color = filters.color;
+
+  if (filters?.collection) params.collection = filters.collection;
 
   const res = await api.get("/products", { params });
 

@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
+import { Footer, WhatsAppButton, PromotionHeader, Campaign } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { Grid } from "../../components/Grid/Grid";
 import { FilterSidebar } from "../../components/FilterSidebar/FilterSidebar";
@@ -10,6 +10,7 @@ import { SEARCH_FILTERS } from "../../lib/constants";
 import { X, SlidersHorizontal } from "lucide-react";
 import { getProducts } from "../../api/product";
 import { getBrands } from "../../api/brand";
+import { getBanners } from "../../api/banner"
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -20,9 +21,16 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
 
+  const [categoryBanner, setCategoryBanner] = useState<any>(null);
+
   const { category } = useParams();
   const [searchParams] = useSearchParams();
   const shape = searchParams.get("shape");
+
+  const collectionSlug = searchParams.get("collection");
+
+
+
 
   // Fetch brands and inject into filter config
   const [filterConfig, setFilterConfig] = useState(SEARCH_FILTERS);
@@ -45,6 +53,21 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     }).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (category) {
+      getBanners().then((allBanners) => {
+        const found = allBanners.find((b: any) => 
+          b.isActive && 
+          b.type === "category" && 
+          (b.title?.toLowerCase() === category?.toLowerCase() || b.redirectUrl?.includes(category))
+        );
+        setCategoryBanner(found);
+      }).catch(() => setCategoryBanner(null));
+    } else {
+      setCategoryBanner(null);
+    }
+  }, [category]);
+
   // API CALL with filters
   useEffect(() => {
     setLoading(true);
@@ -52,6 +75,8 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     const params: Record<string, any> = {
       category,
     };
+
+    if (collectionSlug) params.collection = collectionSlug;
 
     if (shape) params.shape = shape;
     if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
@@ -64,7 +89,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
         setProducts(res.data.products || []);
       })
       .finally(() => setLoading(false));
-  }, [category, shape, filters]);
+  }, [category, shape, filters, collectionSlug]);
 
   const spacerStyle = useMemo(
     () => ({
@@ -87,30 +112,18 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     []
   );
 
-  const productCards = useMemo(
-    () =>
-      products.map((product: any, index) => {
-        const colors = (product.variants || []).map((v: any) => ({
-          colorCode:
-            {
-              black: "#000000",
-              blue: "#1e40af",
-              pink: "#ec4899",
-              red: "#dc2626",
-              green: "#16a34a",
-              gold: "#d4a017",
-              silver: "#c0c0c0",
-              grey: "#6b7280",
-              brown: "#8b4513",
-              transparent: "#f0f0f0",
-              purple: "#7c3aed",
-              "rose-gold": "#b76e79",
-              gunmetal: "#2c3539",
-              white: "#ffffff",
-            }[v.color?.toLowerCase()] || v.image || "#888888",
-          image: v.image || product.images?.[0] || "/placeholder.png",
-          name: v.color,
-        }));
+  const productCards = useMemo(() =>
+    products.map((product: any, index) => {
+      const colors = (product.variants || []).map((v: any) => ({
+        colorCode: {
+          black: "#000000", blue: "#1e40af", pink: "#ec4899", red: "#dc2626",
+          green: "#16a34a", gold: "#d4a017", silver: "#c0c0c0", grey: "#6b7280",
+          brown: "#8b4513", transparent: "#f0f0f0", purple: "#7c3aed",
+          "rose-gold": "#b76e79", gunmetal: "#2c3539", white: "#ffffff",
+        }[v.color?.toLowerCase()] || v.image || "#888888",
+        image: v.image || product.images?.[0] || "/placeholder.png",
+        name: v.color,
+      }));
 
         const images =
           product.images && product.images.length > 0
@@ -148,6 +161,18 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
 
       <main className="flex-1">
         <Container>
+
+          {categoryBanner && (
+            <div className="pt-6">
+              <Campaign 
+                image={categoryBanner.image} 
+                link={categoryBanner.redirectUrl || "#"} 
+                alt={categoryBanner.title} 
+              />
+            </div>
+          )}
+
+          
           <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12">
 
             {/* FILTER SIDEBAR */}
