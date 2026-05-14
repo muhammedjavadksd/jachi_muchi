@@ -1,12 +1,11 @@
 import { memo, useMemo, useState, useCallback, useRef } from "react";
 import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel } from "../../components";
 import { Container } from "../../components/Container/Container";
-import { ProductCard } from "../../components/ProductCard/ProductCard";
-import { ChevronLeftIcon, ChevronRightIcon } from "../../components/icons";
-import { SAMPLE_PRODUCTS } from "../../lib/constants";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { api } from "../../api/axios";
+import { getOffers, getProductOffers, calculateOfferDiscount } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -36,6 +35,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [offers, setOffers] = useState<Offer[]>([]);
 
 
 
@@ -43,6 +43,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
     if (!id) return;
 
     setLoading(true);
+    getOffers().then(setOffers).catch(() => {});
 
     api.get(`/products/${id}`)
       .then((res) => {
@@ -338,6 +339,54 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                   TRY ON
                 </button> */}
               </div>
+
+              {/* Available Offers */}
+              {offers.length > 0 && id && getProductOffers(id, offers).length > 0 && (
+                <div className="mb-8">
+                  <h3 className="font-semibold text-gray-900 mb-3">Available Offers</h3>
+                  <div className="space-y-2">
+                    {getProductOffers(id, offers).map((offer) => {
+                      const offerDiscount = calculateOfferDiscount(id, safeProduct.price, [offer]);
+                      return (
+                        <div
+                          key={offer._id}
+                          className="flex items-start gap-3 p-3 rounded-xl border border-dashed"
+                          style={{ borderColor: "#0d5c5c33", backgroundColor: "#0d5c5c08" }}
+                        >
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{ backgroundColor: "#0d5c5c" }}
+                          >
+                            %
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">{offer.offerName}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {offer.offerType === "percentage"
+                                ? `${offer.discountValue}% off`
+                                : offer.offerType === "flat"
+                                  ? `₹${offer.discountValue} off`
+                                  : offer.offerType === "bogo"
+                                    ? `Buy ${offer.buyQuantity || 1} Get ${offer.getQuantity || 1}`
+                                    : "Special offer"}
+                              {offerDiscount > 0 && (
+                                <span className="text-teal-600 font-medium">
+                                  {" "}· Save ₹{Math.round(offerDiscount)}
+                                </span>
+                              )}
+                            </p>
+                            {offer.couponCode && (
+                              <span className="inline-block mt-1 px-2 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-bold rounded border border-teal-200">
+                                Use code: {offer.couponCode}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Delivery Check */}
               <div className="mb-8">

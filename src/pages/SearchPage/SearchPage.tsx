@@ -10,7 +10,9 @@ import { SEARCH_FILTERS } from "../../lib/constants";
 import { X, SlidersHorizontal } from "lucide-react";
 import { getProducts } from "../../api/product";
 import { getBrands } from "../../api/brand";
-import { getBanners } from "../../api/banner"
+import { getBanners } from "../../api/banner";
+import { getOffers, getBestOfferBadge } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -20,6 +22,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [offers, setOffers] = useState<Offer[]>([]);
 
   const [categoryBanner, setCategoryBanner] = useState<any>(null);
 
@@ -51,6 +54,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
         )
       );
     }).catch(() => {});
+    getOffers().then(setOffers).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -130,6 +134,8 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             ? product.images
             : ["/placeholder.png"];
 
+        const offerBadge = getBestOfferBadge(product._id, product.price, offers);
+
         return (
           <ProductCard
             key={product._id || index}
@@ -143,10 +149,12 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             reviews={product.reviewCount || undefined}
             colors={colors.length > 0 ? colors : undefined}
             link={`/product/${product._id}`}
+            offerLabel={offerBadge?.label}
+            offerBadgeColor={offerBadge?.color}
           />
         );
       }),
-    [products]
+    [products, offers]
   );
 
   // ✅ LOADING STATE
