@@ -16,7 +16,9 @@ export const ProductCard = memo(function ProductCard({
   reviews,
   colors,
   link,
-}: ProductCardProps): JSX.Element {
+  offerLabel,
+  offerBadgeColor,
+}: ProductCardProps & { offerLabel?: string; offerBadgeColor?: string }): JSX.Element {
   const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist();
@@ -68,6 +70,16 @@ export const ProductCard = memo(function ProductCard({
           className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
         />
+
+        {/* Offer Badge */}
+        {offerLabel && (
+          <div
+            className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-white text-[10px] font-bold shadow-md z-10"
+            style={{ backgroundColor: offerBadgeColor || "#f26b3a" }}
+          >
+            {offerLabel}
+          </div>
+        )}
 
         {/* Wishlist Button */}
         <button

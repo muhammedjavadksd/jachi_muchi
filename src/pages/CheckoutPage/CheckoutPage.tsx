@@ -6,6 +6,8 @@ import { createOrder } from "../../api/order";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 import { applyCoupon, removeCoupon } from "../../lib/couponApi";
 import type { CouponSuccessResponse } from "../../lib/couponApi";
+import { getOffers, calculateOfferDiscount } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -288,6 +290,12 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [couponSavings, setCouponSavings] = useState(0);
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+  // Load offers on mount
+  useEffect(() => {
+    getOffers().then(setOffers).catch(() => {});
+  }, []);
 
   // Load coupon from localStorage and URL params on mount
   useEffect(() => {
@@ -437,6 +445,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     cart.reduce((sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
 
   const discount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
+
+  const totalOfferSavings = useMemo(() =>
+    cart.reduce((sum, item) => {
+      if (offers.length === 0) return sum;
+      return sum + calculateOfferDiscount(item.productId, item.productPrice + (item.lens?.price || 0), offers);
+    }, 0),
+  [cart, offers]);
 
   const totalPayable = useMemo(() => totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
 
@@ -619,7 +634,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </svg>
                   <div>
                     <span className="text-green-700 font-medium">
-                      ₹{discount} saved + ₹0 cashback
+                      ₹{discount} saved{totalOfferSavings > 0 ? ` + ₹${totalOfferSavings} in offers` : ""} + ₹0 cashback
                     </span>
                   </div>
                 </div>
@@ -635,6 +650,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       <span className="text-gray-600">Total discount</span>
                       <span className="text-green-600 font-medium">-₹{discount}</span>
                     </div>
+                    {totalOfferSavings > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Offer savings</span>
+                        <span className="text-green-600">-₹{totalOfferSavings}</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Fitting Fee</span>
                       <span>₹{fittingFee}</span>
