@@ -15,6 +15,7 @@ import {
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import type { HeaderProps } from "../../types";
 
 /** Height of HeaderHome2 (3 rows) for spacer calculation */
@@ -96,6 +97,7 @@ export const HeaderHome2 = memo(function HeaderHome2({
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
   const { isAuthenticated, user, logout } = useAuth();
+  const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
@@ -262,7 +264,9 @@ export const HeaderHome2 = memo(function HeaderHome2({
               aria-label="Cart"
             >
               <CartIcon className="w-5 h-5" />
-              <span className="text-sm font-semibold">0</span>
+              {cartCount > 0 && (
+                <span className="text-sm font-semibold">{cartCount > 99 ? "99+" : cartCount}</span>
+              )}
             </Link>
           </div>
         </div>

@@ -3,6 +3,9 @@ import { api } from "./axios";
 export interface BrandItem {
   _id: string;
   name: string;
+  logo?: string;
+  description?: string;
+  isActive?: boolean;
 }
 
 export interface BrandsResponse {
@@ -15,5 +18,5 @@ export interface BrandsResponse {
 
 export const getBrands = async (): Promise<BrandItem[]> => {
   const res = await api.get<BrandsResponse>("/brands");
-  return res.data.data.brands || [];
+  return res.data?.data?.brands || [];
 };
