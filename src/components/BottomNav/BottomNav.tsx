@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef } from "react";
 
-export type NavTab = "home" | "stores" | "ar-tryon" | "eye-test" | "orders" | "ai-stylist";
+export type NavTab = "home" | "stores" | "ar-tryon" | "eye-test" | "orders" | "wishlist";
 
 interface NavItemProps {
   active: boolean;
@@ -109,16 +109,11 @@ const OrdersIcon = memo(function OrdersIcon({ active }: { active: boolean }): JS
   );
 });
 
-const AIStylistIcon = memo(function AIStylistIcon({ active }: { active: boolean }): JSX.Element {
-  const color = "#e74c3c";
-  const inactiveColor = "#8899b0";
+const WishlistIcon = memo(function WishlistIcon({ active }: { active: boolean }): JSX.Element {
+  const color = active ? "#e74c3c" : "#8899b0";
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? color : inactiveColor} stroke={active ? color : inactiveColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="4" ry="4" />
-      <path d="M8 12c0-1 .5-2 1.5-2s1.5 1 1.5 2-.5 2-1.5 2-1.5-1-1.5-2z" fill="white" />
-      <path d="M12 10c0-1 1-2 2.5-2s2.5 1 2.5 2-1 2-2.5 2-2.5-1-2.5-2z" fill="white" />
-      <path d="M7 14c0 1 .5 2 1.5 2s1.5-1 1.5-2-.5-2-1.5-2-1.5 1-1.5 2z" fill="white" />
-      <path d="M13 14c0 1 .5 2 1.5 2s1.5-1 1.5-2-.5-2-1.5-2-1.5 1-1.5 2z" fill="white" />
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? "#e74c3c" : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
     </svg>
   );
 });
@@ -146,7 +141,7 @@ export const BottomNav = memo(function BottomNav({ activeTab, onTabChange, order
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t md:hidden"
       style={{
         background: "#ffffff",
         borderTop: "1px solid #e5e7eb",
@@ -187,10 +182,10 @@ export const BottomNav = memo(function BottomNav({ activeTab, onTabChange, order
           badge={orderCount}
         />
         <NavItem
-          active={activeTab === "ai-stylist"}
-          onClick={() => onTabChange("ai-stylist")}
-          icon={<AIStylistIcon active={activeTab === "ai-stylist"} />}
-          label="AI Stylist"
+          active={activeTab === "wishlist"}
+          onClick={() => onTabChange("wishlist")}
+          icon={<WishlistIcon active={activeTab === "wishlist"} />}
+          label="Wishlist"
         />
       </div>
     </nav>

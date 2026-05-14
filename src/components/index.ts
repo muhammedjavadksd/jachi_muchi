@@ -50,4 +50,5 @@ export { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute";
 // Coupon Components
 export { CouponCard } from "./CouponCard/CouponCard";
 export { OffersSection } from "./OffersSection/OffersSection";
+export { OfferCard } from "./OfferCard/OfferCard";
 export { WelcomeCouponModal } from "./WelcomeCouponModal/WelcomeCouponModal";
