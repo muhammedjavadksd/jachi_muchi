@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
 import { NavTab } from "./components/BottomNav/BottomNav";
-import { HEADER_SPACER_HEIGHT, PREMIUM_EYEWEAR, FREE_CHECKUP } from "./lib/constants";
+import { HEADER_SPACER_HEIGHT, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
 import { api } from "./api/axios";
 import { getBanners } from "./api/banner";
@@ -19,6 +19,7 @@ const Campaign = lazy(() => import("./components/Campaign/Campaign").then(m => (
 const ShapeSection = lazy(() => import("./components/ShapeSection/ShapeSection").then(m => ({ default: m.ShapeSection })));
 const NearbyServices = lazy(() => import("./components/NearbyServices/NearbyServices").then(m => ({ default: m.NearbyServices })));
 const GridSection = lazy(() => import("./components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
+const EyeCheckupFeatures = lazy(() => import("./components/EyeCheckupStores/EyeCheckupFeatures").then(m => ({ default: m.EyeCheckupFeatures })));
 const FeaturedGrid = lazy(() => import("./components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
 
 export default function App(): JSX.Element {
@@ -30,6 +31,7 @@ export default function App(): JSX.Element {
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
+  const [brands, setBrands] = useState<BrandItem[]>([]);
   const { isAuthenticated } = useAuth();
   const { open: openWishlist } = useWishlist();
 
@@ -41,7 +43,6 @@ export default function App(): JSX.Element {
     setActiveTab(tab);
   }, [openWishlist]);
   const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
-  const [homeBrands, setHomeBrands] = useState<BrandItem[]>([]);
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
@@ -74,6 +75,13 @@ export default function App(): JSX.Element {
       })
       .catch(() => setCollections([]));
 
+    // --- FETCH BRANDS ---
+    getBrands()
+      .then((data) => {
+        setBrands(data || []);
+      })
+      .catch(() => setBrands([]));
+
     // --- FETCH USER COUPONS (only if authenticated) ---
     if (isAuthenticated) {
       fetchUserCoupons()
@@ -82,13 +90,6 @@ export default function App(): JSX.Element {
     }
 
   }, [isAuthenticated]);
-
-  // --- FETCH HOME BRANDS (runs once on mount) ---
-  useEffect(() => {
-    getBrands()
-      .then((brands) => setHomeBrands(brands.filter((b) => b.isActive !== false)))
-      .catch(() => setHomeBrands([]));
-  }, []);
 
   // Fake countdown for Hustlr Club (like in screenshot)
   const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 8, minutes: 51, seconds: 44 });
@@ -107,6 +108,14 @@ export default function App(): JSX.Element {
 
     return () => clearInterval(timer);
   }, []);
+
+  const formattedBrands = brands
+    .filter((b: any) => b.isActive)
+    .map((brand: any) => ({
+      title: brand.name,
+      image: brand.logo || "https://placehold.co/400x300?text=Brand",
+      link: `/search?brand=${brand._id}`,
+    }));
 
   return (
     <div className="w-full flex flex-col bg-white min-h-screen font-sans">
@@ -205,7 +214,7 @@ export default function App(): JSX.Element {
           </Suspense>
         ))}
 
-        {/* Nearby Services */}
+        {/* Nearby Stores & Services */}
         <Suspense fallback={<LoadingSkeleton />}>
           <NearbyServices />
         </Suspense>
@@ -255,13 +264,11 @@ export default function App(): JSX.Element {
 
         {/* Our Brands + Free Eye Checkup */}
         <div className="px-4 space-y-8 mt-8">
-          {homeBrands.length > 0 && (
-            <GridSection
-              title="Our Brands"
-              columns={3}
-              items={homeBrands.map((b) => ({ title: b.name, image: b.logo || "/placeholder.png", link: `/brands/${b._id}` }))}
-            />
-          )}
+          <GridSection
+            title="Our Brands"
+            columns={3}
+            items={formattedBrands}
+          />
           <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 

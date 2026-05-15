@@ -3,8 +3,9 @@ import { api } from "./axios";
 export interface BrandItem {
   _id: string;
   name: string;
-  logo?: string;
   description?: string;
+  logo?: string;
+
   isActive?: boolean;
 }
 

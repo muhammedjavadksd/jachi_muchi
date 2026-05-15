@@ -30,6 +30,7 @@ import {
   ServicesPage,
   HomePage2,
   HomeTryOnPage,
+  HomeTryOnBookingPage,
   StoresPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
@@ -89,6 +90,7 @@ createRoot(rootElement).render(
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/try-at-home" element={<TryAtHomePage />} />
                 <Route path="/home-try-on" element={<HomeTryOnPage />} />
+                <Route path="/home-try-on/book" element={<HomeTryOnBookingPage />} />
                 <Route path="/stores" element={<StoresPage />} />
                 <Route path="/warranty" element={<WarrantyPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
