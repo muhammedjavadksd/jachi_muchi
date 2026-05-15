@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { getMyOrders, cancelOrder } from "../../api/order";
+import { getImageUrl } from "../../lib/image";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -270,7 +271,7 @@ const OrderDrawer = memo(function OrderDrawer({
               {items.map((item, idx) => (
                 <div key={idx} className="flex gap-4 p-3 bg-gray-50 rounded-lg">
                   <div className="w-16 h-16 bg-white rounded-lg overflow-hidden shrink-0 border border-gray-200">
-                    <img src={item.image || "/category/image.png"} alt={item.name || "Product"} className="w-full h-full object-contain p-1" />
+                    <img src={getImageUrl(item.image)} alt={item.name || "Product"} className="w-full h-full object-contain p-1" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.name || "Unnamed Product"}</p>
@@ -755,7 +756,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                         <div className="flex items-center gap-2 sm:gap-3">
                           {items.slice(0, 3).map((item, idx) => (
                             <div key={idx} className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg overflow-hidden border border-gray-200 shrink-0">
-                              <img src={item.image || "/category/image.png"} alt={item.name || "Product"} className="w-full h-full object-contain p-0.5 sm:p-1" />
+                              <img src={getImageUrl(item.image)} alt={item.name || "Product"} className="w-full h-full object-contain p-0.5 sm:p-1" />
                             </div>
                           ))}
                           {items.length > 3 && (

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { getOffers, getProductOffers, getBestOfferBadge, calculateOfferDiscount, getComboStatusForCart, getComboCartSavings, getComboSavingsForOffer } from "../../lib/offerEngine";
+import { getImageUrl } from "../../lib/image";
 import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
@@ -15,6 +16,7 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
+  productImage?: string;
   mrp?: number;
   quantity?: number;
   color: { name: string; id: string } | null;
@@ -113,7 +115,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               </div>
             )}
             <img
-              src="/category/image.png"
+              src={getImageUrl(item.productImage)}
               alt={item.productName}
               className="w-full h-full object-contain p-3"
               loading="lazy"

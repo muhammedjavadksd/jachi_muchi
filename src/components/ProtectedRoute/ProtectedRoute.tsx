@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -7,9 +7,11 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps): JSX.Element {
   const token = localStorage.getItem("access_token");
+  const location = useLocation();
 
   if (!token) {
-    return <Navigate to="/" replace />;
+    sessionStorage.setItem("redirectAfterLogin", location.pathname);
+    return <Navigate to="/?login=true" replace />;
   }
 
   return <>{children}</>;

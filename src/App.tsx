@@ -1,4 +1,5 @@
-import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
 import { NavTab } from "./components/BottomNav/BottomNav";
 import { HEADER_SPACER_HEIGHT, FREE_CHECKUP } from "./lib/constants";
@@ -9,8 +10,10 @@ import { getCollections } from "./api/collection";
 import { getBrands, type BrandItem } from "./api/brand";
 import { OffersSection } from "./components/OffersSection/OffersSection";
 import { useAuth } from "./context/AuthContext";
+import { useLoginModal } from "./context/LoginModalContext";
 import { useWishlist } from "./context/WishlistContext";
 import { fetchUserCoupons, type UserCoupon } from "./lib/couponApi";
+import { getImageUrl } from "./lib/image";
 
 /** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
@@ -34,14 +37,38 @@ export default function App(): JSX.Element {
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const { isAuthenticated } = useAuth();
   const { open: openWishlist } = useWishlist();
+  const { open: openLogin } = useLoginModal();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (searchParams.get("login") === "true") {
+      openLogin();
+      navigate("/", { replace: true });
+    }
+  }, [searchParams, openLogin, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirect = sessionStorage.getItem("redirectAfterLogin");
+      if (redirect) {
+        sessionStorage.removeItem("redirectAfterLogin");
+        navigate(redirect, { replace: true });
+      }
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleTabChange = useCallback((tab: NavTab) => {
     if (tab === "wishlist") {
-      openWishlist();
+      if (isAuthenticated) {
+        openWishlist();
+      } else {
+        navigate("/wishlist");
+      }
       return;
     }
     setActiveTab(tab);
-  }, [openWishlist]);
+  }, [openWishlist, isAuthenticated, navigate]);
   const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
   useEffect(() => {
     api.get("/categories")
@@ -113,7 +140,7 @@ export default function App(): JSX.Element {
     .filter((b: any) => b.isActive)
     .map((brand: any) => ({
       title: brand.name,
-      image: brand.logo || "https://placehold.co/400x300?text=Brand",
+      image: getImageUrl(brand.logo) || "https://placehold.co/400x300?text=Brand",
       link: `/search?brand=${brand._id}`,
     }));
 

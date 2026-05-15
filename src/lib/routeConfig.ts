@@ -34,6 +34,7 @@ const ServicesPage = lazy(() => import("../pages/ServicesPage/ServicesPage").the
 const HomePage2 = lazy(() => import("../pages/HomePage2/HomePage2").then(m => ({ default: m.HomePage2 })));
 const HomeTryOnPage = lazy(() => import("../pages/HomeTryOnPage/HomeTryOnPage").then(m => ({ default: m.HomeTryOnPage })));
 const StoresPage = lazy(() => import("../pages/StoresPage/StoresPage").then(m => ({ default: m.StoresPage })));
+const WishlistPage = lazy(() => import("../pages/WishlistPage/WishlistPage").then(m => ({ default: m.WishlistPage })));
 
 export const ROUTES: RouteConfig[] = [
   { path: "/home-2", component: HomePage2 },
@@ -41,7 +42,8 @@ export const ROUTES: RouteConfig[] = [
   { path: "/search/:category", component: SearchPage },
   { path: "/category/:category", component: SearchPage },
   { path: "/product/:id", component: ProductDetailPage },
-  { path: "/cart", component: CartPage },
+  { path: "/wishlist", component: WishlistPage, protected: true },
+  { path: "/cart", component: CartPage, protected: true },
   { path: "/checkout", component: CheckoutPage, protected: true },
   { path: "/order-success/:id", component: OrderSuccessPage, protected: true },
   { path: "/order-failure", component: OrderFailurePage },

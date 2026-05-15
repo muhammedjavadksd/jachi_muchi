@@ -1,4 +1,5 @@
 import axiosInstance from "@/cors/axiosInstance";
+import { getImageUrl } from "./image";
 import type {
   ApiWishlistItem,
   AddToWishlistRequest,
@@ -54,7 +55,7 @@ function transformWishlistItem(item: any): ApiWishlistItem {
     productId: product._id || item.productId,
     name: product.name || "Unknown Product",
     price: product.price || 0,
-    image: product.images?.[0] || "/placeholder-product.png",
+    image: getImageUrl(product.images?.[0]),
     link: `/product/${product._id || item.productId}`,
     addedAt: item.addedAt || new Date().toISOString(),
   };

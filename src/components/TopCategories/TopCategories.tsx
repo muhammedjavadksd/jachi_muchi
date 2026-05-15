@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container } from "../Container/Container";
 import { api } from "../../api/axios";
+import { getImageUrl } from "../../lib/image";
 
 export const TopCategories = memo(function TopCategories(): JSX.Element {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
@@ -35,7 +36,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element {
   const categoryCards = useMemo(() => (
     categories.map((category: any) => {
       const hasDropdown = category?.shapes?.length > 0;
-      const categoryImage = category?.image || FALLBACK_IMAGE;
+      const categoryImage = getImageUrl(category?.image) || FALLBACK_IMAGE;
 
       return (
         <div key={category._id || category.name} className="relative group">

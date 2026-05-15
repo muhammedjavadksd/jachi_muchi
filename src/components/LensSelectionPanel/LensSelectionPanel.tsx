@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getLenses } from "../../api/lens";
 import type { LensItem } from "../../api/lens";
 import { getOffers } from "../../lib/offerEngine";
+import { getImageUrl } from "../../lib/image";
 import type { Offer } from "../../types/offers.types";
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
@@ -21,6 +22,7 @@ interface LensSelectionPanelProps {
   productName: string;
   productPrice: number;
   productMrp: number;
+  productImage?: string;
   selectedColor?: { name: string; id: string };
 }
 
@@ -31,6 +33,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   productName,
   productPrice,
   productMrp,
+  productImage,
   selectedColor,
 }: LensSelectionPanelProps): JSX.Element | null {
   const navigate = useNavigate();
@@ -133,6 +136,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
       productId,
       productName,
       productPrice,
+      productImage,
       mrp: productMrp,
       color: selectedColor || null,
       lens: selectedLens
@@ -182,6 +186,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
         productId: bogoOffer.freeProduct._id,
         productName: `${bogoOffer.freeProduct.name} (FREE)`,
         productPrice: 0,
+        productImage: bogoOffer.freeProduct.images?.[0],
         mrp: bogoOffer.freeProduct.price,
         color: null,
         lens: null,
@@ -339,7 +344,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
           </div>
         )}
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <div className="flex items-center gap-4 mb-3"><img src="/category/image.png" alt="Product" className="w-16 h-16 rounded-lg object-cover" /><div><p className="font-medium text-gray-900">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div></div>
+          <div className="flex items-center gap-4 mb-3"><img src={getImageUrl(productImage)} alt={productName} className="w-16 h-16 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image"; }} /><div><p className="font-medium text-gray-900">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div></div>
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
             {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+₹{selectedLens.price})</span></div>}
