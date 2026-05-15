@@ -19,7 +19,7 @@ export { HeroSlider } from "./HeroSlider/HeroSlider";
 export { TopCategories } from "./TopCategories/TopCategories";
 export { Campaign } from "./Campaign/Campaign";
 export { ShapeSection } from "./ShapeSection/ShapeSection";
-export { NearbyServices } from "./NearbyServices/NearbyServices";
+export { NearbyServices } from "./NearbyServices/ServiceHighlights";
 export { GridSection } from "./GridSection/GridSection";
 export { FeaturedGrid } from "./FeaturedGrid/FeaturedGrid";
 export { Footer } from "./Footer/Footer";

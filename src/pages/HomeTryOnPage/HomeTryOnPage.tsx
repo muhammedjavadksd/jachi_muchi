@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
 
 const HEADER_SPACER_HEIGHT = 140;
@@ -36,6 +37,7 @@ const StarIcon = ({ filled = true }: { filled?: boolean }) => (
 
 export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -145,19 +147,19 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
               {/* Rating & Reviews */}
               <div className="mt-10">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">Rating & Reviews</h2>
+                {/* <h2 className="text-2xl font-semibold text-gray-900 mb-6">Rating & Reviews</h2> */}
                 
                 {/* Overall Rating */}
-                <div className="flex items-center gap-1 mb-6">
+                {/* <div className="flex items-center gap-1 mb-6">
                   {[0, 1, 2, 3, 4].map((i) => (
                     <StarIcon key={i} filled={i < 4} />
                   ))}
                   <span className="ml-2 text-lg font-semibold text-gray-900">4.9</span>
                   <span className="text-gray-500">(17k)</span>
-                </div>
+                </div> */}
 
                 {/* Reviews List */}
-                <div className="space-y-6">
+                {/* <div className="space-y-6">
                   {REVIEWS.map((review, index) => (
                     <div key={index} className="border-b border-gray-100 pb-6">
                       <div className="flex items-center gap-3 mb-2">
@@ -178,11 +180,11 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                       <p className="text-gray-600">{review.comment}</p>
                     </div>
                   ))}
-                </div>
-
+                </div> */}
+{/* 
                 <button type="button" className="mt-4 text-teal-600 font-medium hover:text-teal-700">
                   Load More Reviews...
-                </button>
+                </button> */}
               </div>
 
               {/* Terms and Conditions */}
@@ -208,13 +210,13 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 <h2 className="text-xl text-gray-600 mt-1">Eye Test & Frame Trial Service</h2>
 
                 {/* Rating */}
-                <div className="flex items-center gap-1 mt-4">
+                {/* <div className="flex items-center gap-1 mt-4">
                   {[0, 1, 2, 3, 4].map((i) => (
                     <StarIcon key={i} filled={i < 4} />
                   ))}
                   <span className="ml-2 font-semibold text-gray-900">4.9</span>
                   <span className="text-gray-500">(17k)</span>
-                </div>
+                </div> */}
 
                 {/* Eye Test Eligibility */}
                 <div className="mt-8">
@@ -270,6 +272,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 {/* Book CTA Button */}
                 <button
                   type="button"
+                  onClick={() => navigate("/home-try-on/book")}
                   className="w-full mt-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   BOOK APPOINTMENT
