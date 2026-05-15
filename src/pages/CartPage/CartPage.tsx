@@ -2,7 +2,7 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
-import { getOffers, getProductOffers, getBestOfferBadge, calculateOfferDiscount } from "../../lib/offerEngine";
+import { getOffers, getProductOffers, getBestOfferBadge, calculateOfferDiscount, getComboStatusForCart, getComboCartSavings, getComboSavingsForOffer } from "../../lib/offerEngine";
 import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
@@ -11,6 +11,7 @@ const PROMOTION_HEADER_HEIGHT = 140;
 /** Cart item interface matching localStorage structure */
 interface CartItem {
   cartItemId?: string;
+  bogoGroupId?: string;
   productId: string;
   productName: string;
   productPrice: number;
@@ -44,8 +45,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   const handleRemoveItem = useCallback((cartItemIdToRemove: string) => {
     setCartItems(prev => {
-      // Filter by cartItemId instead of productId
-      const updated = prev.filter(item => item.cartItemId !== cartItemIdToRemove);
+      const target = prev.find(item => item.cartItemId === cartItemIdToRemove);
+      const bogoGroupId = target?.bogoGroupId;
+      const updated = prev.filter(item =>
+        item.cartItemId !== cartItemIdToRemove &&
+        !(bogoGroupId && item.bogoGroupId === bogoGroupId)
+      );
       localStorage.setItem("cart", JSON.stringify(updated));
       return updated;
     });
@@ -66,15 +71,22 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   const fittingFee = 199;
 
-  const totalPayable = useMemo(() =>
-    totalSellingPrice + fittingFee, [totalSellingPrice]);
- 
   const totalOfferSavings = useMemo(() =>
     cartItems.reduce((sum, item) => {
       if (offers.length === 0) return sum;
       return sum + calculateOfferDiscount(item.productId, item.productPrice + (item.lens?.price || 0), offers);
     }, 0),
   [cartItems, offers]);
+
+  const cartProductIds = useMemo(() => cartItems.map(i => i.productId), [cartItems]);
+  const comboOffers = useMemo(() => getComboStatusForCart(cartProductIds, offers), [cartProductIds, offers]);
+  const totalComboSavings = useMemo(() => getComboCartSavings(cartItems, offers), [cartItems, offers]);
+
+  const activeCombos = useMemo(() => comboOffers.filter(c => c.qualifies), [comboOffers]);
+  const incompleteCombos = useMemo(() => comboOffers.filter(c => !c.qualifies && c.missingProducts.length > 0), [comboOffers]);
+
+  const totalPayable = useMemo(() =>
+    totalSellingPrice + fittingFee - Math.round(totalComboSavings), [totalSellingPrice, totalComboSavings]);
 
   const cartItemsList = useMemo(() =>
     cartItems.map((item, index) => {
@@ -93,6 +105,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 style={{ backgroundColor: offerBadge.color }}
               >
                 {offerBadge.label}
+              </div>
+            )}
+            {item.productPrice === 0 && (
+              <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold shadow-md z-10">
+                FREE
               </div>
             )}
             <img
@@ -176,6 +193,35 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               )}
             </div>
 
+            {/* ====================== COMBO OFFERS ====================== */}
+            {comboOffers.length > 0 && (
+              <div className="mb-6 space-y-3">
+                {activeCombos.map((c) => {
+                  const displaySavings = c.discount > 0 ? c.discount : getComboSavingsForOffer(cartItems, c.offer);
+                  return (
+                  <div key={c.offer._id} className="p-4 rounded-2xl border border-amber-200 bg-amber-50 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold shrink-0">C</div>
+                    <div>
+                      <p className="text-sm font-semibold text-amber-900">{c.offer.offerName}</p>
+                      <p className="text-xs text-amber-700">Combo active! Save ₹{Math.round(displaySavings)} on this bundle</p>
+                    </div>
+                  </div>
+                  );
+                })}
+                {incompleteCombos.map((c) => (
+                  <div key={c.offer._id} className="p-4 rounded-2xl border border-dashed border-gray-300 bg-gray-50 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-bold shrink-0">C</div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{c.offer.offerName}</p>
+                      <p className="text-xs text-gray-500">
+                        Add {c.missingProducts.length > 1 ? "all products" : "the missing product"} to get combo discount
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* ====================== BILL SUMMARY (Sticky on large screens) ====================== */}
             <div className="lg:w-96 lg:shrink-0">
               <div className="lg:sticky lg:top-[180px]">
@@ -196,6 +242,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Offer savings</span>
                         <span className="text-green-600">-₹{totalOfferSavings}</span>
+                      </div>
+                    )}
+                    {totalComboSavings > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Combo savings</span>
+                        <span className="text-amber-600">-₹{Math.round(totalComboSavings)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">

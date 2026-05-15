@@ -2,6 +2,8 @@ import { memo, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLenses } from "../../api/lens";
 import type { LensItem } from "../../api/lens";
+import { getOffers } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
 
@@ -37,6 +39,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
   const [lenses, setLenses] = useState<LensItem[]>([]);
   const [lensLoading, setLensLoading] = useState(false);
+  const [bogoOffer, setBogoOffer] = useState<Offer | null>(null);
   const [samePowerBothEyes, setSamePowerBothEyes] = useState(false);
   const [hasCylindrical, setHasCylindrical] = useState(false);
   const [powerDetails, setPowerDetails] = useState({
@@ -50,6 +53,16 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     phone: "",
     knowPowerLater: false,
   });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    getOffers().then((allOffers) => {
+      const bogo = allOffers.find(
+        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => p._id === productId)
+      );
+      setBogoOffer(bogo || null);
+    }).catch(() => {});
+  }, [isOpen, productId]);
 
   useEffect(() => {
     if (!selectedPowerType || selectedPowerType === "frame-only") return;
@@ -112,9 +125,11 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
 
   const handleAddToCart = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
 
     const cartItem = {
       cartItemId: Date.now().toString(),
+      bogoGroupId,
       productId,
       productName,
       productPrice,
@@ -159,6 +174,23 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
 
     cart.push(cartItem);
 
+    // BOGO: add free product if applicable
+    if (bogoOffer?.freeProduct) {
+      cart.push({
+        cartItemId: (Date.now() + 1).toString(),
+        bogoGroupId,
+        productId: bogoOffer.freeProduct._id,
+        productName: `${bogoOffer.freeProduct.name} (FREE)`,
+        productPrice: 0,
+        mrp: bogoOffer.freeProduct.price,
+        color: null,
+        lens: null,
+        powerType: "frame-only",
+        powerDetails: null,
+        totalPrice: 0,
+      });
+    }
+
     localStorage.setItem("cart", JSON.stringify(cart));
 
     onClose();
@@ -173,6 +205,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     samePowerBothEyes,
     hasCylindrical,
     selectedColor,
+    bogoOffer,
     navigate,
     onClose,
   ]);
@@ -290,6 +323,21 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     const totalPrice = productPrice + lensPrice;
     return (
       <div className="flex flex-col">
+        {bogoOffer && (
+          <div className="mb-4 p-3 rounded-xl border border-purple-200 bg-purple-50 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+              BOGO
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-purple-900">Buy 1 Get 1 Free</p>
+              <p className="text-xs text-purple-700">
+                {bogoOffer.freeProduct?.name
+                  ? `Get ${bogoOffer.freeProduct.name} FREE`
+                  : "Free product added to cart"}
+              </p>
+            </div>
+          </div>
+        )}
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
           <div className="flex items-center gap-4 mb-3"><img src="/category/image.png" alt="Product" className="w-16 h-16 rounded-lg object-cover" /><div><p className="font-medium text-gray-900">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div></div>
           <div className="border-t border-gray-200 pt-3">

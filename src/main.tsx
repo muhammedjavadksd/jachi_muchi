@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
@@ -63,6 +63,7 @@ createRoot(rootElement).render(
           <SignupModalProvider>
             <ForgotPasswordModalProvider>
               <WishlistProvider>
+              <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>}>
               <Routes>
                 <Route path="/" element={<App />} />
                 <Route path="/home-2" element={<HomePage2 />} />
@@ -99,6 +100,7 @@ createRoot(rootElement).render(
                 <Route path="/500" element={<ServerErrorPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
+              </Suspense>
                 <WishlistCanvas />
                 <LoginModal />
                 <SignupModal />
