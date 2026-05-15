@@ -26,4 +26,5 @@ export { CollectionsPage } from "./CollectionsPage/CollectionsPage";
 export { ServicesPage } from "./ServicesPage/ServicesPage";
 export { HomePage2 } from "./HomePage2/HomePage2";
 export { HomeTryOnPage } from "./HomeTryOnPage/HomeTryOnPage";
+export { HomeTryOnBookingPage } from "./HomeTryOnBookingPage/HomeTryOnBookingPage";
 export { StoresPage } from "./StoresPage/StoresPage";

@@ -31,7 +31,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   const shape = searchParams.get("shape");
 
   const collectionSlug = searchParams.get("collection");
-
+  const brandFromQuery = searchParams.get("brand");
 
 
 
@@ -82,6 +82,8 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
 
     if (collectionSlug) params.collection = collectionSlug;
 
+    if (brandFromQuery) params.brand = brandFromQuery;
+
     if (shape) params.shape = shape;
     if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
     if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
@@ -93,7 +95,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
         setProducts(res.data.products || []);
       })
       .finally(() => setLoading(false));
-  }, [category, shape, filters, collectionSlug]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery]);
 
   const spacerStyle = useMemo(
     () => ({
