@@ -6,7 +6,7 @@ import { createOrder } from "../../api/order";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 import { applyCoupon, removeCoupon } from "../../lib/couponApi";
 import type { CouponSuccessResponse } from "../../lib/couponApi";
-import { getOffers, calculateOfferDiscount } from "../../lib/offerEngine";
+import { getOffers, calculateOfferDiscount, getComboStatusForCart, getComboCartSavings } from "../../lib/offerEngine";
 import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
@@ -453,7 +453,9 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     }, 0),
   [cart, offers]);
 
-  const totalPayable = useMemo(() => totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
+  const totalComboSavings = useMemo(() => getComboCartSavings(cart, offers), [cart, offers]);
+
+  const totalPayable = useMemo(() => totalSellingPrice + fittingFee - couponSavings - Math.round(totalComboSavings), [totalSellingPrice, couponSavings, totalComboSavings]);
 
   
   const spacerStyle = useMemo(() => ({
@@ -634,7 +636,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </svg>
                   <div>
                     <span className="text-green-700 font-medium">
-                      ₹{discount} saved{totalOfferSavings > 0 ? ` + ₹${totalOfferSavings} in offers` : ""} + ₹0 cashback
+                      ₹{discount} saved{totalOfferSavings > 0 ? ` + ₹${totalOfferSavings} in offers` : ""}{totalComboSavings > 0 ? ` + ₹${Math.round(totalComboSavings)} combo` : ""} + ₹0 cashback
                     </span>
                   </div>
                 </div>
@@ -654,6 +656,12 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Offer savings</span>
                         <span className="text-green-600">-₹{totalOfferSavings}</span>
+                      </div>
+                    )}
+                    {totalComboSavings > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Combo savings</span>
+                        <span className="text-amber-600">-₹{Math.round(totalComboSavings)}</span>
                       </div>
                     )}
 

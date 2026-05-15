@@ -16,7 +16,8 @@ export interface Offer {
   getQuantity?: number;
   discountValue?: number;
   discountType?: "percentage" | "fixed";
-  applicableProducts?: OfferProduct[];
+  comboPrice?: number;
+  applicableProducts?: (OfferProduct | string)[];
   freeProduct?: OfferProduct;
   couponCode?: string;
   image?: string;
