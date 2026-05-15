@@ -1,6 +1,7 @@
 import { memo } from "react";
 import type { CampaignProps } from "../../types";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../lib/image";
 /**
  * Campaign banner section displaying promotional full-width image
  * Links to specified campaign page
@@ -11,7 +12,7 @@ export const Campaign = memo(function Campaign({
   link, 
   alt = "Campaign Banner" 
 }: CampaignProps): JSX.Element {
-  const imageUrl = image || "https://placehold.co/1200x300/1e40af/FFFFFF?text=Promotional+Banner";
+  const imageUrl = getImageUrl(image) || "https://placehold.co/1200x300/1e40af/FFFFFF?text=Promotional+Banner";
   return (
     <section className="w-full">
       <Link to={link} className="block w-full">

@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../../context/WishlistContext";
+import { getImageUrl } from "../../lib/image";
 import type { WishlistItem as WishlistItemType } from "../../types";
 
 /**
@@ -103,7 +104,7 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
         className="shrink-0 w-20 h-20 rounded-md overflow-hidden bg-white border border-gray-200"
       >
         <img
-          src={item.image}
+          src={getImageUrl(item.image)}
           alt={item.name}
           className="w-full h-full object-contain"
         />

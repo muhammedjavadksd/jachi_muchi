@@ -32,6 +32,7 @@ import {
   HomeTryOnPage,
   HomeTryOnBookingPage,
   StoresPage,
+  WishlistPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
@@ -71,7 +72,8 @@ createRoot(rootElement).render(
                 <Route path="/search/:category" element={<SearchPage />} />
                 <Route path="/category/:category" element={<SearchPage />} />
                 <Route path="/product/:id" element={<ProductDetailPage />} />
-                <Route path="/cart" element={<CartPage />} />
+                <Route path="/wishlist" element={<ProtectedRoute><WishlistPage /></ProtectedRoute>} />
+                <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
                 <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccessPage /></ProtectedRoute>} />
                 <Route path="/order-failure" element={<OrderFailurePage />} />

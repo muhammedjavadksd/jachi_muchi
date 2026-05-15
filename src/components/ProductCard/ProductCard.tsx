@@ -1,5 +1,6 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { useWishlist } from "../../context/WishlistContext";
+import { getImageUrl } from "../../lib/image";
 import type { ProductCardProps } from "../../types";
 
 /** Placeholder image */
@@ -28,7 +29,7 @@ export const ProductCard = memo(function ProductCard({
     if (selectedColorIndex !== null && colors && colors[selectedColorIndex]) {
       return colors[selectedColorIndex].image || FALLBACK_IMAGE;
     }
-    return images?.[0] || FALLBACK_IMAGE;
+    return getImageUrl(images?.[0], FALLBACK_IMAGE);
   }, [selectedColorIndex, colors, images]);
 
   const handleColorClick = useCallback((e: React.MouseEvent, index: number) => {

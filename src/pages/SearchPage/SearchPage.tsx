@@ -12,6 +12,7 @@ import { getProducts } from "../../api/product";
 import { getBrands } from "../../api/brand";
 import { getBanners } from "../../api/banner";
 import { getOffers, getBestOfferBadge } from "../../lib/offerEngine";
+import { getImageUrl } from "../../lib/image";
 import type { Offer } from "../../types/offers.types";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -127,13 +128,13 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
           brown: "#8b4513", transparent: "#f0f0f0", purple: "#7c3aed",
           "rose-gold": "#b76e79", gunmetal: "#2c3539", white: "#ffffff",
         }[v.color?.toLowerCase()] || v.image || "#888888",
-        image: v.image || product.images?.[0] || "/placeholder.png",
+        image: getImageUrl(v.image || product.images?.[0]),
         name: v.color,
       }));
 
         const images =
           product.images && product.images.length > 0
-            ? product.images
+            ? product.images.map((img: string) => getImageUrl(img))
             : ["/placeholder.png"];
 
         const offerBadge = getBestOfferBadge(product._id, product.price, offers);
