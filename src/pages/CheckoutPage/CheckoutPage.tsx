@@ -3,10 +3,11 @@ import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createOrder } from "../../api/order";
-import { createRazorpayOrder } from "../../api/payment";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 import { applyCoupon, removeCoupon } from "../../lib/couponApi";
 import type { CouponSuccessResponse } from "../../lib/couponApi";
+import { getOffers, calculateOfferDiscount } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -289,6 +290,12 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [couponSavings, setCouponSavings] = useState(0);
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [offers, setOffers] = useState<Offer[]>([]);
+
+  // Load offers on mount
+  useEffect(() => {
+    getOffers().then(setOffers).catch(() => {});
+  }, []);
 
   // Load coupon from localStorage and URL params on mount
   useEffect(() => {
@@ -438,6 +445,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     cart.reduce((sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
 
   const discount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
+
+  const totalOfferSavings = useMemo(() =>
+    cart.reduce((sum, item) => {
+      if (offers.length === 0) return sum;
+      return sum + calculateOfferDiscount(item.productId, item.productPrice + (item.lens?.price || 0), offers);
+    }, 0),
+  [cart, offers]);
 
   const totalPayable = useMemo(() => totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
 
@@ -620,7 +634,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </svg>
                   <div>
                     <span className="text-green-700 font-medium">
-                      ₹{discount} saved + ₹0 cashback
+                      ₹{discount} saved{totalOfferSavings > 0 ? ` + ₹${totalOfferSavings} in offers` : ""} + ₹0 cashback
                     </span>
                   </div>
                 </div>
@@ -636,6 +650,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       <span className="text-gray-600">Total discount</span>
                       <span className="text-green-600 font-medium">-₹{discount}</span>
                     </div>
+                    {totalOfferSavings > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Offer savings</span>
+                        <span className="text-green-600">-₹{totalOfferSavings}</span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Fitting Fee</span>
                       <span>₹{fittingFee}</span>
@@ -752,17 +773,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       />
                       <span className="text-sm text-gray-700">Cash on Delivery</span>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="ONLINE"
-                        checked={paymentMethod === "ONLINE"}
-                        onChange={() => setPaymentMethod("ONLINE")}
-                        className="w-4 h-4 text-teal-600"
-                      />
-                      <span className="text-sm text-gray-700">Pay Online (Razorpay)</span>
-                    </label>
+
                   </div>
                 </div>
 
@@ -816,68 +827,6 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                         const orderId = res.data?.orderId;
                         localStorage.removeItem("cart");
                         navigate(`/order-success/${orderId}`);
-                      } else {
-                        const res = await createRazorpayOrder(totalPayable);
-
-                        if (!res.data.success) {
-                          throw new Error("Payment order creation failed");
-                        }
-
-                        const razorpayOrderId = res.data.data.id;
-
-                        const options = {
-                          key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                          amount: totalPayable * 100,
-                          currency: "INR",
-                          name: "Hustlr Eyewear",
-                          description: `Order #${razorpayOrderId}`,
-                          order_id: razorpayOrderId,
-                          handler: async function (response: {
-                            razorpay_payment_id: string;
-                            razorpay_order_id: string;
-                            razorpay_signature: string;
-                          }) {
-                            try {
-                              const orderRes = await createOrder({
-                                ...orderPayload,
-                                razorpayPaymentId: response.razorpay_payment_id,
-                                razorpayOrderId: response.razorpay_order_id,
-                                razorpaySignature: response.razorpay_signature,
-                              });
-
-                              if (!orderRes.success) {
-                                throw new Error("Order failed after payment");
-                              }
-
-                              const orderId = orderRes.data?.orderId;
-                              localStorage.removeItem("cart");
-                              navigate(`/order-success/${orderId}`);
-                            } catch (error) {
-                              console.error(error);
-                              alert("Order creation failed after payment. Please contact support.");
-                            }
-                          },
-                          prefill: {
-                            name: selectedAddress.name,
-                            contact: selectedAddress.phone,
-                          },
-                          theme: {
-                            color: "#0d9488",
-                          },
-                        };
-
-                        const rzp = new (window as any).Razorpay(options);
-
-                        rzp.on("payment.failed", function (response: {
-                          error: {
-                            code: string;
-                            description: string;
-                          };
-                        }) {
-                          alert(`Payment failed: ${response.error.description}`);
-                        });
-
-                        rzp.open();
                       }
                     } catch (error) {
                       console.error(error);
@@ -889,11 +838,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
 
                   className="mt-6 w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-base transition-all active:scale-[0.985] disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
-                  {orderLoading
-                    ? "Processing..."
-                    : paymentMethod === "COD"
-                      ? "Place Order (COD)"
-                      : `Pay ₹${totalPayable}`}
+                  {orderLoading ? "Processing..." : "Place Order"}
                 </button>
               </div>
             </div>

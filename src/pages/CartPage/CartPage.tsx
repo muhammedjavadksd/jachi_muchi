@@ -2,6 +2,8 @@ import { memo, useMemo, useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
+import { getOffers, getProductOffers, getBestOfferBadge, calculateOfferDiscount } from "../../lib/offerEngine";
+import type { Offer } from "../../types/offers.types";
 
 /** Height of the promotion header */
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -27,11 +29,13 @@ interface CartItem {
 
 export const CartPage = memo(function CartPage(): JSX.Element {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
 
   // Load cart from localStorage on mount
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("cart") || "[]");
     setCartItems(stored);
+    getOffers().then(setOffers).catch(() => {});
   }, []);
 
   const spacerStyle = useMemo(() => ({
@@ -65,15 +69,32 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   const totalPayable = useMemo(() =>
     totalSellingPrice + fittingFee, [totalSellingPrice]);
  
-  const cartItemsList = useMemo(() => (
-    cartItems.map((item, index) => (
+  const totalOfferSavings = useMemo(() =>
+    cartItems.reduce((sum, item) => {
+      if (offers.length === 0) return sum;
+      return sum + calculateOfferDiscount(item.productId, item.productPrice + (item.lens?.price || 0), offers);
+    }, 0),
+  [cartItems, offers]);
+
+  const cartItemsList = useMemo(() =>
+    cartItems.map((item, index) => {
+      const offerBadge = getBestOfferBadge(item.productId, item.productPrice, offers);
+      return (
       <div
         key={item.cartItemId || `${item.productId}-${index}`}
         className="bg-white border border-gray-200 rounded-2xl p-5 mb-5 relative overflow-hidden"
       >
         <div className="flex flex-col sm:flex-row gap-5">
           {/* Product Image */}
-          <div className="w-full sm:w-40 h-40 sm:h-32 bg-gray-50 rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100">
+          <div className="w-full sm:w-40 h-40 sm:h-32 bg-gray-50 rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 relative">
+            {offerBadge && (
+              <div
+                className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-white text-[9px] font-bold shadow-md z-10"
+                style={{ backgroundColor: offerBadge.color }}
+              >
+                {offerBadge.label}
+              </div>
+            )}
             <img
               src="/category/image.png"
               alt={item.productName}
@@ -128,8 +149,9 @@ export const CartPage = memo(function CartPage(): JSX.Element {
           </div>
         </div>
       </div>
-    ))
-  ), [cartItems, handleRemoveItem]);
+      );
+    })
+  , [cartItems, offers, handleRemoveItem]);
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
@@ -170,6 +192,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                       <span className="text-gray-600">Total discount</span>
                       <span className="text-green-600">-₹{totalDiscount}</span>
                     </div>
+                    {totalOfferSavings > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Offer savings</span>
+                        <span className="text-green-600">-₹{totalOfferSavings}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Fitting Fee</span>
                       <span>₹{fittingFee}</span>

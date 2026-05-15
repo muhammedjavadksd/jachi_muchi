@@ -1,14 +1,16 @@
-import { lazy, Suspense, useMemo, useState, useEffect } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
 import { NavTab } from "./components/BottomNav/BottomNav";
-import { HEADER_SPACER_HEIGHT } from "./lib/constants";
+import { HEADER_SPACER_HEIGHT, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
 import { api } from "./api/axios";
 import { getBanners } from "./api/banner";
 import { getCollections } from "./api/collection";
-import { getBrands } from "./api/brand";
-
+import { getBrands, type BrandItem } from "./api/brand";
 import { OffersSection } from "./components/OffersSection/OffersSection";
+import { useAuth } from "./context/AuthContext";
+import { useWishlist } from "./context/WishlistContext";
+import { fetchUserCoupons, type UserCoupon } from "./lib/couponApi";
 
 /** Lazy loaded components */
 const HeroSlider = lazy(() => import("./components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
@@ -29,7 +31,18 @@ export default function App(): JSX.Element {
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
   const [collections, setCollections] = useState<any[]>([]);
-  const [brands, setBrands] = useState<any[]>([]);
+  const [brands, setBrands] = useState<BrandItem[]>([]);
+  const { isAuthenticated } = useAuth();
+  const { open: openWishlist } = useWishlist();
+
+  const handleTabChange = useCallback((tab: NavTab) => {
+    if (tab === "wishlist") {
+      openWishlist();
+      return;
+    }
+    setActiveTab(tab);
+  }, [openWishlist]);
+  const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
@@ -69,15 +82,14 @@ export default function App(): JSX.Element {
       })
       .catch(() => setBrands([]));
 
-  }, []);
+    // --- FETCH USER COUPONS (only if authenticated) ---
+    if (isAuthenticated) {
+      fetchUserCoupons()
+        .then((coupons) => setUserCoupons(coupons))
+        .catch(() => setUserCoupons([]));
+    }
 
-  useEffect(() => {
-    api.get("/categories")
-      .then((res) => {
-        setCategories(res.data?.data?.categories || []);
-      })
-      .catch(() => setCategories([]));
-  }, []);
+  }, [isAuthenticated]);
 
   // Fake countdown for Hustlr Club (like in screenshot)
   const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 8, minutes: 51, seconds: 44 });
@@ -113,7 +125,7 @@ export default function App(): JSX.Element {
       {/* Spacer for fixed header */}
       <div style={spacerStyle} />
 
-      <main className="flex-1 pb-20">
+      <main className="flex-1 pb-20 md:pb-0">
         {/* Hero Slider */}
         <Suspense fallback={<LoadingSkeleton />}>
           {heroBanners.length > 0 ? (
@@ -129,7 +141,7 @@ export default function App(): JSX.Element {
 
         {/* Offers For You Section */}
         <Suspense fallback={<LoadingSkeleton />}>
-          <OffersSection />
+          <OffersSection userCoupons={userCoupons} />
         </Suspense>
 
         {/* First Promotional Banner (placed above Top Categories / Hustlr Club) */}
@@ -250,13 +262,14 @@ export default function App(): JSX.Element {
 
 
 
-        {/* Our Brands */}
-        <div className="px-4 mt-8">
+        {/* Our Brands + Free Eye Checkup */}
+        <div className="px-4 space-y-8 mt-8">
           <GridSection
             title="Our Brands"
             columns={3}
             items={formattedBrands}
           />
+          <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 
         {/* Remaining Promotional Banners (bottom of page) */}
@@ -278,7 +291,7 @@ export default function App(): JSX.Element {
       {/* Bottom Navigation (Lenskart-style) */}
       <BottomNav
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         orderCount={orderCount}
       />
     </div>

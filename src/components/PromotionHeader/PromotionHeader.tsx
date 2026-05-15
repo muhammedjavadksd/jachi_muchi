@@ -5,6 +5,7 @@ import { PhoneIcon, SearchIcon, HeartIcon, CartIcon } from "../icons";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import { 
   UTILITY_LINKS, 
   SUPPORT_PHONE, 
@@ -21,6 +22,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
   const { isAuthenticated, user, logout } = useAuth();
+  const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
@@ -178,9 +180,11 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
               aria-label="Cart"
             >
               <CartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-teal-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                4
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-teal-600 text-white text-[10px] font-bold rounded-full">
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
             </button>
           </div>
         </Container>

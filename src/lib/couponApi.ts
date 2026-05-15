@@ -117,6 +117,44 @@ export async function fetchAvailableCoupons(): Promise<AvailableCoupon[]> {
 }
 
 /**
+ * Fetch user-specific coupons (assigned to logged-in user)
+ * GET /coupons/user
+ */
+export interface UserCoupon {
+  id: string;
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  minPurchase: number;
+  maxDiscount?: number;
+  description?: string;
+  expiresAt: string;
+  isUsed?: boolean;
+  usedAt?: string;
+  assignedAt: string;
+}
+
+export async function fetchUserCoupons(): Promise<UserCoupon[]> {
+  try {
+    const response = await axiosInstance.get<{
+      success: boolean;
+      data: UserCoupon[];
+    }>("/coupons/user");
+
+    if (!response.data.success) {
+      throw new Error("Failed to fetch user coupons");
+    }
+
+    return response.data.data || [];
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message || "Failed to fetch user coupons");
+  }
+}
+
+/**
  * Get welcome coupon for new users
  * GET /welcome-coupon
  */

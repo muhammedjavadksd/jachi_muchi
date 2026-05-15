@@ -1,26 +1,50 @@
-import { memo, useState, useEffect, useCallback } from "react";
-import { fetchAvailableCoupons, type AvailableCoupon } from "../../lib/couponApi";
+import { memo, useState, useEffect, useCallback, useRef } from "react";
+import { getActiveOffers } from "../../services/offer.service";
+import type { Offer } from "../../types/offers.types";
+import type { UserCoupon } from "../../lib/couponApi";
 import { CouponCard } from "../CouponCard/CouponCard";
+import { OfferCard } from "../OfferCard/OfferCard";
 
-/**
- * Offers For You section for homepage
- * Displays available coupons from backend
- */
-export const OffersSection = memo(function OffersSection(): JSX.Element {
-  const [coupons, setCoupons] = useState<AvailableCoupon[]>([]);
+interface OffersSectionProps {
+  userCoupons?: UserCoupon[];
+}
+
+function ShimmerSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 flex flex-col md:flex-row-reverse min-h-[320px] animate-pulse">
+      <div className="md:w-[280px] lg:w-[320px] h-52 md:h-auto shrink-0 bg-gray-200" />
+      <div className="flex-1 p-6 lg:p-8 flex flex-col justify-center gap-3">
+        <div className="w-24 h-6 bg-gray-200 rounded-full" />
+        <div className="w-3/4 h-7 bg-gray-200 rounded-lg" />
+        <div className="w-full h-4 bg-gray-200 rounded" />
+        <div className="w-2/3 h-4 bg-gray-200 rounded" />
+        <div className="flex gap-2 mt-2">
+          <div className="w-32 h-8 bg-gray-200 rounded-xl" />
+          <div className="w-24 h-8 bg-gray-200 rounded-xl" />
+        </div>
+        <div className="w-36 h-6 bg-gray-200 rounded mt-2" />
+        <div className="w-28 h-10 bg-gray-200 rounded-xl mt-2" />
+      </div>
+    </div>
+  );
+}
+
+export const OffersSection = memo(function OffersSection({ userCoupons }: OffersSectionProps): JSX.Element {
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState(""); // For copy notification
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [toast, setToast] = useState("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const loadCoupons = useCallback(async () => {
+  const loadOffers = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
-      const data = await fetchAvailableCoupons();
-      // Filter out expired coupons
-      const now = new Date();
-      const validCoupons = data.filter(c => new Date(c.expiresAt) > now);
-      setCoupons(validCoupons);
+      const data = await getActiveOffers();
+      setOffers(data);
+      setCurrentSlide(0);
     } catch (err: any) {
       setError(err.message || "Failed to load offers");
     } finally {
@@ -29,8 +53,31 @@ export const OffersSection = memo(function OffersSection(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    loadCoupons();
-  }, [loadCoupons]);
+    loadOffers();
+  }, [loadOffers]);
+
+  useEffect(() => {
+    if (loading || error || offers.length <= 1 || isPaused) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+    intervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % offers.length);
+    }, 5000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loading, error, offers.length, isPaused]);
+
+  const goToSlide = (index: number) => setCurrentSlide(index);
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + offers.length) % offers.length);
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % offers.length);
+  };
 
   const handleCopy = (code: string) => {
     setToast(`Coupon "${code}" copied to clipboard!`);
@@ -38,47 +85,59 @@ export const OffersSection = memo(function OffersSection(): JSX.Element {
   };
 
   const handleApply = (code: string) => {
-    // Navigate to checkout with coupon code
     window.location.href = `/checkout?coupon=${code}`;
   };
 
   return (
-    <section className="py-12 md:py-16 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-      {/* Toast Notification */}
+    <section className="relative py-14 md:py-20 bg-white overflow-hidden">
+
       {toast && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white px-6 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
-          <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
           <span className="text-sm font-medium">{toast}</span>
         </div>
       )}
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            Offers For You 🎁
-          </h2>
-          <p className="text-gray-600 max-w-xl mx-auto">
-            Exclusive coupons and discounts available for you. Apply now and save on your next purchase!
-          </p>
-        </div>
+      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8">
+        {/* User-Specific Coupons */}
+        {userCoupons && userCoupons.length > 0 && (
+          <div className="mb-14">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Your Coupons</h3>
+                <p className="text-sm text-gray-500">Personalized offers just for you</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {userCoupons.map((coupon) => (
+                <CouponCard
+                  key={coupon.code}
+                  code={coupon.code}
+                  discountType={coupon.discountType}
+                  discountValue={coupon.discountValue}
+                  minPurchase={coupon.minPurchase}
+                  maxDiscount={coupon.maxDiscount}
+                  description={coupon.description}
+                  expiresAt={coupon.expiresAt}
+                  onCopy={handleCopy}
+                  onApply={handleApply}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl p-6 animate-pulse">
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
-                <div className="flex gap-3">
-                  <div className="flex-1 h-10 bg-gray-200 rounded-xl"></div>
-                  <div className="flex-1 h-10 bg-gray-200 rounded-xl"></div>
-                </div>
-              </div>
-            ))}
+          <div className="max-w-[900px] mx-auto space-y-4">
+            <ShimmerSkeleton />
           </div>
         )}
 
@@ -91,18 +150,81 @@ export const OffersSection = memo(function OffersSection(): JSX.Element {
               </svg>
               <span>{error}</span>
             </div>
-            <button
-              onClick={loadCoupons}
-              className="mt-4 px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors"
-            >
+            <button onClick={loadOffers} className="mt-4 px-6 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors">
               Retry
             </button>
           </div>
         )}
 
+        {/* Carousel */}
+        {!loading && !error && offers.length > 0 && (
+          <div
+            className="relative max-w-[900px] mx-auto"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            {/* Slide */}
+            <div className="relative overflow-hidden rounded-3xl shadow-xl shadow-black/5 border border-gray-100">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {offers.map((offer) => (
+                  <div key={offer._id} className="min-w-full">
+                    <OfferCard offer={offer} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Arrows */}
+            {offers.length > 1 && (
+              <>
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:scale-110 active:scale-95 transition-all duration-200 z-10 group"
+                >
+                  <svg className="w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 hover:scale-110 active:scale-95 transition-all duration-200 z-10 group"
+                >
+                  <svg className="w-5 h-5 text-gray-600 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Dots */}
+            {offers.length > 1 && (
+              <div className="flex items-center justify-center gap-3 mt-8">
+                {offers.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className="relative group"
+                  >
+                    <div
+                      className={`transition-all duration-500 rounded-full ${
+                        index === currentSlide
+                          ? "w-10 h-2.5 bg-teal-600"
+                          : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Empty State */}
-        {!loading && !error && coupons.length === 0 && (
-          <div className="text-center py-12">
+        {!loading && !error && offers.length === 0 && (!userCoupons || userCoupons.length === 0) && (
+          <div className="text-center py-16">
             <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z" />
@@ -110,27 +232,6 @@ export const OffersSection = memo(function OffersSection(): JSX.Element {
             </div>
             <p className="text-gray-500 text-lg">No offers available right now</p>
             <p className="text-gray-400 text-sm mt-2">Check back later for exciting deals!</p>
-          </div>
-        )}
-
-        {/* Coupon Cards Grid */}
-          {!loading && !error && coupons.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {coupons.map((coupon) => (
-              <CouponCard
-                key={coupon.code}
-                code={coupon.code}
-                discountType={coupon.discountType}
-                discountValue={coupon.discountValue}
-                minPurchase={coupon.minPurchase}
-                maxDiscount={coupon.maxDiscount}
-                description={coupon.description}
-                expiresAt={coupon.expiresAt}
-                isNewUserOnly={coupon.isNewUserOnly}
-                onCopy={handleCopy}
-                onApply={handleApply}
-              />
-            ))}
           </div>
         )}
       </div>
