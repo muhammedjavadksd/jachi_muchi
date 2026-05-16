@@ -1,8 +1,9 @@
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
-import { HEADER_SPACER_HEIGHT } from "../../lib/constants";
+import { HEADER_SPACER_HEIGHT, PREFERRED_FRAME_TYPES } from "../../lib/constants";
 import { api } from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 interface FormData {
   fullName: string;
@@ -14,13 +15,12 @@ interface FormData {
   pincode: string;
   preferredDate: string;
   preferredTime: string;
+  preferredFrameType: string;
   notes: string;
 }
 
 interface FormErrors {
-  fullName?: string;
   phone?: string;
-  email?: string;
   address?: string;
   city?: string;
   state?: string;
@@ -29,38 +29,56 @@ interface FormErrors {
   preferredTime?: string;
 }
 
-const initialForm: FormData = {
-  fullName: "",
-  phone: "",
-  email: "",
+interface SubmittedData {
+  preferredDate: string;
+  preferredTime: string;
+}
+
+const initialForm = (userName: string, userPhone: string, userEmail: string): FormData => ({
+  fullName: userName,
+  phone: userPhone,
+  email: userEmail,
   address: "",
   city: "",
   state: "",
   pincode: "",
   preferredDate: "",
   preferredTime: "",
+  preferredFrameType: "",
   notes: "",
-};
+});
 
 export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.Element {
-  const [form, setForm] = useState<FormData>(initialForm);
+  const { user } = useAuth();
+
+  const [form, setForm] = useState<FormData>(initialForm("", "", ""));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedData, setSubmittedData] = useState<SubmittedData | null>(null);
+  const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      const fullName = user.firstName && user.lastName
+        ? `${user.firstName} ${user.lastName}`.trim()
+        : user.name || "";
+      setForm(initialForm(fullName, "", user.email));
+    }
+  }, [user]);
 
   const setField = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+    if (submitError) setSubmitError("");
   };
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
-    if (!form.fullName.trim()) errs.fullName = "Full name is required";
     if (!form.phone.trim()) errs.phone = "Phone number is required";
     else if (!/^[0-9]{10}$/.test(form.phone.trim())) errs.phone = "Enter a valid 10-digit phone number";
-    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errs.email = "Enter a valid email";
     if (!form.address.trim()) errs.address = "Address is required";
     if (!form.city.trim()) errs.city = "City is required";
     if (!form.state.trim()) errs.state = "State is required";
@@ -73,13 +91,14 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
     setSubmitting(true);
     try {
-      await api.post("/home-try-on", {
+      const payload: Record<string, string | undefined> = {
         fullName: form.fullName.trim(),
         phone: form.phone.trim(),
         email: form.email.trim() || undefined,
@@ -89,11 +108,17 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
         pincode: form.pincode.trim(),
         preferredDate: form.preferredDate,
         preferredTime: form.preferredTime,
+        preferredFrameType: form.preferredFrameType || undefined,
         notes: form.notes.trim() || undefined,
+      };
+      await api.post("/home-try-on", payload);
+      setSubmittedData({
+        preferredDate: form.preferredDate,
+        preferredTime: form.preferredTime,
       });
       setSubmitted(true);
     } catch {
-      alert("Something went wrong. Please try again.");
+      setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -113,13 +138,35 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Appointment Request Submitted</h1>
-              <p className="text-gray-600 mb-8">Our team will contact you shortly to confirm your home try-on appointment.</p>
-              <Link
-                to="/home-try-on"
-                className="inline-block px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
-              >
-                Back to Home Try-On
-              </Link>
+              <p className="text-gray-600 mb-2">Your home try-on appointment has been booked successfully.</p>
+              <div className="bg-teal-50 rounded-xl p-4 mb-6 text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Pending
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Preferred Date:</span> {submittedData?.preferredDate}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Preferred Time:</span> {submittedData?.preferredTime}
+                </p>
+              </div>
+              <p className="text-sm text-gray-500 mb-8">Our team will contact you shortly to confirm your appointment.</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link
+                  to="/account/home-try-on-appointments"
+                  className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  View My Appointments
+                </Link>
+                <Link
+                  to="/home-try-on"
+                  className="px-8 py-3 border border-teal-600 text-teal-600 hover:bg-teal-50 font-semibold rounded-xl transition-colors"
+                >
+                  Back to Home Try-On
+                </Link>
+              </div>
             </div>
           </Container>
         </main>
@@ -127,6 +174,10 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
         <WhatsAppButton />
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const inputClass = "w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-900";
@@ -150,27 +201,40 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Book a Home Try-On</h1>
             <p className="text-gray-600 mb-8">Fill in your details and we'll schedule a frame trial at your home.</p>
 
+            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+              <p className="text-sm text-gray-600">
+                Booking as <span className="font-semibold text-gray-900">{form.fullName}</span>
+                {form.email && <span> &middot; {form.email}</span>}
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.fullName} onChange={(e) => setField("fullName", e.target.value)} className={`${inputClass} ${errorClass("fullName")}`} placeholder="John Doe" />
-                  {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
-                  <input type="tel" value={form.phone} onChange={(e) => setField("phone", e.target.value)} className={`${inputClass} ${errorClass("phone")}`} placeholder="9876543210" maxLength={10} />
+                  <input type="tel" value={form.phone} onChange={(e) => setField("phone", e.target.value)} className={`${inputClass} ${errors.phone ? "border-red-400 focus:ring-red-400" : ""}`} placeholder="9876543210" maxLength={10} />
                   {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-                  <input type="email" value={form.email} onChange={(e) => setField("email", e.target.value)} className={`${inputClass} ${errorClass("email")}`} placeholder="john@example.com" />
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Pincode <span className="text-red-500">*</span></label>
                   <input type="text" value={form.pincode} onChange={(e) => setField("pincode", e.target.value)} className={`${inputClass} ${errorClass("pincode")}`} placeholder="110001" maxLength={6} />
                   {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Frame Type</label>
+                  <select
+                    value={form.preferredFrameType}
+                    onChange={(e) => setField("preferredFrameType", e.target.value)}
+                    className={inputClass}
+                  >
+                    <option value="">Select frame type</option>
+                    {PREFERRED_FRAME_TYPES.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -210,6 +274,10 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
                 <textarea value={form.notes} onChange={(e) => setField("notes", e.target.value)} className={`${inputClass} resize-none`} rows={2} placeholder="Any special requests..." />
               </div>
+
+              {submitError && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{submitError}</div>
+              )}
 
               <button
                 type="submit"

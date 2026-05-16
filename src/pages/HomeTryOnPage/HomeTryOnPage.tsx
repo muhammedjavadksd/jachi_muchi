@@ -1,6 +1,8 @@
-import { memo, useState } from "react";
+import { memo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
+import { useAuth } from "../../context/AuthContext";
+import { useLoginModal } from "../../context/LoginModalContext";
 
 const HEADER_SPACER_HEIGHT = 140;
 
@@ -38,10 +40,20 @@ const StarIcon = ({ filled = true }: { filled?: boolean }) => (
 export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { open: openLogin } = useLoginModal();
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
+
+  const handleBookAppointment = useCallback(() => {
+    if (!isAuthenticated) {
+      openLogin();
+      return;
+    }
+    navigate("/home-try-on/book");
+  }, [isAuthenticated, openLogin, navigate]);
 
   const spacerStyle = { height: `${HEADER_SPACER_HEIGHT}px` };
 
@@ -272,7 +284,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 {/* Book CTA Button */}
                 <button
                   type="button"
-                  onClick={() => navigate("/home-try-on/book")}
+                  onClick={handleBookAppointment}
                   className="w-full mt-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
                 >
                   BOOK APPOINTMENT

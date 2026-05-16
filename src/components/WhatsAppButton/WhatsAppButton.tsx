@@ -1,14 +1,19 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
+import { getSettings, type Settings } from "../../api/settings";
 
-/**
- * Fixed floating WhatsApp button
- * Positioned at bottom-right corner of the screen
- * Memoized as it has no props
- */
 export const WhatsAppButton = memo(function WhatsAppButton(): JSX.Element {
+  const [settings, setSettings] = useState<Settings | null>(null);
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
+
+  const whatsappNumber = settings?.whatsappNumber || "918447821891";
+  const href = `https://wa.me/${whatsappNumber}`;
+
   return (
     <a
-      href="https://wa.me/918447821891"
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50"

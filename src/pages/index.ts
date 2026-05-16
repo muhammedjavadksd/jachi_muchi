@@ -29,3 +29,6 @@ export { HomeTryOnPage } from "./HomeTryOnPage/HomeTryOnPage";
 export { HomeTryOnBookingPage } from "./HomeTryOnBookingPage/HomeTryOnBookingPage";
 export { StoresPage } from "./StoresPage/StoresPage";
 export { WishlistPage } from "./WishlistPage/WishlistPage";
+export { MyHomeTryOnPage } from "./MyHomeTryOnPage/MyHomeTryOnPage";
+export { MyHomeTryOnAppointmentsPage } from "./MyHomeTryOnAppointmentsPage/MyHomeTryOnAppointmentsPage";
+export { AccountHomeTryOnAppointmentsPage } from "./AccountHomeTryOnAppointmentsPage/AccountHomeTryOnAppointmentsPage";
