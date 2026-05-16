@@ -11,6 +11,7 @@ app.use(express.json());
 
 // Import routes
 const couponRoutes = require('./routes/coupon');
+const productRoutes = require('./routes/product');
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jachi_muchi', {
@@ -24,6 +25,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jachi_muc
 
 // Routes
 app.use('/api/coupons', couponRoutes);
+app.use('/api/products', productRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

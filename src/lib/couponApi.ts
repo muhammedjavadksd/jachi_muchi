@@ -117,6 +117,62 @@ export async function fetchAvailableCoupons(): Promise<AvailableCoupon[]> {
 }
 
 /**
+ * Compute estimated discount for an AvailableCoupon given a cart value
+ */
+export function estimateCouponDiscount(
+  coupon: AvailableCoupon,
+  cartValue: number
+): number {
+  if (cartValue < coupon.minPurchase) return 0;
+  if (coupon.discountType === "fixed") {
+    return Math.min(coupon.discountValue, cartValue);
+  }
+  const raw = (coupon.discountValue / 100) * cartValue;
+  return coupon.maxDiscount ? Math.min(raw, coupon.maxDiscount) : raw;
+}
+
+/**
+ * Fetch applicable coupons based on cart value
+ * Tries dedicated endpoint first, falls back to client-side filtering
+ * GET /coupons/applicable?cartValue=X
+ */
+export interface ApplicableCoupon extends AvailableCoupon {
+  estimatedDiscount: number;
+}
+
+export async function fetchApplicableCoupons(
+  cartValue: number
+): Promise<ApplicableCoupon[]> {
+  try {
+    const response = await axiosInstance.get<{
+      success: boolean;
+      data: ApplicableCoupon[];
+    }>("/coupons/applicable", { params: { cartValue } });
+
+    if (response.data.success) {
+      return (response.data.data || []).sort(
+        (a, b) => b.estimatedDiscount - a.estimatedDiscount
+      );
+    }
+    throw new Error("Failed to fetch applicable coupons");
+  } catch {
+    const all = await fetchAvailableCoupons();
+    const now = new Date();
+    return all
+      .filter((c) => {
+        if (cartValue < c.minPurchase) return false;
+        if (new Date(c.expiresAt) < now) return false;
+        return true;
+      })
+      .map((c) => ({
+        ...c,
+        estimatedDiscount: estimateCouponDiscount(c, cartValue),
+      }))
+      .sort((a, b) => b.estimatedDiscount - a.estimatedDiscount);
+  }
+}
+
+/**
  * Fetch user-specific coupons (assigned to logged-in user)
  * GET /coupons/user
  */

@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback } from "react";
-import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel } from "../../components";
+import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, SimilarProducts, ProductReviews } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
@@ -55,7 +55,7 @@ const OFFER_LABEL: Record<string, (o: Offer) => string> = {
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [pincode, setPincode] = useState("");
+  const [techOpen, setTechOpen] = useState(false);
   const [lensPanelOpen, setLensPanelOpen] = useState(false);
   const { id } = useParams();
 
@@ -115,7 +115,6 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
     specs: dynamicSpecs,
   }), [product, dynamicColors, dynamicSpecs]);
 
-  const handlePincodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setPincode(e.target.value), []);
   const handleColorClick = useCallback((index: number) => setSelectedColorIndex(index), []);
 
   const goToNext = useCallback(() => setCurrentImageIndex(p => (p + 1) % safeProduct.images.length), [safeProduct.images.length]);
@@ -243,17 +242,23 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                   </div>
                 </div>
               )}
-              <div className="mb-8">
-                <h3 className="font-semibold text-gray-900 mb-3">Check Delivery Options</h3>
-                <div className="flex gap-3">
-                  <input type="text" value={pincode} onChange={handlePincodeChange} placeholder="Enter Pincode" maxLength={6} className="flex-1 px-5 py-3.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <button onClick={() => console.log("Checking delivery for pincode:", pincode)} className="px-8 py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors whitespace-nowrap">Check</button>
-                </div>
-              </div>
               <hr className="border-gray-200 my-8" />
-              <div className="mb-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Technical Information</h3>
-                <div className="bg-gray-50 rounded-2xl p-5 text-sm">{specsTable}</div>
+              <div className="mb-8 border border-gray-200 rounded-2xl overflow-hidden">
+                <button
+                  onClick={() => setTechOpen((prev) => !prev)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <span className="text-lg font-semibold text-gray-900">Technical Information</span>
+                  <svg
+                    className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${techOpen ? "rotate-180" : ""}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {techOpen && (
+                  <div className="px-5 pb-5 text-sm animate-[fadeIn_0.2s_ease-out]">{specsTable}</div>
+                )}
               </div>
               {product?.description && (
                 <div className="mb-8">
@@ -263,6 +268,18 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               )}
             </div>
           </div>
+        </Container>
+
+        <div className="border-t border-gray-200 my-8" />
+
+        <Container className="pb-8">
+          <SimilarProducts productId={product?._id} />
+        </Container>
+
+        <div className="border-t border-gray-200 my-8" />
+
+        <Container className="pb-12">
+          <ProductReviews />
         </Container>
       </main>
       <Footer />

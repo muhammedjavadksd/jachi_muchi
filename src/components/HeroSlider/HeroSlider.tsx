@@ -2,6 +2,7 @@ import { memo, useMemo, useCallback } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { useSlider } from "../../hooks";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../lib/image";
 interface Banner {
   _id?: string;
   image: string;
@@ -26,7 +27,7 @@ export const HeroSlider = memo(function HeroSlider({ banners }: HeroSliderProps)
   /** Memoize slide elements */
   const slideElements = useMemo(() => (
     banners.map((banner, index) => {
-      const imageUrl = banner.image || `https://placehold.co/1200x400/0d9488/FFFFFF?text=${encodeURIComponent(banner.title || 'Banner')}`;
+      const imageUrl = getImageUrl(banner.image) || `https://placehold.co/1200x400/0d9488/FFFFFF?text=${encodeURIComponent(banner.title || 'Banner')}`;
       return (
         <Link
           key={banner._id || index}

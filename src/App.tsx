@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav } from "./components";
+import { PromotionHeader, LoadingSkeleton, Footer, WhatsAppButton, BottomNav, OfferCarousel, SearchAutocomplete, OffersSection, PromoBanner } from "./components";
 import { NavTab } from "./components/BottomNav/BottomNav";
 import { HEADER_SPACER_HEIGHT, FREE_CHECKUP } from "./lib/constants";
 import { TopCategories } from "./components/TopCategories/TopCategories";
@@ -8,11 +8,9 @@ import { api } from "./api/axios";
 import { getBanners } from "./api/banner";
 import { getCollections } from "./api/collection";
 import { getBrands, type BrandItem } from "./api/brand";
-import { OffersSection } from "./components/OffersSection/OffersSection";
 import { useAuth } from "./context/AuthContext";
 import { useLoginModal } from "./context/LoginModalContext";
 import { useWishlist } from "./context/WishlistContext";
-import { fetchUserCoupons, type UserCoupon } from "./lib/couponApi";
 import { getImageUrl } from "./lib/image";
 
 /** Lazy loaded components */
@@ -33,6 +31,7 @@ export default function App(): JSX.Element {
 
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
+  const [featuredBanner, setFeaturedBanner] = useState<any>(null);
   const [collections, setCollections] = useState<any[]>([]);
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const { isAuthenticated } = useAuth();
@@ -69,13 +68,14 @@ export default function App(): JSX.Element {
     }
     setActiveTab(tab);
   }, [openWishlist, isAuthenticated, navigate]);
-  const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
         setCategories(res.data?.data?.categories || []);
       })
       .catch(() => setCategories([]));
+
+      
 
     // --- FETCH BANNERS ---
     getBanners().then((allBanners) => {
@@ -108,13 +108,6 @@ export default function App(): JSX.Element {
         setBrands(data || []);
       })
       .catch(() => setBrands([]));
-
-    // --- FETCH USER COUPONS (only if authenticated) ---
-    if (isAuthenticated) {
-      fetchUserCoupons()
-        .then((coupons) => setUserCoupons(coupons))
-        .catch(() => setUserCoupons([]));
-    }
 
   }, [isAuthenticated]);
 
@@ -153,37 +146,49 @@ export default function App(): JSX.Element {
       <div style={spacerStyle} />
 
       <main className="flex-1 pb-20 md:pb-0">
+       
+
+       
+
         {/* Hero Slider */}
-        <Suspense fallback={<LoadingSkeleton />}>
+         <Suspense fallback={<LoadingSkeleton />}>
           {heroBanners.length > 0 ? (
             <HeroSlider banners={heroBanners} />
           ) : (
             <div className="h-[250px] bg-gray-100 animate-pulse flex items-center justify-center">Loading Banners...</div>
           )}        </Suspense>
 
-        {/* Secondary Offers */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <SecondaryBannerCarousel />
-        </Suspense>
+           {/* Top Categories */}
+        <TopCategories />
 
-        {/* Offers For You Section */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          <OffersSection userCoupons={userCoupons} />
-        </Suspense>
+         {/* Offer Carousel */}
+        <OfferCarousel />
 
-        {/* First Promotional Banner (placed above Top Categories / Hustlr Club) */}
-        <Suspense fallback={<LoadingSkeleton />}>
-          {promoBanners.length > 0 && promoBanners[0] && (
-            <Campaign key={promoBanners[0]._id || 'promo-0'} image={promoBanners[0].image} link={promoBanners[0].redirectUrl || "#"} />
-          )}
-        </Suspense>
+      
 
-        {/* Top Categories */}
-        <div className="px-4 pt-6 pb-8">
-          <TopCategories />
-        </div>
+      
 
-        {/* Hustlr Club Banner - Made to match your screenshot */}
+      
+
+        {/* Dynamic Category Shape Sections */}
+        {categories.filter((c) => c.isActive).map((category) => (
+          <Suspense key={category._id} fallback={<LoadingSkeleton />}>
+            <ShapeSection
+              title={category.name}
+              shape="circle"
+              categorySlug={category.slug}
+              items={(category.shapes || []).map((shape: any) => ({
+                label: shape.name,
+                image: shape.image || "https://placehold.co/200x200?text=Shape",
+              }))}
+            />
+          </Suspense>
+        ))}
+
+
+
+
+  {/* Hustlr Club Banner - Made to match your screenshot */}
         <div className="mx-4 mb-8 bg-gradient-to-r from-indigo-950 via-blue-950 to-indigo-950 rounded-3xl overflow-hidden shadow-xl">
           <div className="p-6 flex items-center gap-5 text-white">
             <div className="flex-1">
@@ -226,20 +231,7 @@ export default function App(): JSX.Element {
           </div>
         </div>
 
-        {/* Dynamic Category Shape Sections */}
-        {categories.filter((c) => c.isActive).map((category) => (
-          <Suspense key={category._id} fallback={<LoadingSkeleton />}>
-            <ShapeSection
-              title={category.name}
-              shape="circle"
-              categorySlug={category.slug}
-              items={(category.shapes || []).map((shape: any) => ({
-                label: shape.name,
-                image: shape.image || "https://placehold.co/200x200?text=Shape",
-              }))}
-            />
-          </Suspense>
-        ))}
+
 
         {/* Nearby Stores & Services */}
         <Suspense fallback={<LoadingSkeleton />}>

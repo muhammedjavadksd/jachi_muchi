@@ -1,6 +1,7 @@
 import { memo, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { HeartIcon, CartIcon, UserIcon } from "../icons";
+import { SearchAutocomplete } from "../SearchAutocomplete/SearchAutocomplete";
 import { BRAND_LOGO_URL, NAV_CATEGORIES } from "../../lib/constants";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
@@ -122,22 +123,7 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
 
       {/* Search Bar */}
       <div className="px-3 sm:px-4 pb-3">
-        <div className="flex items-center gap-2 h-10 bg-[#162d5a] rounded-lg px-3">
-          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search"
-            className="flex-1 bg-transparent outline-none text-sm text-white placeholder-gray-400 min-w-0"
-          />
-          <button className="shrink-0 p-1" aria-label="Scan">
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-        </div>
+        <SearchAutocomplete variant="dark" placeholder="Search" />
       </div>
     </header>
   );
