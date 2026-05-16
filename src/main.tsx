@@ -33,6 +33,9 @@ import {
   HomeTryOnBookingPage,
   StoresPage,
   WishlistPage,
+  MyHomeTryOnPage,
+  MyHomeTryOnAppointmentsPage,
+  AccountHomeTryOnAppointmentsPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
@@ -82,6 +85,7 @@ createRoot(rootElement).render(
                 <Route path="/account/info" element={<ProtectedRoute><AccountInfoPage /></ProtectedRoute>} />
                 <Route path="/account/notifications" element={<ProtectedRoute><ManageNotificationsPage /></ProtectedRoute>} />
                 <Route path="/account/address" element={<ProtectedRoute><AddressBookPage /></ProtectedRoute>} />
+                <Route path="/account/home-try-on-appointments" element={<ProtectedRoute><AccountHomeTryOnAppointmentsPage /></ProtectedRoute>} />
                 <Route path="/account/*" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
@@ -93,7 +97,9 @@ createRoot(rootElement).render(
                 <Route path="/support" element={<SupportPage />} />
                 <Route path="/try-at-home" element={<TryAtHomePage />} />
                 <Route path="/home-try-on" element={<HomeTryOnPage />} />
-                <Route path="/home-try-on/book" element={<HomeTryOnBookingPage />} />
+                <Route path="/home-try-on/book" element={<ProtectedRoute><HomeTryOnBookingPage /></ProtectedRoute>} />
+                <Route path="/my-home-try-on" element={<ProtectedRoute><MyHomeTryOnPage /></ProtectedRoute>} />
+                <Route path="/my-home-try-on-appointments" element={<ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute>} />
                 <Route path="/stores" element={<StoresPage />} />
                 <Route path="/warranty" element={<WarrantyPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />

@@ -32,6 +32,7 @@ const SIDEBAR_MENU = [
   { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
   { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
   { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
+  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
 ];
 
 export const My3DModelPage = memo(function My3DModelPage(): JSX.Element {

@@ -92,6 +92,15 @@ export const SUNGLASS_SHAPES: ShapeItem[] = [
 ];
 
 /**
+ * Preferred frame types for Home Try-On booking
+ */
+export const PREFERRED_FRAME_TYPES: string[] = [
+  "Eyeglasses",
+  "Sunglasses",
+  "Computer Glasses",
+];
+
+/**
  * Top category items for the homepage category grid
  * Main product categories with images and optional discount badges
  */
@@ -213,12 +222,12 @@ export const NEARBY_SERVICES: NearbyServiceItem[] = [
   {
     title: "Order Now on WhatsApp",
     image: "/near/order_whatsapp.png",
-    link: "https://wa.me/919999899998",
+    link: "",
   },
   {
     title: "Connect with your Experts",
     image: "/near/connect_experts.png",
-    link: "tel:+919999899998",
+    link: "",
   },
 ];
 

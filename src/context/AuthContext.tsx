@@ -5,6 +5,9 @@ interface User {
   name: string;
   email: string;
   phone?: string;
+  firstName?: string;
+  lastName?: string;
+  mobile?: string;
 }
 
 interface AuthContextValue {

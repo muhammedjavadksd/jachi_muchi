@@ -1,35 +1,44 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useEffect, useState } from "react";
 import { Container } from "../Container/Container";
 import { NEARBY_SERVICES } from "../../lib/constants";
+import { getSettings, type Settings } from "../../api/settings";
 
-/**
- * Nearby Stores & Services section
- * Displays service cards with full-width images and arrow buttons
- * Memoized as content is static
- */
 export const NearbyServices = memo(function NearbyServices(): JSX.Element {
-  /** Memoize service cards to prevent recreation on re-render */
-  const serviceCards = useMemo(() => (
-    NEARBY_SERVICES.map((service, index) => (
+  const [settings, setSettings] = useState<Settings | null>(null);
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
+
+  const serviceCards = useMemo(() => {
+    const whatsappLink = settings?.whatsappNumber
+      ? `https://wa.me/${settings.whatsappNumber}`
+      : NEARBY_SERVICES[2].link;
+    const phoneLink = settings?.contactPhone
+      ? `tel:+${settings.contactPhone}`
+      : NEARBY_SERVICES[3].link;
+
+    const items = NEARBY_SERVICES.map((service, index) => ({
+      ...service,
+      link: index === 2 ? whatsappLink : index === 3 ? phoneLink : service.link,
+    }));
+
+    return items.map((service, index) => (
       <a
         key={index}
         href={service.link}
         className="relative block overflow-hidden group"
         style={{ borderRadius: "16px" }}
       >
-        {/* Full-width Service Image */}
         <img
           src={service.image}
           alt={service.title}
           className="w-full h-auto object-cover"
           loading="lazy"
         />
-        
-       
-        
       </a>
-    ))
-  ), []);
+    ));
+  }, [settings]);
 
   return (
     <section

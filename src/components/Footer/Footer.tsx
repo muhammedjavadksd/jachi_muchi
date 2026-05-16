@@ -53,10 +53,10 @@ export const Footer = memo(function Footer(): JSX.Element {
           {/* Company Description */}
           <div className="mb-10">
             <h2 className="text-white font-semibold text-xl mb-4">
-              Buy Eyewear from Lenskart
+              Buy Eyewear from Jachi and Muchi
             </h2>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              LENSKART SOLUTIONS LIMITED (Earlier known as Lenskart Solutions Private Limited) is a technology-driven eyewear company, with a belief that clear vision is fundamental to personal development and well-being. Our aim is to build tech-enabled supply and distribution solutions that improve access to affordable and quality Eyewear for All.
+              JACHI AND MUCHI SOLUTIONS LIMITED (Earlier known as Jachi and Muchi Solutions Private Limited) is a technology-driven eyewear company, with a belief that clear vision is fundamental to personal development and well-being. Our aim is to build tech-enabled supply and distribution solutions that improve access to affordable and quality Eyewear for All.
             </p>
             <p className="text-gray-400 text-sm leading-relaxed">
               We sell a wide range of eyewear products including prescription eyeglasses, sunglasses, and other products such as contact lenses and eyewear accessories. Our brands are designed to be aspirational and appeal to a wide range of customer segments.
