@@ -37,6 +37,7 @@ export { ForgotPasswordModal } from "./ForgotPasswordModal/ForgotPasswordModal";
 export { ProductCard } from "./ProductCard/ProductCard";
 export { FilterSidebar } from "./FilterSidebar/FilterSidebar";
 export { CategoryNav } from "./CategoryNav/CategoryNav";
+export { SearchAutocomplete } from "./SearchAutocomplete/SearchAutocomplete";
 
 // Lens Selection
 export { LensSelectionPanel } from "./LensSelectionPanel/LensSelectionPanel";
@@ -52,3 +53,10 @@ export { CouponCard } from "./CouponCard/CouponCard";
 export { OffersSection } from "./OffersSection/OffersSection";
 export { OfferCard } from "./OfferCard/OfferCard";
 export { WelcomeCouponModal } from "./WelcomeCouponModal/WelcomeCouponModal";
+export { CouponSection } from "./CouponSection/CouponSection";
+export { OfferCarousel } from "./OfferCarousel/OfferCarousel";
+export { ProductGallery } from "./ProductGallery/ProductGallery";
+export { ProductInfo } from "./ProductInfo/ProductInfo";
+export { SimilarProducts } from "./SimilarProducts/SimilarProducts";
+export { ProductReviews } from "./ProductReviews/ProductReviews";
+export { PromoBanner } from "./PromoBanner/PromoBanner";

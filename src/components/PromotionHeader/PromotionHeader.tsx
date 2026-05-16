@@ -1,7 +1,8 @@
 import { memo, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Container } from "../Container/Container";
-import { PhoneIcon, SearchIcon, HeartIcon, CartIcon } from "../icons";
+import { PhoneIcon, HeartIcon, CartIcon } from "../icons";
+import { SearchAutocomplete } from "../SearchAutocomplete/SearchAutocomplete";
 import { useWishlist } from "../../context/WishlistContext";
 import { useLoginModal } from "../../context/LoginModalContext";
 import { useAuth } from "../../context/AuthContext";
@@ -90,14 +91,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
           {/* Search Bar - Hidden on mobile */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
-            <div className="flex items-center h-10 bg-gray-50 border border-gray-200 rounded-md px-4 w-full">
-              <SearchIcon className="text-gray-400 mr-3" />
-              <input
-                type="text"
-                placeholder="What are you looking for?"
-                className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700"
-              />
-            </div>
+            <SearchAutocomplete />
           </div>
 
           {/* Right Section */}

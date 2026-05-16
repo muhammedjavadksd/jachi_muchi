@@ -1,13 +1,7 @@
 import { memo, useState, useEffect, useCallback, useRef } from "react";
 import { getActiveOffers } from "../../services/offer.service";
 import type { Offer } from "../../types/offers.types";
-import type { UserCoupon } from "../../lib/couponApi";
-import { CouponCard } from "../CouponCard/CouponCard";
 import { OfferCard } from "../OfferCard/OfferCard";
-
-interface OffersSectionProps {
-  userCoupons?: UserCoupon[];
-}
 
 function ShimmerSkeleton() {
   return (
@@ -29,13 +23,13 @@ function ShimmerSkeleton() {
   );
 }
 
-export const OffersSection = memo(function OffersSection({ userCoupons }: OffersSectionProps): JSX.Element {
+export const OffersSection = memo(function OffersSection(): JSX.Element {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [toast, setToast] = useState("");
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadOffers = useCallback(async () => {
@@ -79,61 +73,10 @@ export const OffersSection = memo(function OffersSection({ userCoupons }: Offers
     setCurrentSlide((prev) => (prev + 1) % offers.length);
   };
 
-  const handleCopy = (code: string) => {
-    setToast(`Coupon "${code}" copied to clipboard!`);
-    setTimeout(() => setToast(""), 3000);
-  };
-
-  const handleApply = (code: string) => {
-    window.location.href = `/checkout?coupon=${code}`;
-  };
-
   return (
     <section className="relative py-14 md:py-20 bg-white overflow-hidden">
 
-      {toast && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] bg-gray-900 text-white px-6 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
-          <svg className="w-5 h-5 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <span className="text-sm font-medium">{toast}</span>
-        </div>
-      )}
-
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-8">
-        {/* User-Specific Coupons */}
-        {userCoupons && userCoupons.length > 0 && (
-          <div className="mb-14">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Your Coupons</h3>
-                <p className="text-sm text-gray-500">Personalized offers just for you</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {userCoupons.map((coupon) => (
-                <CouponCard
-                  key={coupon.code}
-                  code={coupon.code}
-                  discountType={coupon.discountType}
-                  discountValue={coupon.discountValue}
-                  minPurchase={coupon.minPurchase}
-                  maxDiscount={coupon.maxDiscount}
-                  description={coupon.description}
-                  expiresAt={coupon.expiresAt}
-                  onCopy={handleCopy}
-                  onApply={handleApply}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Loading State */}
         {loading && (
           <div className="max-w-[900px] mx-auto space-y-4">
@@ -223,7 +166,7 @@ export const OffersSection = memo(function OffersSection({ userCoupons }: Offers
         )}
 
         {/* Empty State */}
-        {!loading && !error && offers.length === 0 && (!userCoupons || userCoupons.length === 0) && (
+        {!loading && !error && offers.length === 0 && (
           <div className="text-center py-16">
             <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

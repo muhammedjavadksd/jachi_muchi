@@ -298,11 +298,6 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
 
   const renderStep3 = () => (
     <div className="flex flex-col">
-      <button onClick={() => setPowerDetails({ ...powerDetails, knowPowerLater: true })} className="mb-4 p-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-center">
-        <p className="font-medium text-gray-900 mb-1">I don't know my power</p>
-        <p className="text-sm text-gray-500">Submit Power Later in 15 days after placing the order</p>
-      </button>
-      <div className="border-t border-gray-200 my-4" />
       <label className="flex items-center gap-2 mb-4"><input type="checkbox" checked={samePowerBothEyes} onChange={(e) => setSamePowerBothEyes(e.target.checked)} className="w-4 h-4 text-teal-600 rounded" /><span className="text-sm text-gray-700">I have same power for both eyes</span></label>
       <label className="flex items-center gap-2 mb-4"><input type="checkbox" checked={hasCylindrical} onChange={(e) => setHasCylindrical(e.target.checked)} className="w-4 h-4 text-teal-600 rounded" /><span className="text-sm text-gray-700">I have cylindrical power</span></label>
       <div className="grid grid-cols-2 gap-4 mb-4">

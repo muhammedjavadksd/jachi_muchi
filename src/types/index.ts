@@ -7,6 +7,20 @@
 // DATA TYPES
 // ============================================
 
+/** Banner item from the banners API */
+export interface Banner {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  redirectUrl?: string;
+  type: "homepage" | "promotional";
+  position: number;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
 /** Shape item used in ShapeSection component for displaying eyewear shapes */
 export interface ShapeItem {
   label: string;
@@ -568,4 +582,35 @@ export interface Store {
     type: string;
     coordinates: number[];
   };
+}
+
+// ============================================
+// SEARCH TYPES
+// ============================================
+
+export interface SearchResult {
+  suggestions: string[];
+  categories: string[];
+}
+
+// ============================================
+// PRODUCT DETAIL TYPES
+// ============================================
+
+export interface ProductDetailData {
+  _id: string;
+  name: string;
+  subtitle?: string;
+  price: number;
+  oldPrice?: number;
+  discount?: number;
+  rating?: number;
+  ratingCount?: number;
+  images?: string[];
+  colors?: { name: string; hex?: string; image?: string }[];
+  description?: string;
+  brand?: string;
+  frameType?: string;
+  shape?: string;
+  inStock?: boolean;
 }

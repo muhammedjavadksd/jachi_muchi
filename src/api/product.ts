@@ -23,3 +23,41 @@ export const getProducts = async (filters?: {
 
   return res.data;
 };
+
+export interface ProductDetailData {
+  _id: string;
+  name: string;
+  subtitle?: string;
+  price: number;
+  oldPrice?: number;
+  discount?: number;
+  rating?: number;
+  ratingCount?: number;
+  images?: string[];
+  colors?: { name: string; hex?: string; image?: string }[];
+  description?: string;
+  brand?: string;
+  frameType?: string;
+  shape?: string;
+  inStock?: boolean;
+}
+
+export const getProductById = async (id: string): Promise<ProductDetailData | null> => {
+  try {
+    const res = await api.get(`/products/${id}`);
+    const data = res.data?.data || res.data?.product || res.data;
+    return data || null;
+  } catch {
+    return null;
+  }
+};
+
+export const getSimilarProducts = async (id: string): Promise<any[]> => {
+  try {
+    const res = await api.get(`/products/${id}/similar`);
+    const data = res.data?.data;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+};

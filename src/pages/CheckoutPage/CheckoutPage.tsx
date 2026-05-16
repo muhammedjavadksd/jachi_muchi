@@ -1,11 +1,11 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
+import { Footer, WhatsAppButton, PromotionHeader, CouponCard, CouponSection } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createOrder } from "../../api/order";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
-import { applyCoupon, removeCoupon } from "../../lib/couponApi";
-import type { CouponSuccessResponse } from "../../lib/couponApi";
+import { applyCoupon, removeCoupon, fetchUserCoupons } from "../../lib/couponApi";
+import type { CouponSuccessResponse, UserCoupon } from "../../lib/couponApi";
 import { getOffers, calculateOfferDiscount, getComboStatusForCart, getComboCartSavings } from "../../lib/offerEngine";
 import type { Offer } from "../../types/offers.types";
 
@@ -291,10 +291,18 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [couponError, setCouponError] = useState("");
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
 
   // Load offers on mount
   useEffect(() => {
     getOffers().then(setOffers).catch(() => {});
+  }, []);
+
+  // Fetch user coupons on mount
+  useEffect(() => {
+    fetchUserCoupons()
+      .then(setUserCoupons)
+      .catch(() => setUserCoupons([]));
   }, []);
 
   // Load coupon from localStorage and URL params on mount
@@ -686,85 +694,60 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* Coupon Section */}
-                <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
-                  {appliedCoupon ? (
-                    /* Applied Coupon Success State */
-                    <div className="animate-[fadeIn_0.3s_ease-out]">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <div>
-                            <p className="font-semibold text-gray-900">{appliedCoupon} applied</p>
-                            <p className="text-green-600 text-sm font-medium">You saved ₹{couponSavings}</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={handleRemoveCoupon}
-                          className="px-4 py-2 text-red-600 font-medium text-sm hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                          REMOVE
-                        </button>
+                {userCoupons.length > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Your Coupons</h3>
+                        <p className="text-xs text-gray-500">Personalized offers just for you</p>
                       </div>
                     </div>
-                  ) : (
-                    /* Coupon Input State */
-                    <div>
-                      <p className="font-semibold text-gray-900 mb-3">Apply Coupon</p>
-
-                      {/* Error Message */}
-                      {couponError && (
-                        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 animate-[fadeIn_0.3s_ease-out]">
-                          <svg className="w-4 h-4 text-red-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                          </svg>
-                          <p className="text-red-700 text-sm">{couponError}</p>
-                        </div>
-                      )}
-
-                      <div className="flex gap-3">
-                        <input
-                          type="text"
-                          value={couponInput}
-                          onChange={(e) => {
-                            setCouponInput(e.target.value.toUpperCase());
-                            setCouponError(""); // Clear error on input change
-                          }}
-                          placeholder="Enter coupon code"
-                          className="flex-1 px-5 py-3 border border-gray-300 rounded-2xl text-sm uppercase focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-                          disabled={isApplyingCoupon}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !isApplyingCoupon && couponInput.trim()) {
-                              handleApplyCoupon();
-                            }
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {userCoupons.map((coupon) => (
+                        <CouponCard
+                          key={coupon.code}
+                          code={coupon.code}
+                          discountType={coupon.discountType}
+                          discountValue={coupon.discountValue}
+                          minPurchase={coupon.minPurchase}
+                          maxDiscount={coupon.maxDiscount}
+                          description={coupon.description}
+                          expiresAt={coupon.expiresAt}
+                          onCopy={(code) => navigator.clipboard.writeText(code)}
+                          onApply={(code) => {
+                            setCouponInput(code);
+                            setCouponError("");
+                            setTimeout(() => {
+                              const input = document.querySelector<HTMLInputElement>('input[placeholder="Enter coupon code"]');
+                              input?.focus();
+                            }, 0);
                           }}
                         />
-                        <button
-                          onClick={handleApplyCoupon}
-                          disabled={isApplyingCoupon || !couponInput.trim()}
-                          className="px-7 py-3 bg-teal-700 text-white font-medium rounded-2xl hover:bg-teal-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all flex items-center gap-2 min-w-[100px] justify-center"
-                        >
-                          {isApplyingCoupon ? (
-                            <>
-                              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              <span className="text-sm">Applying</span>
-                            </>
-                          ) : (
-                            "Apply"
-                          )}
-                        </button>
-                      </div>
-
-                      {/* Helper text */}
-                      <p className="text-gray-500 text-xs mt-2">Press Enter or click Apply to add coupon</p>
+                      ))}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                <CouponSection
+                  cartValue={totalSellingPrice}
+                  appliedCoupon={appliedCoupon}
+                  couponSavings={couponSavings}
+                  couponError={couponError}
+                  isApplyingCoupon={isApplyingCoupon}
+                  couponInput={couponInput}
+                  onApplyCoupon={handleApplyCoupon}
+                  onRemoveCoupon={handleRemoveCoupon}
+                  onCouponInputChange={(value) => {
+                    setCouponInput(value);
+                    setCouponError("");
+                  }}
+                  autoApplyBest
+                />
 
                 {/* Payment Method */}
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">

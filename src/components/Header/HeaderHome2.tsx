@@ -1,12 +1,12 @@
 import { memo, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  SearchIcon,
   HeartIcon,
   CartIcon,
   UserIcon,
   PhoneIcon,
 } from "../icons";
+import { SearchAutocomplete } from "../SearchAutocomplete/SearchAutocomplete";
 import {
   BRAND_LOGO_URL,
   NAV_CATEGORIES,
@@ -186,13 +186,8 @@ export const HeaderHome2 = memo(function HeaderHome2({
           </Link>
 
           {/* Search bar — wide, rounded */}
-          <div className="flex-1 min-w-0 max-w-xl mx-2 sm:mx-4 flex items-center gap-2 h-10 pl-4 pr-3 rounded-lg bg-slate-100 border border-slate-200">
-            <SearchIcon className="shrink-0 w-4 h-4 text-slate-500" />
-            <input
-              type="text"
-              placeholder="What are you looking for?"
-              className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-slate-800 placeholder-slate-500"
-            />
+          <div className="flex-1 min-w-0 max-w-xl mx-2 sm:mx-4">
+            <SearchAutocomplete />
           </div>
 
           {/* Support phone — optional, or we keep for content */}
