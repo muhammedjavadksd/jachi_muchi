@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
 import { HEADER_SPACER_HEIGHT } from "../../lib/constants";
 import { getStores } from "@/api/store";
@@ -22,6 +22,8 @@ const PlaceholderMap = ({ lat, lng, storeName }: { lat: number; lng: number; sto
 const ALL = "All";
 
 export const StoresPage = memo(function StoresPage(): JSX.Element {
+  const [searchParams] = useSearchParams();
+  const serviceFilter = searchParams.get("service");
   const [selectedCity, setSelectedCity] = useState(ALL);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [allStores, setAllStores] = useState<Store[]>([]);
@@ -30,10 +32,13 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
   const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
 
   const cities = useMemo(() => {
-    const activeStores = allStores.filter((s) => s.isActive);
-    const unique = Array.from(new Set(activeStores.map((s) => s.city).filter(Boolean))).sort();
+    let stores = allStores.filter((s) => s.isActive);
+    if (serviceFilter === "free-eye-testing") {
+      stores = stores.filter((s) => s.services?.includes("Free Eye Testing"));
+    }
+    const unique = Array.from(new Set(stores.map((s) => s.city).filter(Boolean))).sort();
     return [ALL, ...unique];
-  }, [allStores]);
+  }, [allStores, serviceFilter]);
 
   useEffect(() => {
     let mounted = true;
@@ -53,9 +58,15 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
   }, []);
 
   const filteredStores = useMemo(() => {
-    if (selectedCity === ALL) return allStores;
-    return allStores.filter((s) => s.city === selectedCity);
-  }, [selectedCity, allStores]);
+    let stores = allStores;
+    if (selectedCity !== ALL) {
+      stores = stores.filter((s) => s.city === selectedCity);
+    }
+    if (serviceFilter === "free-eye-testing") {
+      stores = stores.filter((s) => s.services?.includes("Free Eye Testing"));
+    }
+    return stores;
+  }, [selectedCity, allStores, serviceFilter]);
 
   return (
     <div className="w-full flex flex-col min-h-screen">

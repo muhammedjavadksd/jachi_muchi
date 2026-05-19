@@ -271,20 +271,20 @@ export const EXCLUSIVE_ITEMS: ExclusiveItem[] = [
 
 export const FREE_CHECKUP: ExclusiveItem[] = [
   {
-    title: "Bestsellers",
+    title: "Visit Your Nearest Store",
     image: "/free/image.png",
-    link: "/exclusive/bestsellers",
+    link: "/stores?service=free-eye-testing",
   },
   {
-    title: "Bestsellers",
-    image: "/free/image.png",
-    link: "/exclusive/bestsellers",
+    title: "Schedule Eye Test at Home",
+    image: "https://static5.lenskart.com/media/uploads/Home-Eye-Test-5X6desktop-18-12-AV.png",
+    link: "/home-try-on",
   },
-  {
-    title: "Bestsellers",
-    image: "/free/image.png",
-    link: "/exclusive/bestsellers",
-  },
+  // {
+  //   title: "Take an Online Eye Test",
+  //   image: "/free/image.png",
+  //   link: "#",
+  // },
 ];
 
 /**
