@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "../../components";
 import { HEADER_SPACER_HEIGHT, PREFERRED_FRAME_TYPES } from "../../lib/constants";
@@ -20,6 +20,7 @@ interface FormData {
 }
 
 interface FormErrors {
+  fullName?: string;
   phone?: string;
   address?: string;
   city?: string;
@@ -27,6 +28,7 @@ interface FormErrors {
   pincode?: string;
   preferredDate?: string;
   preferredTime?: string;
+  notes?: string;
 }
 
 interface SubmittedData {
@@ -48,8 +50,21 @@ const initialForm = (userName: string, userPhone: string, userEmail: string): Fo
   notes: "",
 });
 
+const LETTERS_SPACES = /^[A-Za-z\s]+$/;
+const INDIAN_MOBILE = /^[6-9]\d{9}$/;
+const DIGITS_ONLY = /^\d+$/;
+
+const getTodayStr = () => new Date().toISOString().split("T")[0];
+const getNowTimeStr = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+};
+
 export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.Element {
   const { user } = useAuth();
+  const formRef = useRef<HTMLFormElement>(null);
+  const todayDate = getTodayStr();
+  const nowTime = getNowTimeStr();
 
   const [form, setForm] = useState<FormData>(initialForm("", "", ""));
   const [errors, setErrors] = useState<FormErrors>({});
@@ -77,15 +92,25 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
   const validate = (): FormErrors => {
     const errs: FormErrors = {};
+    if (!form.fullName.trim()) errs.fullName = "Enter a valid full name";
+    else if (form.fullName.trim().length < 3) errs.fullName = "Enter a valid full name";
     if (!form.phone.trim()) errs.phone = "Phone number is required";
-    else if (!/^[0-9]{10}$/.test(form.phone.trim())) errs.phone = "Enter a valid 10-digit phone number";
+    else if (!INDIAN_MOBILE.test(form.phone.trim())) errs.phone = "Enter a valid 10-digit mobile number";
     if (!form.address.trim()) errs.address = "Address is required";
+    else if (form.address.trim().length < 10) errs.address = "Please enter a complete address";
     if (!form.city.trim()) errs.city = "City is required";
+    else if (form.city.trim().length < 2) errs.city = "Enter a valid city";
+    else if (!LETTERS_SPACES.test(form.city.trim())) errs.city = "City must contain only letters";
     if (!form.state.trim()) errs.state = "State is required";
+    else if (form.state.trim().length < 2) errs.state = "Enter a valid state";
+    else if (!LETTERS_SPACES.test(form.state.trim())) errs.state = "State must contain only letters";
     if (!form.pincode.trim()) errs.pincode = "Pincode is required";
     else if (!/^[0-9]{6}$/.test(form.pincode.trim())) errs.pincode = "Enter a valid 6-digit pincode";
     if (!form.preferredDate) errs.preferredDate = "Preferred date is required";
+    else if (form.preferredDate < todayDate) errs.preferredDate = "Please select a future date";
     if (!form.preferredTime) errs.preferredTime = "Preferred time is required";
+    else if (form.preferredDate === todayDate && form.preferredTime <= nowTime) errs.preferredTime = "Please select a future time";
+    if (form.notes.trim().length > 300) errs.notes = "Notes must be under 300 characters";
     return errs;
   };
 
@@ -94,7 +119,12 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
     const errs = validate();
     setErrors(errs);
-    if (Object.keys(errs).length > 0) return;
+    if (Object.keys(errs).length > 0) {
+      const firstErrorField = Object.keys(errs)[0] as keyof FormErrors;
+      const el = formRef.current?.querySelector(`[name="${firstErrorField}"]`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -208,16 +238,16 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number <span className="text-red-500">*</span></label>
-                  <input type="tel" value={form.phone} onChange={(e) => setField("phone", e.target.value)} className={`${inputClass} ${errors.phone ? "border-red-400 focus:ring-red-400" : ""}`} placeholder="9876543210" maxLength={10} />
+                  <input type="tel" name="phone" value={form.phone} onChange={(e) => setField("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} className={`${inputClass} ${errors.phone ? "border-red-400 focus:ring-red-400" : ""}`} placeholder="9876543210" maxLength={10} inputMode="numeric" />
                   {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Pincode <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.pincode} onChange={(e) => setField("pincode", e.target.value)} className={`${inputClass} ${errorClass("pincode")}`} placeholder="110001" maxLength={6} />
+                  <input type="text" name="pincode" value={form.pincode} onChange={(e) => setField("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))} className={`${inputClass} ${errorClass("pincode")}`} placeholder="110001" maxLength={6} inputMode="numeric" />
                   {errors.pincode && <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>}
                 </div>
               </div>
@@ -226,6 +256,7 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Frame Type</label>
                   <select
+                    name="preferredFrameType"
                     value={form.preferredFrameType}
                     onChange={(e) => setField("preferredFrameType", e.target.value)}
                     className={inputClass}
@@ -240,19 +271,19 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Address <span className="text-red-500">*</span></label>
-                <textarea value={form.address} onChange={(e) => setField("address", e.target.value)} className={`${inputClass} resize-none ${errorClass("address")}`} rows={3} placeholder="Street, building, area..." />
+                <textarea name="address" value={form.address} onChange={(e) => setField("address", e.target.value)} className={`${inputClass} resize-none ${errorClass("address")}`} rows={3} placeholder="Street, building, area..." />
                 {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">City <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.city} onChange={(e) => setField("city", e.target.value)} className={`${inputClass} ${errorClass("city")}`} placeholder="Mumbai" />
+                  <input type="text" name="city" value={form.city} onChange={(e) => setField("city", e.target.value)} className={`${inputClass} ${errorClass("city")}`} placeholder="Mumbai" />
                   {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">State <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.state} onChange={(e) => setField("state", e.target.value)} className={`${inputClass} ${errorClass("state")}`} placeholder="Maharashtra" />
+                  <input type="text" name="state" value={form.state} onChange={(e) => setField("state", e.target.value)} className={`${inputClass} ${errorClass("state")}`} placeholder="Maharashtra" />
                   {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
                 </div>
               </div>
@@ -260,19 +291,20 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Date <span className="text-red-500">*</span></label>
-                  <input type="date" value={form.preferredDate} onChange={(e) => setField("preferredDate", e.target.value)} className={`${inputClass} ${errorClass("preferredDate")}`} />
+                  <input type="date" name="preferredDate" value={form.preferredDate} onChange={(e) => setField("preferredDate", e.target.value)} min={todayDate} className={`${inputClass} ${errorClass("preferredDate")}`} />
                   {errors.preferredDate && <p className="text-red-500 text-sm mt-1">{errors.preferredDate}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Preferred Time <span className="text-red-500">*</span></label>
-                  <input type="time" value={form.preferredTime} onChange={(e) => setField("preferredTime", e.target.value)} className={`${inputClass} ${errorClass("preferredTime")}`} />
+                  <input type="time" name="preferredTime" value={form.preferredTime} onChange={(e) => setField("preferredTime", e.target.value)} className={`${inputClass} ${errorClass("preferredTime")}`} />
                   {errors.preferredTime && <p className="text-red-500 text-sm mt-1">{errors.preferredTime}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
-                <textarea value={form.notes} onChange={(e) => setField("notes", e.target.value)} className={`${inputClass} resize-none`} rows={2} placeholder="Any special requests..." />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes {form.notes.length > 0 && <span className="text-gray-400 font-normal">({form.notes.length}/300)</span>}</label>
+                <textarea name="notes" value={form.notes} onChange={(e) => setField("notes", e.target.value)} className={`${inputClass} resize-none ${errors.notes ? "border-red-400 focus:ring-red-400" : ""}`} rows={2} placeholder="Any special requests..." maxLength={300} />
+                {errors.notes && <p className="text-red-500 text-sm mt-1">{errors.notes}</p>}
               </div>
 
               {submitError && (
