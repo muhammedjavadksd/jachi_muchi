@@ -18,18 +18,44 @@ interface OfferCarouselProps {
 }
 
 function mapOfferToSlide(offer: Offer): CarouselSlide {
-  const subtitle = offer.offerType === "percentage"
-    ? `Get ${offer.discountValue}% OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`
-    : offer.offerType === "flat"
-      ? `Flat ₹${offer.discountValue} OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`
-      : offer.offerType === "bogo"
-        ? `Buy ${offer.buyQuantity || 1} Get ${offer.getQuantity || 1} Free`
-        : undefined;
+  // Get the image from either bannerImage or image field
+  const imageUrl = (offer as any).bannerImage || offer.image;
+  
+  // Generate subtitle based on offer type
+  let subtitle = "";
+  
+  switch (offer.offerType) {
+    case "percentage":
+      subtitle = `Get ${offer.discountValue}% OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+      break;
+    case "flat":
+      subtitle = `Flat ₹${offer.discountValue} OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+      break;
+    case "bogo":
+      subtitle = `Buy ${offer.buyQuantity || 1} Get ${offer.getQuantity || 1} Free`;
+      break;
+    case "combo":
+      subtitle = `Special Combo at ₹${offer.comboPrice}`;
+      break;
+    case "seasonal":
+      subtitle = `${offer.discountValue}% OFF on selected items`;
+      break;
+    default:
+      subtitle = "";
+  }
+  
+  // If no image exists, create a fallback based on offer name
+  let finalImageUrl = imageUrl;
+  if (!finalImageUrl) {
+    const title = encodeURIComponent(offer.offerName);
+    finalImageUrl = `https://placehold.co/1400x500/1e293b/FFFFFF?text=${title.replace(/ /g, '+')}`;
+  }
+  
   return {
     id: offer._id,
     title: offer.offerName,
-    subtitle,
-    image: offer.image,
+    subtitle: subtitle || undefined,
+    image: finalImageUrl,
     buttonText: offer.buttonText || "Shop Now",
     link: offer.link || "/search",
   };
