@@ -222,13 +222,13 @@ export const NEARBY_SERVICES: NearbyServiceItem[] = [
   {
     title: "Order Now on WhatsApp",
     image: "/near/order_whatsapp.png",
-    link: "",
+    link: "https://wa.me/917034683567?text=Hi%20Lenskart%2C%20I%20am%20on%20Desktop.%20Can%20you%20guide%20me%3F",
   },
-  {
-    title: "Connect with your Experts",
-    image: "/near/connect_experts.png",
-    link: "",
-  },
+{
+  title: "Connect with your Experts",
+  image: "/near/connect_experts.png",
+  link: "tel:7034683567",
+}
 ];
 
 /**

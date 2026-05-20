@@ -164,11 +164,6 @@ export default function App(): JSX.Element {
          {/* Offer Carousel */}
         <OfferCarousel />
 
-      
-
-      
-
-      
 
         {/* Dynamic Category Shape Sections */}
         {categories.filter((c) => c.isActive).map((category) => (
