@@ -283,7 +283,7 @@ export default function App(): JSX.Element {
             columns={3}
             items={formattedBrands}
           />
-          {/* <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} /> */}
+          <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 
         {/* Remaining Promotional Banners (bottom of page) */}

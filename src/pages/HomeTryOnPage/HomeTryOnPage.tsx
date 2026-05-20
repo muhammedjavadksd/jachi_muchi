@@ -275,10 +275,10 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 {/* Price */}
                 <div className="mt-6">
                   <h2 className="text-lg font-semibold text-gray-900">Lenskart at Home</h2>
-                  <div className="flex items-center gap-3 mt-2">
+                  {/* <div className="flex items-center gap-3 mt-2">
                     <span className="text-xl text-gray-400 line-through">₹120</span>
                     <span className="text-2xl font-bold text-gray-900">₹99</span>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Book CTA Button */}
