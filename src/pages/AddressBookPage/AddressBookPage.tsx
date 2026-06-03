@@ -1,23 +1,7 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
-import { Container } from "../../components/Container/Container";
 import { authApi } from "../../api/authApi";
+import { useAuth } from "../../context/AuthContext";
 import type { AddressData, SaveAddressRequest } from "../../types";
-
-/** Height of the promotion header */
-const PROMOTION_HEADER_HEIGHT = 140;
-
-/** Sidebar menu items */
-const SIDEBAR_MENU = [
-  { id: "orders", label: "MY ORDERS", icon: null, link: "/account" },
-  { id: "3d-model", label: "MY 3D MODEL", icon: "3d", link: "/account/3d-model" },
-  { id: "account-info", label: "ACCOUNT INFORMATION", icon: null, link: "/account/info" },
-  { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
-  { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
-  { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
-  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
-];
 
 /** Empty address template */
 const EMPTY_ADDRESS: SaveAddressRequest = {
@@ -33,24 +17,24 @@ const EMPTY_ADDRESS: SaveAddressRequest = {
 };
 
 export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
-  const [activeMenu] = useState("address");
+  const { user } = useAuth();
   const [addresses, setAddresses] = useState<AddressData[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressData | null>(null);
   const [formData, setFormData] = useState<SaveAddressRequest>(EMPTY_ADDRESS);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [apiError, setApiError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; id: string | null; name: string }>({ open: false, id: null, name: "" });
 
   useEffect(() => {
+    if (!user?.id) return;
     fetchAddresses();
-  }, []);
+  }, [user?.id]);
 
   const fetchAddresses = async () => {
     try {
-      const res = await authApi.getAddresses();
+      const res = await authApi.getAddresses(user.id);
       if (res.success && res.data) {
         setAddresses(res.data.map(addr => ({ ...addr, id: (addr as any)._id || addr.id })));
       }
@@ -60,10 +44,6 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
       setLoading(false);
     }
   };
-
-  const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`
-  }), []);
 
   const handleAddNew = useCallback(() => {
     setEditingAddress(null);
@@ -155,71 +135,7 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
     setApiError("");
   }, []);
 
-  // Desktop Sidebar
-  const desktopSidebar = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
-  ), [activeMenu]);
-
-  // Mobile Account Menu (First on mobile)
-  const mobileAccountMenu = useMemo(() => (
-    <div className="md:hidden mb-6">
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
-        >
-          <span className="font-medium text-gray-900">Account Menu</span>
-          <svg
-            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {isMobileMenuOpen && (
-          <div className="divide-y divide-gray-100">
-            {SIDEBAR_MENU.map((item) => (
-              <Link
-                key={item.id}
-                to={item.link}
-                className={`block px-5 py-4 text-sm font-medium transition-colors ${
-                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{item.label}</span>
-                  {item.icon === "3d" && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                    </svg>
-      )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  ), [activeMenu, isMobileMenuOpen]);
+  // Sidebar now rendered by <AccountSidebar />
 
   // Address Cards
   const addressCards = useMemo(() => (
@@ -291,98 +207,66 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
   ), [addresses, handleEdit, handleDelete, handleSetDefault]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
-      <div style={spacerStyle} />
+    <>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Address Book</h1>
+        <p className="text-gray-500 mt-1">Manage your saved addresses for faster checkout</p>
+      </div>
 
-      <main className="flex-1 py-6 md:py-8">
-        <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Address Book</h1>
-              <p className="text-gray-500 mt-1">Manage your saved addresses for faster checkout</p>
-            </div>
+      {/* Add New Address Button */}
+      <button
+        onClick={handleAddNew}
+        className="w-full md:w-auto mb-6 px-6 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Add New Address
+      </button>
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar */}
-              <div className="hidden md:block w-64 shrink-0">
-                <div
-                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
-                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
-                >
-                  <nav>{desktopSidebar}</nav>
-                </div>
-              </div>
-
-              {/* Mobile Account Menu - FIRST on mobile */}
-              {mobileAccountMenu}
-
-              {/* Main Content */}
-              <div className="flex-1">
-                {/* Add New Address Button */}
-                <button
-                  onClick={handleAddNew}
-                  className="w-full md:w-auto mb-6 px-6 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add New Address
-                </button>
-
-                {/* Address Grid */}
-                {loading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                    {[1, 2].map(i => (
-                      <div key={i} className="p-6 bg-white border-2 border-gray-200 rounded-2xl animate-pulse">
-                        <div className="h-5 bg-gray-200 rounded-xl w-1/4 mb-4" />
-                        <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
-                        <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
-                        <div className="h-4 bg-gray-100 rounded w-full" />
-                        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
-                          <div className="h-5 bg-gray-100 rounded w-16" />
-                          <div className="h-5 bg-gray-100 rounded w-16" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : addresses.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                    {addressCards}
-                  </div>
-                ) : (
-                  /* Empty State */
-                  <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No Addresses Saved</h3>
-                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                      Add your first address to make checkout faster and easier.
-                    </p>
-                    <button
-                      onClick={handleAddNew}
-                      className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Add Your First Address
-                    </button>
-                  </div>
-                )}
+      {/* Address Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+          {[1, 2].map(i => (
+            <div key={i} className="p-6 bg-white border-2 border-gray-200 rounded-2xl animate-pulse">
+              <div className="h-5 bg-gray-200 rounded-xl w-1/4 mb-4" />
+              <div className="h-5 bg-gray-200 rounded w-2/3 mb-3" />
+              <div className="h-4 bg-gray-100 rounded w-1/3 mb-2" />
+              <div className="h-4 bg-gray-100 rounded w-full" />
+              <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+                <div className="h-5 bg-gray-100 rounded w-16" />
+                <div className="h-5 bg-gray-100 rounded w-16" />
               </div>
             </div>
+          ))}
+        </div>
+      ) : addresses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+          {addressCards}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
-        </Container>
-      </main>
-
-      <Footer />
-      <WhatsAppButton />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Addresses Saved</h3>
+          <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            Add your first address to make checkout faster and easier.
+          </p>
+          <button
+            onClick={handleAddNew}
+            className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Your First Address
+          </button>
+        </div>
+      )}
 
       {/* Add/Edit Address Modal */}
       {showModal && (
@@ -564,7 +448,7 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 });
 

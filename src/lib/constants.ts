@@ -280,11 +280,11 @@ export const FREE_CHECKUP: ExclusiveItem[] = [
     image: "https://static5.lenskart.com/media/uploads/Home-Eye-Test-5X6desktop-18-12-AV.png",
     link: "/home-try-on",
   },
-  // {
-  //   title: "Take an Online Eye Test",
-  //   image: "/free/image.png",
-  //   link: "#",
-  // },
+  {
+    title: "Take an Online Eye Test",
+    image: "/free/Online-Eye-Test.png",
+    link: "/online-eye-test",
+  },
 ];
 
 /**

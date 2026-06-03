@@ -52,8 +52,9 @@ export const authApi = {
     return response.data;
   },
 
-  getAddresses: async (): Promise<AddressListResponse> => {
-    const response = await axiosInstance.get<AddressListResponse>("/address");
+  getAddresses: async (userId?: string): Promise<AddressListResponse> => {
+    const path = userId ? `/address/${userId}` : "/address";
+    const response = await axiosInstance.get<AddressListResponse>(path);
     return response.data;
   },
 

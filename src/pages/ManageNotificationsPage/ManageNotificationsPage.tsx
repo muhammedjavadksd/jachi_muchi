@@ -1,21 +1,4 @@
 import { memo, useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
-import { Container } from "../../components/Container/Container";
-
-/** Height of the promotion header */
-const PROMOTION_HEADER_HEIGHT = 140;
-
-/** Sidebar menu items */
-const SIDEBAR_MENU = [
-  { id: "orders", label: "MY ORDERS", icon: null, link: "/account" },
-  { id: "3d-model", label: "MY 3D MODEL", icon: "3d", link: "/account/3d-model" },
-  { id: "account-info", label: "ACCOUNT INFORMATION", icon: null, link: "/account/info" },
-  { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
-  { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
-  { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
-  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
-];
 
 /** Notification type interface */
 interface NotificationType {
@@ -70,9 +53,6 @@ const NOTIFICATION_TYPES: NotificationType[] = [
 ];
 
 export const ManageNotificationsPage = memo(function ManageNotificationsPage(): JSX.Element {
-  const [activeMenu] = useState("notifications");
-  
-  // Notification states
   const [notifications, setNotifications] = useState<Record<string, boolean>>({
     whatsapp: true,
     sms: false,
@@ -80,81 +60,9 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
     email: true,
   });
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`
-  }), []);
-
   const toggleNotification = useCallback((id: string) => {
     setNotifications(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
-
-  // Desktop Sidebar
-  const desktopSidebar = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
-  ), [activeMenu]);
-
-  // Mobile Account Menu (First on mobile)
-  const mobileAccountMenu = useMemo(() => (
-    <div className="md:hidden mb-6">
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
-        >
-          <span className="font-medium text-gray-900">Account Menu</span>
-          <svg
-            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {isMobileMenuOpen && (
-          <div className="divide-y divide-gray-100">
-            {SIDEBAR_MENU.map((item) => (
-              <Link
-                key={item.id}
-                to={item.link}
-                className={`block px-5 py-4 text-sm font-medium transition-colors ${
-                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{item.label}</span>
-                  {item.icon === "3d" && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                    </svg>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  ), [activeMenu, isMobileMenuOpen]);
 
   // Notification Cards
   const notificationCards = useMemo(() => (
@@ -190,70 +98,39 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
   ), [notifications, toggleNotification]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
-      <div style={spacerStyle} />
+    <>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Manage Notifications</h1>
+        <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>
+      </div>
 
-      <main className="flex-1 py-6 md:py-8">
-        <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Manage Notifications</h1>
-              <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>
-            </div>
+      {/* Info Banner */}
+      <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
+        <div className="flex gap-4">
+          <svg className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-blue-700">
+            Stay updated with your orders, exclusive offers, and important account information by enabling your preferred notification channels.
+          </p>
+        </div>
+      </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar */}
-              <div className="hidden md:block w-64 shrink-0">
-                <div
-                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
-                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
-                >
-                  <nav>{desktopSidebar}</nav>
-                </div>
-              </div>
+      {/* Notification Options */}
+      <div className="space-y-4">
+        {notificationCards}
+      </div>
 
-              {/* Mobile Account Menu - FIRST */}
-              {mobileAccountMenu}
-
-              {/* Main Content */}
-              <div className="flex-1">
-                {/* Info Banner */}
-                <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
-                  <div className="flex gap-4">
-                    <svg className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-sm text-blue-700">
-                      Stay updated with your orders, exclusive offers, and important account information by enabling your preferred notification channels.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Notification Options */}
-                <div className="space-y-4">
-                  {notificationCards}
-                </div>
-
-                {/* Auto-save Note */}
-                <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
-                  <p className="text-sm text-gray-600 flex items-start gap-3">
-                    <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Your preferences are automatically saved when you toggle any option.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </main>
-
-      <Footer />
-      <WhatsAppButton />
-    </div>
+      {/* Auto-save Note */}
+      <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
+        <p className="text-sm text-gray-600 flex items-start gap-3">
+          <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          Your preferences are automatically saved when you toggle any option.
+        </p>
+      </div>
+    </>
   );
 });
 

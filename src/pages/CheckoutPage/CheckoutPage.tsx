@@ -3,6 +3,7 @@ import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createOrder } from "../../api/order";
+import { createSkipCashPayment } from "../../api/payment";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 import { applyCoupon, removeCoupon, fetchUserCoupons } from "../../lib/couponApi";
 import type { CouponSuccessResponse, UserCoupon } from "../../lib/couponApi";
@@ -714,6 +715,10 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       <input type="radio" name="paymentMethod" value="COD" checked={paymentMethod === "COD"} onChange={() => setPaymentMethod("COD")} className="w-4 h-4 text-teal-600" />
                       <span className="text-sm text-gray-700">Cash on Delivery</span>
                     </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="radio" name="paymentMethod" value="ONLINE" checked={paymentMethod === "ONLINE"} onChange={() => setPaymentMethod("ONLINE")} className="w-4 h-4 text-teal-600" />
+                      <span className="text-sm text-gray-700">Pay with SkipCash</span>
+                    </label>
                   </div>
                 </div>
 
@@ -740,12 +745,32 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       paymentMethod,
                     };
                     try {
+                      const res = await createOrder(orderPayload);
+                      if (!res.success) throw new Error("Order failed");
                       if (paymentMethod === "COD") {
-                        const res = await createOrder(orderPayload);
-                        if (!res.success) throw new Error("Order failed");
                         const orderId = res.data?.orderId;
                         localStorage.removeItem("cart");
                         navigate(`/order-success/${orderId}`);
+                      } else if (paymentMethod === "ONLINE") {
+                        const orderId = res.data?.orderId;
+                        try {
+                          const paymentRes = await createSkipCashPayment({
+                            orderId,
+                            totalAmount: totalPayable,
+                            customer: {
+                              name: addresses.find(a => a.isSelected)?.name || "Customer",
+                              phone: addresses.find(a => a.isSelected)?.phone || "",
+                            },
+                          });
+                          if (paymentRes.success && paymentRes.paymentUrl) {
+                            localStorage.removeItem("cart");
+                            window.location.href = paymentRes.paymentUrl;
+                          } else {
+                            navigate(`/payment-failed`);
+                          }
+                        } catch {
+                          navigate(`/payment-failed`);
+                        }
                       }
                     } catch (error) {
                       console.error(error);
