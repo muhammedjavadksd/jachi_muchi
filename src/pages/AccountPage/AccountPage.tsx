@@ -1,23 +1,6 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
-import { Container } from "../../components/Container/Container";
 import { getMyOrders, cancelOrder } from "../../api/order";
 import { getImageUrl } from "../../lib/image";
-
-/** Height of the promotion header */
-const PROMOTION_HEADER_HEIGHT = 140;
-
-/** Sidebar menu items */
-const SIDEBAR_MENU = [
-  { id: "orders", label: "MY ORDERS", icon: null, link: "/account" },
-  { id: "3d-model", label: "MY 3D MODEL", icon: "3d", link: "/account/3d-model" },
-  { id: "account-info", label: "ACCOUNT INFORMATION", icon: null, link: "/account/info" },
-  { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
-  { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
-  { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
-  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
-];
 
 /** Brand logos for contact lens section */
 const CONTACT_LENS_BRANDS = ["B+L", "Alcon", "J&J", "ACUVUE"];
@@ -443,13 +426,6 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [whatsappUpdates, setWhatsappUpdates] = useState(false);
 
-  const location = useLocation();
-
-  /** Memoize header spacer style */
-  const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`
-  }), []);
-
   /** Fetch orders from API */
   useEffect(() => {
     const fetchOrders = async () => {
@@ -526,29 +502,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
   );
   }, []);
 
-  /** Memoize sidebar menu - highlight based on URL */
-  const sidebarMenu = useMemo(() => (
-    SIDEBAR_MENU.map((item) => {
-      const isActive = location.pathname === item.link;
-      return (
-        <Link
-          key={item.id}
-          to={item.link}
-          className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${isActive
-            ? "bg-teal-600 text-white"
-            : "text-gray-700 hover:bg-gray-100"
-            }`}
-        >
-          <span>{item.label}</span>
-          {item.icon === "3d" && (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-            </svg>
-          )}
-        </Link>
-      );
-    })
-  ), [location.pathname]);
+  // Sidebar is now rendered by <AccountSidebar /> component
 
   /** Memoize brand logos */
   const brandLogos = useMemo(() => (
@@ -602,44 +556,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
   
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white overflow-x-hidden">
-      {/* Promotion Header */}
-      <PromotionHeader />
-
-      {/* Spacer for fixed header */}
-      <div style={spacerStyle} />
-
-      {/* Main Content */}
-      <main className="flex-1 py-4 md:py-6">
-        <Container>
-          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-8">
-            {/* Left Sidebar - Sticky */}
-            <div
-              className="w-full lg:w-64 lg:shrink-0 lg:sticky hidden lg:block"
-              style={{ top: `${PROMOTION_HEADER_HEIGHT + 24}px` }}
-            >
-              <nav className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                {sidebarMenu}
-              </nav>
-            </div>
-
-            {/* Mobile Sidebar - Collapsible */}
-            <div className="lg:hidden w-full">
-              <details className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                <summary className="px-4 py-3 text-sm font-semibold text-gray-700 cursor-pointer list-none flex items-center justify-between">
-                  <span>Account Menu</span>
-                  <svg className="w-5 h-5 text-gray-500 transition-transform open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="border-t border-gray-200">
-                  {sidebarMenu}
-                </div>
-              </details>
-            </div>
-
-            {/* Right Content Area */}
-            <div className="flex-1 min-w-0">
+    <>
               {/* Top Section - WhatsApp Toggle & Logout */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 md:mb-6 lg:mb-8">
                 {/* WhatsApp Updates Toggle */}
@@ -663,10 +580,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                   </button>
                 </div>
 
-                {/* Logout Button */}
-                <button className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-red-500 text-white text-sm font-medium rounded hover:bg-red-600 transition-colors">
-                  LOGOUT
-                </button>
+                {/* Logout moved to AccountSidebar */}
               </div>
 
               {/* Contact Lens Orders Card */}
@@ -777,17 +691,6 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                   );
                 })}
               </div>
-            </div>
-          </div>
-        </Container>
-      </main>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* WhatsApp Button */}
-      <WhatsAppButton />
-
       {/* Order Details Drawer */}
       <OrderDrawer
         order={selectedOrder}
@@ -795,7 +698,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         onClose={closeOrderDrawer}
         onCancelSuccess={handleOrderCancel}
       />
-    </div>
+    </>
   );
 });
 

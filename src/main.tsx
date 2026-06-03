@@ -36,6 +36,13 @@ import {
   MyHomeTryOnPage,
   MyHomeTryOnAppointmentsPage,
   AccountHomeTryOnAppointmentsPage,
+  OnlineEyeTestPage,
+  VisionScreeningDisclaimerPage,
+  BrightnessSetupPage,
+  DeviceCheckPage,
+  EyeTestApp,
+  PaymentSuccessPage,
+  PaymentFailedPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
@@ -48,7 +55,7 @@ import { LoginModal } from "./components/LoginModal/LoginModal";
 import { SignupModal } from "./components/SignupModal/SignupModal";
 import { ForgotPasswordModal } from "./components/ForgotPasswordModal/ForgotPasswordModal";
 import { ScrollToTop } from "./components/ScrollToTop/ScrollToTop";
-import { ProtectedRoute } from "./components/ProtectedRoute/ProtectedRoute";
+import { ProtectedRoute, AccountLayout } from "./components";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
@@ -80,13 +87,17 @@ createRoot(rootElement).render(
                 <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
                 <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccessPage /></ProtectedRoute>} />
                 <Route path="/order-failure" element={<OrderFailurePage />} />
-                <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
-                <Route path="/account/3d-model" element={<ProtectedRoute><My3DModelPage /></ProtectedRoute>} />
-                <Route path="/account/info" element={<ProtectedRoute><AccountInfoPage /></ProtectedRoute>} />
-                <Route path="/account/notifications" element={<ProtectedRoute><ManageNotificationsPage /></ProtectedRoute>} />
-                <Route path="/account/address" element={<ProtectedRoute><AddressBookPage /></ProtectedRoute>} />
-                <Route path="/account/home-try-on-appointments" element={<ProtectedRoute><AccountHomeTryOnAppointmentsPage /></ProtectedRoute>} />
-                <Route path="/account/*" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+                <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                <Route path="/payment-failed" element={<PaymentFailedPage />} />
+                <Route element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/account/3d-model" element={<My3DModelPage />} />
+                  <Route path="/account/info" element={<AccountInfoPage />} />
+                  <Route path="/account/notifications" element={<ManageNotificationsPage />} />
+                  <Route path="/account/address" element={<AddressBookPage />} />
+                  <Route path="/account/home-try-on-appointments" element={<AccountHomeTryOnAppointmentsPage />} />
+                  <Route path="/account/*" element={<AccountPage />} />
+                </Route>
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/refund-policy" element={<RefundPolicyPage />} />
@@ -102,6 +113,11 @@ createRoot(rootElement).render(
                 <Route path="/my-home-try-on-appointments" element={<ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute>} />
                 <Route path="/stores" element={<StoresPage />} />
                 <Route path="/warranty" element={<WarrantyPage />} />
+                <Route path="/online-eye-test/screening" element={<VisionScreeningDisclaimerPage />} />
+                <Route path="/online-eye-test/instructions" element={<BrightnessSetupPage />} />
+                <Route path="/online-eye-test/device-check" element={<DeviceCheckPage />} />
+                <Route path="/online-eye-test/app" element={<EyeTestApp />} />
+                <Route path="/online-eye-test" element={<OnlineEyeTestPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
                 <Route path="/brands" element={<CollectionsPage />} />
                 <Route path="/services" element={<ServicesPage />} />

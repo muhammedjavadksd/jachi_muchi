@@ -25,6 +25,11 @@
     box-sizing: border-box;
   }
 
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
   body {
     font-family: 'Barlow', system-ui, -apple-system, sans-serif;
     background-color: #ffffff;

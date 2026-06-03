@@ -1,10 +1,6 @@
 import { memo, useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
-import { Container } from "../../components/Container/Container";
 
-/** Height of the promotion header */
-const PROMOTION_HEADER_HEIGHT = 140;
+
 
 /** 3D Model interface */
 interface Model3D {
@@ -24,97 +20,14 @@ const SAMPLE_MODELS: Model3D[] = [
   { id: "6", image: "/category/image.png", name: "Model 6", createdAt: "05 Feb 2026" },
 ];
 
-/** Sidebar menu items */
-const SIDEBAR_MENU = [
-  { id: "orders", label: "MY ORDERS", icon: null, link: "/account" },
-  { id: "3d-model", label: "MY 3D MODEL", icon: "3d", link: "/account/3d-model" },
-  { id: "account-info", label: "ACCOUNT INFORMATION", icon: null, link: "/account/info" },
-  { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
-  { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
-  { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
-  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
-];
-
 export const My3DModelPage = memo(function My3DModelPage(): JSX.Element {
   const [models, setModels] = useState<Model3D[]>(SAMPLE_MODELS);
-  const [activeMenu] = useState("3d-model");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`
-  }), []);
 
   const handleDeleteModel = useCallback((modelId: string) => {
     setModels(prev => prev.filter(model => model.id !== modelId));
   }, []);
 
-  // Desktop Sidebar
-  const desktopSidebar = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
-  ), [activeMenu]);
-
-  // Mobile Account Menu (First on mobile - same as Account Info page)
-  const mobileAccountMenu = useMemo(() => (
-    <div className="md:hidden mb-6">
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        {/* Account Menu Header */}
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
-        >
-          <span className="font-medium text-gray-900">Account Menu</span>
-          <svg
-            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {/* Menu Items */}
-        {isMobileMenuOpen && (
-          <div className="divide-y divide-gray-100">
-            {SIDEBAR_MENU.map((item) => (
-              <Link
-                key={item.id}
-                to={item.link}
-                className={`block px-5 py-4 text-sm font-medium transition-colors ${
-                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{item.label}</span>
-                  {item.icon === "3d" && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                    </svg>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  ), [activeMenu, isMobileMenuOpen]);
+  // Sidebar now rendered by <AccountSidebar />
 
   // Model Cards
   const modelCards = useMemo(() => (
@@ -164,96 +77,64 @@ export const My3DModelPage = memo(function My3DModelPage(): JSX.Element {
   ), [models, handleDeleteModel]);
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
-      <div style={spacerStyle} />
+    <>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My 3D Models</h1>
+        <p className="text-gray-500 mt-1">Manage your face scans for virtual try-on</p>
+      </div>
 
-      <main className="flex-1 py-6 md:py-8">
-        <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My 3D Models</h1>
-              <p className="text-gray-500 mt-1">Manage your face scans for virtual try-on</p>
-            </div>
+      {/* Create New Button */}
+      <button className="w-full md:w-auto mb-6 px-6 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Create New 3D Model
+      </button>
 
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar */}
-              <div className="hidden md:block w-64 shrink-0">
-                <div
-                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
-                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
-                >
-                  <nav>{desktopSidebar}</nav>
-                </div>
-              </div>
-
-              {/* Mobile Account Menu - FIRST on mobile */}
-              {mobileAccountMenu}
-
-              {/* Main Content Area */}
-              <div className="flex-1">
-                {/* Create New Button - After menu on mobile */}
-                <button className="w-full md:w-auto mb-6 px-6 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Create New 3D Model
-                </button>
-
-                {/* How it works Info */}
-                <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-blue-900 mb-1">How it works</h4>
-                      <p className="text-blue-700 text-sm leading-relaxed">
-                        Your 3D face model helps you virtually try on glasses from any device. 
-                        Simply scan your face using your device camera, and we'll create a realistic 3D model 
-                        that you can use to see how different frames look on you.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Models Grid */}
-                {models.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                    {modelCards}
-                  </div>
-                ) : (
-                  /* Empty State */
-                  <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
-                    <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No 3D Models Yet</h3>
-                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                      Create your first 3D face model to try on glasses virtually before you buy.
-                    </p>
-                    <button className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                      </svg>
-                      Create Your First 3D Model
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* How it works Info */}
+      <div className="mb-8 p-5 bg-blue-50 border border-blue-200 rounded-2xl">
+        <div className="flex gap-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-        </Container>
-      </main>
+          <div>
+            <h4 className="font-semibold text-blue-900 mb-1">How it works</h4>
+            <p className="text-blue-700 text-sm leading-relaxed">
+              Your 3D face model helps you virtually try on glasses from any device. 
+              Simply scan your face using your device camera, and we'll create a realistic 3D model 
+              that you can use to see how different frames look on you.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <Footer />
-      <WhatsAppButton />
-    </div>
+      {/* Models Grid */}
+      {models.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+          {modelCards}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
+          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No 3D Models Yet</h3>
+          <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            Create your first 3D face model to try on glasses virtually before you buy.
+          </p>
+          <button className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Create Your First 3D Model
+          </button>
+        </div>
+      )}
+    </>
   );
 });
 

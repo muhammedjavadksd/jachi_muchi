@@ -1,13 +1,7 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
-import { Container } from "../../components/Container/Container";
 import { authApi } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
 import type { UserProfile } from "../../types";
-
-/** Height of the promotion header */
-const PROMOTION_HEADER_HEIGHT = 140;
 
 /** Gender options */
 const GENDER_OPTIONS = [
@@ -18,23 +12,10 @@ const GENDER_OPTIONS = [
   { value: "prefer-not-to-say", label: "Prefer not to say" },
 ];
 
-/** Sidebar menu items */
-const SIDEBAR_MENU = [
-  { id: "orders", label: "MY ORDERS", icon: null, link: "/account" },
-  { id: "3d-model", label: "MY 3D MODEL", icon: "3d", link: "/account/3d-model" },
-  { id: "account-info", label: "ACCOUNT INFORMATION", icon: null, link: "/account/info" },
-  { id: "notifications", label: "MANAGE NOTIFICATIONS", icon: null, link: "/account/notifications" },
-  { id: "address", label: "ADDRESS BOOK", icon: null, link: "/account/address" },
-  { id: "prescriptions", label: "MY PRESCRIPTIONS", icon: null, link: "/account/prescriptions" },
-  { id: "home-try-on", label: "MY HOME TRY-ON APPOINTMENTS", icon: null, link: "/account/home-try-on-appointments" },
-];
-
 export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const { user: authUser } = useAuth();
-  const [activeMenu] = useState("account-info");
   const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -61,8 +42,6 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
     newPassword: "",
     confirmPassword: "",
   });
-
-  const spacerStyle = useMemo(() => ({ height: `${PROMOTION_HEADER_HEIGHT}px` }), []);
 
   const handleEditClick = useCallback(() => {
     if (profile) {
@@ -130,112 +109,18 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
     }
   }, [passwordForm]);
 
-  const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
-
   const firstName = profile?.firstName || authUser?.name?.split(" ")[0] || "User";
   const lastName = profile?.lastName || authUser?.name?.split(" ").slice(1).join(" ") || "";
   const email = profile?.email || authUser?.email || "user@example.com";
   const mobile = profile?.mobile || "";
   const gender = profile?.gender || "";
 
-  // Desktop Sidebar
-  const desktopSidebar = useMemo(() => (
-    SIDEBAR_MENU.map((item) => (
-      <Link
-        key={item.id}
-        to={item.link}
-        className={`w-full text-left px-5 py-3.5 text-sm font-medium transition-colors flex items-center justify-between border-b border-gray-200 last:border-b-0 ${
-          activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-100"
-        }`}
-      >
-        <span>{item.label}</span>
-        {item.icon === "3d" && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-        )}
-      </Link>
-    ))
-  ), [activeMenu]);
-
-  // Mobile Account Menu (First element on mobile)
-  const mobileAccountMenu = useMemo(() => (
-    <div className="md:hidden mb-6">
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-        {/* Account Menu Header */}
-        <button
-          onClick={toggleMobileMenu}
-          className="w-full px-5 py-4 bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition-colors border-b border-gray-200"
-        >
-          <span className="font-medium text-gray-900">Account Menu</span>
-          <svg
-            className={`w-5 h-5 text-gray-400 transition-transform ${isMobileMenuOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {/* Menu Items - Shown when expanded */}
-        {isMobileMenuOpen && (
-          <div className="divide-y divide-gray-100">
-            {SIDEBAR_MENU.map((item) => (
-              <Link
-                key={item.id}
-                to={item.link}
-                className={`block px-5 py-4 text-sm font-medium transition-colors ${
-                  activeMenu === item.id ? "bg-teal-600 text-white" : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{item.label}</span>
-                  {item.icon === "3d" && (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-                    </svg>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  ), [activeMenu, isMobileMenuOpen]);
-
   return (
-    <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
-      <div style={spacerStyle} />
-
-      <main className="flex-1 py-6 md:py-8">
-        <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6 md:mb-8">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Account Information</h1>
-              <p className="text-gray-500 mt-1">Manage your personal information</p>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-              {/* Desktop Sidebar */}
-              <div className="hidden md:block w-64 shrink-0">
-                <div
-                  className="sticky bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden"
-                  style={{ top: `${PROMOTION_HEADER_HEIGHT + 32}px` }}
-                >
-                  <nav>{desktopSidebar}</nav>
-                </div>
-              </div>
-
-              {/* Mobile: Account Menu FIRST */}
-              {mobileAccountMenu}
-
-              {/* Main Content */}
-              <div className="flex-1">
+    <>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Account Information</h1>
+        <p className="text-gray-500 mt-1">Manage your personal information</p>
+      </div>
                 {/* Edit Information Button - Now comes AFTER Account Menu on mobile */}
                 {!isEditing && (
                   <button
@@ -397,15 +282,6 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </main>
-
-      <Footer />
-      <WhatsAppButton />
-
       {/* Password Modal */}
       {showPasswordModal && (
         <>
@@ -441,7 +317,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 });
 
