@@ -1,114 +1,333 @@
-import { memo, useMemo, useCallback, useState } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
+import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
+import { useLoginModal } from "../../context/LoginModalContext";
+import {
+  getProductReviews,
+  createReview,
+  updateReview,
+  deleteReview,
+  getUserReview,
+} from "../../api/review";
+import { RatingBreakdown } from "../RatingBreakdown/RatingBreakdown";
+import { ReviewList } from "../ReviewList/ReviewList";
+import { ReviewModal } from "../ReviewModal/ReviewModal";
+import type { ReviewItem, ReviewSummary, ReviewActionResponse, RatingDistributionItem } from "@/types";
 
-interface Review {
-  id: string;
-  author: string;
-  rating: number;
-  title: string;
-  body: string;
-  date: string;
-  helpful: number;
+interface ProductReviewsProps {
+  productId?: string;
 }
 
-const DUMMY_REVIEWS: Review[] = [
-  { id: "r1", author: "Rahul S.", rating: 5, title: "Excellent quality!", body: "The frame is very lightweight and comfortable. Highly recommend for daily use.", date: "2 weeks ago", helpful: 24 },
-  { id: "r2", author: "Priya M.", rating: 4, title: "Good value for money", body: "Nice product at this price point. The build quality is decent.", date: "1 month ago", helpful: 18 },
-  { id: "r3", author: "Amit K.", rating: 5, title: "Love the design", body: "Bought these for my wife and she absolutely loves them. Great style!", date: "3 weeks ago", helpful: 12 },
-  { id: "r4", author: "Neha G.", rating: 4, title: "Stylish frames", body: "Look exactly like the picture. Fast delivery too.", date: "1 month ago", helpful: 9 },
-];
+const PAGE_SIZE = 10;
 
-const DISTRIBUTION = { 5: 65, 4: 20, 3: 8, 2: 4, 1: 3 };
-const AVERAGE = 4.5;
-const TOTAL = 120;
+function computeSummary(reviews: ReviewItem[]): ReviewSummary {
+  const totalReviews = reviews.length;
+  const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+  const averageRating = totalReviews > 0 ? totalRating / totalReviews : 0;
 
-export const ProductReviews = memo(function ProductReviews(): JSX.Element {
-  const [helpfulCounts, setHelpfulCounts] = useState<Record<string, number>>(() =>
-    Object.fromEntries(DUMMY_REVIEWS.map((r) => [r.id, r.helpful]))
+  const distributionMap: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  reviews.forEach((r) => {
+    distributionMap[r.rating] = (distributionMap[r.rating] || 0) + 1;
+  });
+
+  const distribution: RatingDistributionItem[] = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: distributionMap[star] || 0,
+    percentage: totalReviews > 0 ? Math.round(((distributionMap[star] || 0) / totalReviews) * 100) : 0,
+  }));
+
+  return { averageRating, totalReviews, distribution };
+}
+
+export const ProductReviews = memo(function ProductReviews({
+  productId,
+}: ProductReviewsProps): JSX.Element {
+  const { user, isAuthenticated } = useAuth();
+  const { open: openLoginModal } = useLoginModal();
+
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [summary, setSummary] = useState<ReviewSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const [userReview, setUserReview] = useState<ReviewItem | null>(null);
+  const [canReview, setCanReview] = useState(false);
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [submitting, setSubmitting] = useState(false);
+  const [editingReview, setEditingReview] = useState<ReviewItem | null>(null);
+
+  const currentUserId = user?.id || (user as any)?._id;
+
+  const fetchReviewsPage = useCallback(
+    async (pageNum: number, append: boolean) => {
+      if (!productId) return;
+      const res = await getProductReviews(productId, pageNum, PAGE_SIZE);
+      if (res.success) {
+        if (append) {
+          setReviews((prev) => {
+            const merged = [...prev, ...res.data];
+            return merged;
+          });
+        } else {
+          setReviews(res.data);
+        }
+        if (res.summary) setSummary(res.summary);
+        setHasMore(res.pagination?.hasMore || false);
+        setPage(pageNum);
+      }
+    },
+    [productId]
   );
 
-  const handleHelpful = useCallback((id: string) => {
-    setHelpfulCounts((prev) => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1,
-    }));
+  const fetchUserStatus = useCallback(async () => {
+    if (!productId || !isAuthenticated) {
+      return;
+    }
+    try {
+      const res: ReviewActionResponse = await getUserReview(productId);
+      if (res.success && res.data && !("canReview" in res.data)) {
+        const reviewData = res.data as ReviewItem;
+        setUserReview(reviewData);
+        setCanReview(false);
+      } else {
+        setUserReview(null);
+        const data = res.data as { canReview?: boolean } | undefined;
+        setCanReview(data?.canReview ?? false);
+      }
+    } catch {
+      setUserReview(null);
+      setCanReview(false);
+    }
+  }, [productId, isAuthenticated]);
+
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    setReviews([]);
+    setSummary(null);
+    setPage(1);
+    setHasMore(false);
+    setUserReview(null);
+    setCanReview(false);
+    setDeleteConfirmId(null);
+    setShowModal(false);
+
+    Promise.all([
+      fetchReviewsPage(1, false),
+      fetchUserStatus(),
+    ]).finally(() => setLoading(false));
+  }, [productId, fetchReviewsPage, fetchUserStatus]);
+
+  const handleOpenCreateModal = useCallback(() => {
+    setModalMode("create");
+    setShowModal(true);
   }, []);
 
-  const stars = useCallback((n: number) => {
-    const arr = [];
-    for (let i = 1; i <= 5; i++) {
-      arr.push(
-        <svg
-          key={i}
-          className={`w-4 h-4 ${i <= n ? "text-amber-400" : "text-gray-200"}`}
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      );
-    }
-    return arr;
+  const handleOpenEditModal = useCallback((review: ReviewItem) => {
+    setModalMode("edit");
+    setEditingReview(review);
+    setShowModal(true);
   }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+    setEditingReview(null);
+  }, []);
+
+  const handleSubmitReview = useCallback(
+    async (data: { rating: number; message: string }) => {
+      if (!productId) return;
+      setSubmitting(true);
+      try {
+        if (modalMode === "edit" && editingReview) {
+          const res = await updateReview(editingReview._id, {
+            rating: data.rating,
+            review: data.message,
+          });
+          if (res.success && res.data && !("canReview" in res.data)) {
+            const updated = res.data as ReviewItem;
+            setReviews((prev) => {
+              const next = prev.map((r) => (r._id === updated._id ? updated : r));
+              setSummary(computeSummary(next));
+              return next;
+            });
+            setUserReview(updated);
+            setShowModal(false);
+            setEditingReview(null);
+            toast.success("Review updated successfully");
+          } else {
+            toast.error(res.message || "Failed to update review");
+          }
+        } else {
+          const res = await createReview({
+            productId,
+            rating: data.rating,
+            review: data.message,
+          });
+          if (res.success && res.data && !("canReview" in res.data)) {
+            const newReview = res.data as ReviewItem;
+            setReviews((prev) => {
+              const next = [newReview, ...prev];
+              setSummary(computeSummary(next));
+              return next;
+            });
+            setUserReview(newReview);
+            setCanReview(false);
+            setShowModal(false);
+            toast.success("Review submitted successfully");
+          } else {
+            toast.error(res.message || "Failed to submit review");
+          }
+        }
+      } catch {
+        toast.error("Something went wrong. Please try again.");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [productId, modalMode, editingReview]
+  );
+
+  const handleDeleteReview = useCallback((reviewId: string) => {
+    setDeleteConfirmId(reviewId);
+  }, []);
+
+  const handleConfirmDelete = useCallback(
+    async (reviewId: string) => {
+      setDeletingId(reviewId);
+      try {
+        const res = await deleteReview(reviewId);
+        if (res.success) {
+          setReviews((prev) => {
+            const next = prev.filter((r) => r._id !== reviewId);
+            setSummary(computeSummary(next));
+            return next;
+          });
+          setUserReview(null);
+          setCanReview(true);
+          setDeleteConfirmId(null);
+          toast.success("Review deleted successfully");
+        } else {
+          toast.error(res.message || "Failed to delete review");
+        }
+      } catch {
+        toast.error("Something went wrong. Please try again.");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    []
+  );
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteConfirmId(null);
+  }, []);
+
+  const handleLoadMore = useCallback(async () => {
+    if (!productId || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      await fetchReviewsPage(page + 1, true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [productId, loadingMore, hasMore, page, fetchReviewsPage]);
+
+  if (!productId) {
+    return (
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-5">
+          Customer Reviews
+        </h2>
+        <p className="text-sm text-gray-500">Product ID is required</p>
+      </section>
+    );
+  }
 
   return (
     <section>
-      <h2 className="text-xl font-bold text-gray-900 mb-5">Customer Reviews</h2>
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <span className="text-4xl font-bold text-gray-900">{AVERAGE}</span>
-          <div>
-            <div className="flex gap-0.5">{stars(Math.round(AVERAGE))}</div>
-            <p className="text-sm text-gray-500 mt-0.5">{TOTAL} Reviews</p>
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          {([5, 4, 3, 2, 1] as const).map((star) => {
-            const pct = DISTRIBUTION[star];
-            return (
-              <div key={star} className="flex items-center gap-2 text-sm">
-                <span className="w-3 text-gray-600">{star}</span>
-                <svg className="w-3.5 h-3.5 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-amber-400 rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className="w-8 text-right text-gray-500 text-xs">{pct}%</span>
-              </div>
-            );
-          })}
-        </div>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl font-bold text-gray-900">
+          Customer Reviews
+          {summary && (
+            <span className="text-gray-400 font-normal text-base ml-2">
+              ({summary.totalReviews})
+            </span>
+          )}
+        </h2>
       </div>
-      <div className="space-y-4">
-        {DUMMY_REVIEWS.map((review) => (
-          <div key={review.id} className="border border-gray-200 rounded-2xl p-5">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold text-sm">
-                {review.author.charAt(0)}
-              </div>
-              <div>
-                <p className="font-medium text-gray-900 text-sm">{review.author}</p>
-                <div className="flex gap-0.5">{stars(review.rating)}</div>
-              </div>
-              <span className="ml-auto text-xs text-gray-400">{review.date}</span>
-            </div>
-            <p className="font-medium text-gray-800 text-sm mt-2">{review.title}</p>
-            <p className="text-gray-600 text-sm mt-1">{review.body}</p>
+
+      {summary && <RatingBreakdown summary={summary} />}
+
+      {/* Action buttons bar */}
+      {!loading && (
+        <div className="mb-6">
+          {!isAuthenticated ? (
             <button
-              onClick={() => handleHelpful(review.id)}
-              className="mt-3 flex items-center gap-1.5 text-xs text-gray-500 hover:text-teal-600 transition-colors"
+              onClick={openLoginModal}
+              className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.985]"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-              </svg>
-              Helpful ({helpfulCounts[review.id]})
+              Login to Write a Review
             </button>
-          </div>
-        ))}
-      </div>
+          ) : userReview ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleOpenEditModal(userReview)}
+                className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.985]"
+              >
+                Edit Your Review
+              </button>
+              <button
+                onClick={() => handleDeleteReview(userReview._id)}
+                className="px-6 py-2.5 bg-white border border-red-300 text-red-600 text-sm font-semibold rounded-xl hover:bg-red-50 transition-all active:scale-[0.985]"
+              >
+                Delete Review
+              </button>
+            </div>
+          ) : canReview ? (
+            <button
+              onClick={handleOpenCreateModal}
+              className="px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.985]"
+            >
+              Write a Review
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      <ReviewModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitReview}
+        isEditing={modalMode === "edit"}
+        initialValues={
+          modalMode === "edit" && editingReview
+            ? { rating: editingReview.rating, message: editingReview.message }
+            : undefined
+        }
+      />
+
+      <ReviewList
+        reviews={reviews}
+        loading={loading}
+        hasMore={hasMore}
+        onLoadMore={handleLoadMore}
+        loadingMore={loadingMore}
+        currentUserId={currentUserId}
+        onEdit={handleOpenEditModal}
+        onDelete={handleDeleteReview}
+        deletingId={deletingId}
+        deleteConfirmId={deleteConfirmId}
+        onConfirmDelete={handleConfirmDelete}
+        onCancelDelete={handleCancelDelete}
+      />
     </section>
   );
 });

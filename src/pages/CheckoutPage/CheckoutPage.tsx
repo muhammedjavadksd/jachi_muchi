@@ -6,7 +6,7 @@ import { createOrder } from "../../api/order";
 import { createSkipCashPayment } from "../../api/payment";
 import { useAuth } from "../../context/AuthContext";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
-import { applyCoupon, removeCoupon, fetchUserCoupons } from "../../lib/couponApi";
+import { applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "../../lib/couponApi";
 import type { CouponSuccessResponse, UserCoupon } from "../../lib/couponApi";
 import { getOffers } from "../../lib/offerEngine";
 import type { Offer } from "../../types/offers.types";
@@ -751,11 +751,19 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       if (!res.success) throw new Error("Order failed");
                       if (paymentMethod === "COD") {
                         const orderId = res.data?.orderId;
+                        // Mark coupon as used (fire-and-forget, best effort)
+                        if (appliedCoupon) {
+                          markCouponAsUsed(appliedCoupon).catch(() => {});
+                        }
                         localStorage.removeItem("cart");
                         navigate(`/order-success/${orderId}`);
                       } else if (paymentMethod === "ONLINE") {
                         const orderId = res.data?.orderId;
                         const selectedAddr = addresses.find(a => a.isSelected);
+                        // Save pending coupon so PaymentSuccessPage can mark it
+                        if (appliedCoupon) {
+                          localStorage.setItem("pendingCouponMark", appliedCoupon);
+                        }
                         try {
                           const paymentRes = await createSkipCashPayment({
                             orderId,
@@ -768,9 +776,11 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                             localStorage.removeItem("cart");
                             window.location.href = paymentRes.data.paymentUrl;
                           } else {
+                            localStorage.removeItem("pendingCouponMark");
                             navigate(`/payment-failed`);
                           }
                         } catch {
+                          localStorage.removeItem("pendingCouponMark");
                           navigate(`/payment-failed`);
                         }
                       }

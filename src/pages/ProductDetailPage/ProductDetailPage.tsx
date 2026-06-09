@@ -279,7 +279,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         <div className="border-t border-gray-200 my-8" />
 
         <Container className="pb-12">
-          <ProductReviews />
+          <ProductReviews productId={id} />
         </Container>
       </main>
       <Footer />

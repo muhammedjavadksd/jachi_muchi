@@ -1,13 +1,23 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
+import { markCouponAsUsed } from "../../lib/couponApi";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
 export const PaymentSuccessPage = memo(function PaymentSuccessPage(): JSX.Element {
   const [searchParams] = useSearchParams();
   const orderId = searchParams.get("orderId") || "";
+
+  // Mark pending coupon as used (from pendingCouponMark localStorage)
+  useEffect(() => {
+    const pendingCoupon = localStorage.getItem("pendingCouponMark");
+    if (pendingCoupon) {
+      markCouponAsUsed(pendingCoupon).catch(() => {});
+      localStorage.removeItem("pendingCouponMark");
+    }
+  }, []);
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,

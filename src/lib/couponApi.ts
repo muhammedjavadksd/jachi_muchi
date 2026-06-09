@@ -211,6 +211,23 @@ export async function fetchUserCoupons(): Promise<UserCoupon[]> {
 }
 
 /**
+ * Mark coupon as used by current user (called after successful order + payment)
+ * POST /coupons/mark-used
+ */
+export async function markCouponAsUsed(couponCode: string): Promise<void> {
+  try {
+    await axiosInstance.post("/coupons/mark-used", {
+      couponCode: couponCode.toUpperCase(),
+    });
+  } catch (error: any) {
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw new Error(error.message || "Failed to mark coupon as used");
+  }
+}
+
+/**
  * Get welcome coupon for new users
  * GET /welcome-coupon
  */

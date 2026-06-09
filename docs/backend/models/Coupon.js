@@ -51,6 +51,10 @@ const couponSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  usedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }],
   applicableCategories: [{
     type: String, // ['sunglass', 'eyeglass'] or empty for all
   }],

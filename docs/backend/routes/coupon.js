@@ -54,6 +54,14 @@ router.post('/apply', auth, async (req, res) => {
       });
     }
 
+    // Check if already used by this user
+    if (coupon.usedBy && coupon.usedBy.includes(req.user.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'This coupon has already been used',
+      });
+    }
+
     // Check usage limit
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
       return res.status(400).json({
@@ -96,9 +104,8 @@ router.post('/apply', auth, async (req, res) => {
     // Calculate final amount
     const finalAmount = orderAmount - discount;
 
-    // Increment usage count
-    coupon.usedCount += 1;
-    await coupon.save();
+    // NOTE: Coupon is NOT marked as used here.
+    // It gets marked only after successful order + payment via POST /mark-used
 
     res.json({
       success: true,
@@ -132,16 +139,8 @@ router.post('/remove', auth, async (req, res) => {
       });
     }
 
-    // Find and decrement usage count (optional - depends on business logic)
-    const coupon = await Coupon.findOne({
-      code: code.toUpperCase(),
-    });
-
-    if (coupon && coupon.usedCount > 0) {
-      coupon.usedCount -= 1;
-      await coupon.save();
-    }
-
+    // Coupon removal is a frontend-only operation.
+    // The coupon is NOT marked as used during apply, so no backend state to revert.
     res.json({
       success: true,
       message: 'Coupon removed successfully',
@@ -196,6 +195,14 @@ router.post('/validate', auth, async (req, res) => {
       });
     }
 
+    // Check if already used by this user
+    if (coupon.usedBy && coupon.usedBy.includes(req.user.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'This coupon has already been used',
+      });
+    }
+
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
       return res.status(400).json({
         success: false,
@@ -236,6 +243,56 @@ router.post('/validate', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while validating coupon',
+    });
+  }
+});
+
+/**
+ * POST /api/coupon/mark-used
+ * Mark coupon as used by current user (called after successful order + payment)
+ * Expects: { couponCode } in body
+ */
+router.post('/mark-used', auth, async (req, res) => {
+  try {
+    const { couponCode } = req.body;
+
+    if (!couponCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a coupon code',
+      });
+    }
+
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+
+    if (!coupon) {
+      return res.status(404).json({
+        success: false,
+        message: 'Coupon not found',
+      });
+    }
+
+    // Idempotent: if already marked, just return success
+    if (coupon.usedBy && coupon.usedBy.includes(req.user.id)) {
+      return res.json({
+        success: true,
+        message: 'Coupon already marked as used',
+      });
+    }
+
+    coupon.usedBy.push(req.user.id);
+    coupon.usedCount = (coupon.usedCount || 0) + 1;
+    await coupon.save();
+
+    res.json({
+      success: true,
+      message: 'Coupon marked as used',
+    });
+  } catch (error) {
+    console.error('Mark coupon used error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while marking coupon as used',
     });
   }
 });
