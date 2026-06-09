@@ -4,6 +4,7 @@ import { Container } from "../../components/Container/Container";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createOrder } from "../../api/order";
 import { createSkipCashPayment } from "../../api/payment";
+import { useAuth } from "../../context/AuthContext";
 import { fetchAddresses, saveAddress, deleteAddress as deleteAddressApi, type BackendAddress } from "../../api/address";
 import { applyCoupon, removeCoupon, fetchUserCoupons } from "../../lib/couponApi";
 import type { CouponSuccessResponse, UserCoupon } from "../../lib/couponApi";
@@ -369,6 +370,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const [isCouponListOpen, setIsCouponListOpen] = useState(true);
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
   
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -753,18 +755,18 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                         navigate(`/order-success/${orderId}`);
                       } else if (paymentMethod === "ONLINE") {
                         const orderId = res.data?.orderId;
+                        const selectedAddr = addresses.find(a => a.isSelected);
                         try {
                           const paymentRes = await createSkipCashPayment({
                             orderId,
-                            totalAmount: totalPayable,
-                            customer: {
-                              name: addresses.find(a => a.isSelected)?.name || "Customer",
-                              phone: addresses.find(a => a.isSelected)?.phone || "",
-                            },
+                            amount: totalPayable,
+                            customerName: selectedAddr?.name || "Customer",
+                            email: user?.email || "",
+                            phone: selectedAddr?.phone || "",
                           });
-                          if (paymentRes.success && paymentRes.paymentUrl) {
+                          if (paymentRes.success && paymentRes.data?.paymentUrl) {
                             localStorage.removeItem("cart");
-                            window.location.href = paymentRes.paymentUrl;
+                            window.location.href = paymentRes.data.paymentUrl;
                           } else {
                             navigate(`/payment-failed`);
                           }
@@ -774,7 +776,8 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                       }
                     } catch (error) {
                       console.error(error);
-                      alert("Failed to place order");
+                      const t = await import("react-hot-toast");
+                      t.toast.error("Failed to place order. Please try again.");
                     } finally {
                       setOrderLoading(false);
                     }

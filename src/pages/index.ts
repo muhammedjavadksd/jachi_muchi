@@ -34,6 +34,7 @@ export { MyHomeTryOnAppointmentsPage } from "./MyHomeTryOnAppointmentsPage/MyHom
 export { AccountHomeTryOnAppointmentsPage } from "./AccountHomeTryOnAppointmentsPage/AccountHomeTryOnAppointmentsPage";
 export { PaymentSuccessPage } from "./PaymentSuccessPage/PaymentSuccessPage";
 export { PaymentFailedPage } from "./PaymentFailedPage/PaymentFailedPage";
+export { PaymentPendingPage } from "./PaymentPendingPage/PaymentPendingPage";
 export { OnlineEyeTestPage } from "./OnlineEyeTestPage/OnlineEyeTestPage";
 export { VisionScreeningDisclaimerPage } from "./VisionScreeningDisclaimerPage/VisionScreeningDisclaimerPage";
 export { BrightnessSetupPage } from "./BrightnessSetupPage/BrightnessSetupPage";

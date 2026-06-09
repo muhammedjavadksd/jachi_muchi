@@ -1,11 +1,14 @@
 import { memo, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "../../components";
 import { Container } from "../../components/Container/Container";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
 export const PaymentFailedPage = memo(function PaymentFailedPage(): JSX.Element {
+  const [searchParams] = useSearchParams();
+  const orderId = searchParams.get("orderId") || "";
+
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
   }), []);

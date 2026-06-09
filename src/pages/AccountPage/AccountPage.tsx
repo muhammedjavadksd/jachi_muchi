@@ -1,6 +1,8 @@
 import { memo, useMemo, useState, useCallback, useEffect } from "react";
+import toast from "react-hot-toast";
 import { getMyOrders, cancelOrder } from "../../api/order";
 import { getImageUrl } from "../../lib/image";
+import { retrySkipCashPayment } from "../../api/payment";
 
 /** Brand logos for contact lens section */
 const CONTACT_LENS_BRANDS = ["B+L", "Alcon", "J&J", "ACUVUE"];
@@ -29,6 +31,7 @@ interface Order {
   orderId?: string;
   totalAmount?: number;
   status?: OrderStatus;
+  paymentStatus?: string;
   createdAt?: string;
   items?: OrderItem[];
   subtotal?: number;
@@ -53,11 +56,15 @@ const OrderDrawer = memo(function OrderDrawer({
   isOpen,
   onClose,
   onCancelSuccess,
+  onPayNow,
+  isProcessingPayment,
 }: {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
   onCancelSuccess?: (orderId: string) => void;
+  onPayNow?: (order: Order) => void;
+  isProcessingPayment?: boolean;
 }): JSX.Element | null {
 
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -385,14 +392,16 @@ const OrderDrawer = memo(function OrderDrawer({
               </button>
             ) : null}
 
-            {/* {displayStatus === "delivered" && (
-              <button className="w-full py-3 bg-amber-50 text-amber-700 font-medium rounded-lg hover:bg-amber-100 transition-colors border border-amber-200 flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                Write a Review
+            {/* Pay Now - shown for failed/pending payments */}
+            {(order.paymentStatus === "failed" || order.paymentStatus === "pending") && onPayNow && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onPayNow(order); }}
+                disabled={isProcessingPayment}
+                className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-all active:scale-[0.985] disabled:bg-gray-300 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                {isProcessingPayment ? "Processing..." : "Pay Now"}
               </button>
-            )} */}
+            )}
 
             <button className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,6 +434,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [whatsappUpdates, setWhatsappUpdates] = useState(false);
+  const [payNowLoading, setPayNowLoading] = useState<string | null>(null);
 
   /** Fetch orders from API */
   useEffect(() => {
@@ -501,6 +511,26 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
       : prev
   );
   }, []);
+
+  /** Handle Pay Now retry for failed/pending payments */
+  const handlePayNow = useCallback(async (order: Order) => {
+    const orderId = order._id || order.id || "";
+    if (!orderId || payNowLoading) return;
+
+    try {
+      setPayNowLoading(orderId);
+      const res = await retrySkipCashPayment(orderId);
+      if (res.success && res.checkoutUrl) {
+        window.location.href = res.checkoutUrl;
+      } else {
+        toast.error(res.message || "Failed to retry payment");
+      }
+    } catch {
+      toast.error("Failed to retry payment");
+    } finally {
+      setPayNowLoading(null);
+    }
+  }, [payNowLoading]);
 
   // Sidebar is now rendered by <AccountSidebar /> component
 
@@ -687,6 +717,24 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                           </div>
                         </div>
                       </div>
+
+                      {/* Pay Now - shown for failed/pending payments */}
+                      {(order.paymentStatus === "failed" || order.paymentStatus === "pending") && (
+                        <div className="px-3 sm:px-4 lg:px-5 pb-3 sm:pb-4">
+                          <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+                            <span className="text-xs font-medium text-red-600">
+                              Payment {order.paymentStatus === "failed" ? "Failed" : "Pending"}
+                            </span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handlePayNow(order); }}
+                              disabled={payNowLoading === order.id}
+                              className="px-5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition-all active:scale-[0.985] disabled:bg-gray-300 disabled:cursor-not-allowed disabled:active:scale-100"
+                            >
+                              {payNowLoading === order.id ? "Processing..." : "Pay Now"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -697,6 +745,8 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         isOpen={isDrawerOpen}
         onClose={closeOrderDrawer}
         onCancelSuccess={handleOrderCancel}
+        onPayNow={handlePayNow}
+        isProcessingPayment={payNowLoading === (selectedOrder?._id || selectedOrder?.id)}
       />
     </>
   );

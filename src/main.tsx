@@ -43,6 +43,7 @@ import {
   EyeTestApp,
   PaymentSuccessPage,
   PaymentFailedPage,
+  PaymentPendingPage,
 } from "./pages";
 import { WishlistProvider } from "./context/WishlistContext";
 import { CartProvider } from "./context/CartContext";
@@ -56,6 +57,7 @@ import { SignupModal } from "./components/SignupModal/SignupModal";
 import { ForgotPasswordModal } from "./components/ForgotPasswordModal/ForgotPasswordModal";
 import { ScrollToTop } from "./components/ScrollToTop/ScrollToTop";
 import { ProtectedRoute, AccountLayout } from "./components";
+import { Toaster } from "react-hot-toast";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
@@ -87,8 +89,9 @@ createRoot(rootElement).render(
                 <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
                 <Route path="/order-success/:id" element={<ProtectedRoute><OrderSuccessPage /></ProtectedRoute>} />
                 <Route path="/order-failure" element={<OrderFailurePage />} />
-                <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                <Route path="/payment-failed" element={<PaymentFailedPage />} />
+                <Route path="/payment/success" element={<PaymentSuccessPage />} />
+                <Route path="/payment/failed" element={<PaymentFailedPage />} />
+                <Route path="/payment/pending" element={<PaymentPendingPage />} />
                 <Route element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
                   <Route path="/account" element={<AccountPage />} />
                   <Route path="/account/3d-model" element={<My3DModelPage />} />
@@ -129,6 +132,7 @@ createRoot(rootElement).render(
                 <LoginModal />
                 <SignupModal />
                 <ForgotPasswordModal />
+                <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
               </WishlistProvider>
             </ForgotPasswordModalProvider>
           </SignupModalProvider>
