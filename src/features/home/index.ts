@@ -1,0 +1,13 @@
+export { HeroSlider } from "./components/HeroSlider/HeroSlider";
+export { TopCategories } from "./components/TopCategories/TopCategories";
+export { Campaign } from "./components/Campaign/Campaign";
+export { ShapeSection } from "./components/ShapeSection/ShapeSection";
+export { NearbyServices } from "./components/NearbyServices/NearbyServices";
+export { GridSection } from "./components/GridSection/GridSection";
+export { FeaturedGrid } from "./components/FeaturedGrid/FeaturedGrid";
+export { EyeCheckupFeatures } from "./components/EyeCheckupFeatures/EyeCheckupFeatures";
+export { SecondaryBannerCarousel } from "./components/SecondaryBannerCarousel/SecondaryBannerCarousel";
+export { OfferCarousel } from "./components/OfferCarousel/OfferCarousel";
+export { OffersSection } from "./components/OffersSection/OffersSection";
+export { PromoBanner } from "./components/PromoBanner/PromoBanner";
+export { HomePage as default } from "./pages/HomePage/HomePage";

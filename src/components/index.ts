@@ -1,74 +1,74 @@
-// Layout Components
-export { Container } from "./Container/Container";
-export { Grid } from "./Grid/Grid";
-export { ImageCard } from "./ImageCard/ImageCard";
-export { BottomNav } from "./BottomNav/BottomNav";
+// Layout Components (re-exported from shared)
+export { Container } from "@/shared/components/Container/Container";
+export { Grid } from "@/shared/components/Grid/Grid";
+export { ImageCard } from "@/shared/components/ImageCard/ImageCard";
+export { BottomNav } from "@/app/layouts";
 
 // Loading Components
-export { LoadingSkeleton } from "./LoadingSkeleton/LoadingSkeleton";
+export { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 
 // Header Components
-export { Header } from "./Header/Header";
-export { HeaderHome2, HEADER_HOME2_SPACER_HEIGHT } from "./Header/HeaderHome2";
-export { TopUtilityHeader } from "./Header/TopUtilityHeader";
-export { MainNavBar } from "./Header/MainNavBar";
-export { PromotionHeader } from "./PromotionHeader/PromotionHeader";
+export { Header } from "@/app/layouts";
+export { HeaderHome2, HEADER_HOME2_SPACER_HEIGHT } from "@/app/layouts";
+export { TopUtilityHeader } from "@/app/layouts";
+export { MainNavBar } from "@/app/layouts";
+export { PromotionHeader } from "@/app/layouts";
 
 // Section Components
-export { HeroSlider } from "./HeroSlider/HeroSlider";
-export { TopCategories } from "./TopCategories/TopCategories";
-export { Campaign } from "./Campaign/Campaign";
-export { ShapeSection } from "./ShapeSection/ShapeSection";
-export { NearbyServices } from "./NearbyServices/ServiceHighlights";
-export { GridSection } from "./GridSection/GridSection";
-export { FeaturedGrid } from "./FeaturedGrid/FeaturedGrid";
-export { Footer } from "./Footer/Footer";
-export { WhatsAppButton } from "./WhatsAppButton/WhatsAppButton";
+export { HeroSlider } from "@/features/home/components/HeroSlider/HeroSlider";
+export { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
+export { Campaign } from "@/features/home/components/Campaign/Campaign";
+export { ShapeSection } from "@/features/home/components/ShapeSection/ShapeSection";
+export { NearbyServices } from "@/features/home/components/ServiceHighlights/ServiceHighlights";
+export { GridSection } from "@/features/home/components/GridSection/GridSection";
+export { FeaturedGrid } from "@/features/home/components/FeaturedGrid/FeaturedGrid";
+export { Footer } from "@/app/layouts";
+export { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 
-// Wishlist
-export { WishlistCanvas } from "./WishlistCanvas/WishlistCanvas";
+// Auth Components
+export { LoginModal } from "@/features/auth/components/LoginModal/LoginModal";
+export { SignupModal } from "@/features/auth/components/SignupModal/SignupModal";
+export { ForgotPasswordModal } from "@/features/auth/components/ForgotPasswordModal/ForgotPasswordModal";
+export { WelcomeCouponModal } from "@/features/auth/components/WelcomeCouponModal/WelcomeCouponModal";
 
-// Auth
-export { LoginModal } from "./LoginModal/LoginModal";
-export { SignupModal } from "./SignupModal/SignupModal";
-export { ForgotPasswordModal } from "./ForgotPasswordModal/ForgotPasswordModal";
+// Product Feature Components
+export { ProductCard } from "@/features/product/components/ProductCard/ProductCard";
+export { ProductGallery } from "@/features/product/components/ProductGallery/ProductGallery";
+export { ProductInfo } from "@/features/product/components/ProductInfo/ProductInfo";
+export { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
+export { FilterSidebar } from "@/features/product/components/FilterSidebar/FilterSidebar";
+export { CategoryNav } from "@/features/product/components/CategoryNav/CategoryNav";
+export { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
 
-// Search Page Components
-export { ProductCard } from "./ProductCard/ProductCard";
-export { FilterSidebar } from "./FilterSidebar/FilterSidebar";
-export { CategoryNav } from "./CategoryNav/CategoryNav";
-export { SearchAutocomplete } from "./SearchAutocomplete/SearchAutocomplete";
+// Wishlist Components
+export { WishlistCanvas } from "@/features/wishlist/components/WishlistCanvas/WishlistCanvas";
 
-// Lens Selection
-export { LensSelectionPanel } from "./LensSelectionPanel/LensSelectionPanel";
+// Checkout Components
+export { CouponCard, CouponSection, LensSelectionPanel } from "@/features/checkout";
 
 // Icons
-export * from "./icons";
+export { PhoneIcon, SearchIcon, HeartIcon, CartIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon } from "@/shared/components/Icons";
 
 // Route Protection
-export { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute";
+export { ProtectedRoute } from "@/shared/components/ProtectedRoute/ProtectedRoute";
 
-// Coupon Components
-export { CouponCard } from "./CouponCard/CouponCard";
-export { OffersSection } from "./OffersSection/OffersSection";
-export { OfferCard } from "./OfferCard/OfferCard";
-export { WelcomeCouponModal } from "./WelcomeCouponModal/WelcomeCouponModal";
-export { CouponSection } from "./CouponSection/CouponSection";
-export { OfferCarousel } from "./OfferCarousel/OfferCarousel";
-export { ProductGallery } from "./ProductGallery/ProductGallery";
-export { ProductInfo } from "./ProductInfo/ProductInfo";
-export { SimilarProducts } from "./SimilarProducts/SimilarProducts";
-export { ProductReviews } from "./ProductReviews/ProductReviews";
-export { RatingStars } from "./RatingStars/RatingStars";
-export { RatingBreakdown } from "./RatingBreakdown/RatingBreakdown";
-export { ReviewCard } from "./ReviewCard/ReviewCard";
-export { ReviewForm } from "./ReviewForm/ReviewForm";
-export { ReviewList } from "./ReviewList/ReviewList";
-export { ReviewModal } from "./ReviewModal/ReviewModal";
-export { PromoBanner } from "./PromoBanner/PromoBanner";
-export { VisionScreeningModal } from "./VisionScreeningModal/VisionScreeningModal";
-export { EyeTestHeader } from "./EyeTestHeader/EyeTestHeader";
-export { EyeTestProgressDots } from "./EyeTestProgressDots/EyeTestProgressDots";
-export { EyeTestIconIllustration } from "./EyeTestIconIllustration/EyeTestIconIllustration";
-export { AccountSidebar } from "./AccountSidebar/AccountSidebar";
-export { AccountLayout } from "./AccountLayout/AccountLayout";
+// Offer Components
+export { OffersSection } from "@/features/home/components/OffersSection/OffersSection";
+export { OfferCard } from "@/features/offer/components/OfferCard/OfferCard";
+export { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCarousel";
+
+// Review Components
+export { ProductReviews } from "@/features/review/components/ProductReviews/ProductReviews";
+export { RatingStars } from "@/features/review/components/RatingStars/RatingStars";
+export { RatingBreakdown } from "@/features/review/components/RatingBreakdown/RatingBreakdown";
+export { ReviewCard } from "@/features/review/components/ReviewCard/ReviewCard";
+export { ReviewForm } from "@/features/review/components/ReviewForm/ReviewForm";
+export { ReviewList } from "@/features/review/components/ReviewList/ReviewList";
+export { ReviewModal } from "@/features/review/components/ReviewModal/ReviewModal";
+
+// Promo Banner
+export { PromoBanner } from "@/features/home/components/PromoBanner/PromoBanner";
+
+// Account Components
+export { AccountSidebar } from "@/app/layouts";
+export { AccountLayout } from "@/app/layouts";
