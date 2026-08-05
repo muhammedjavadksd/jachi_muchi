@@ -81,18 +81,16 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
           </div>
         </div>
 
-        <button
-          onClick={() => toggleNotification(notification.id)}
-          className={`relative w-12 h-6 rounded-full transition-all duration-200 ${
-            notifications[notification.id] ? "bg-teal-600" : "bg-gray-300"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-              notifications[notification.id] ? "translate-x-6" : ""
-            }`}
+        <label className="relative inline-flex items-center cursor-pointer shrink-0">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={notifications[notification.id]}
+            onChange={() => toggleNotification(notification.id)}
           />
-        </button>
+          <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-teal-600 transition-colors duration-200" />
+          <span className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-5" />
+        </label>
       </div>
     ))
   ), [notifications, toggleNotification]);
@@ -124,7 +122,7 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
       {/* Auto-save Note */}
       <div className="mt-8 p-5 bg-gray-50 rounded-2xl border border-gray-100">
         <p className="text-sm text-gray-600 flex items-start gap-3">
-          <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-5 h-5 text-green-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
           Your preferences are automatically saved when you toggle any option.

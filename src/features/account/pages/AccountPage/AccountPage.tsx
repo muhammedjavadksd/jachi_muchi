@@ -1,10 +1,112 @@
-import { memo, useMemo, useState, useEffect, useCallback } from "react";
+import { memo, useState, useEffect, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { getImageUrl } from "@/shared/utils/image";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { useOrders } from "@/features/account/hooks";
+import { submitContactMessage } from "@/features/account/api/contactApi";
+import { useAuth } from "@/features/auth/hooks";
+import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
 
-const CONTACT_LENS_BRANDS = ["B+L", "Alcon", "J&J", "ACUVUE"];
+interface CountryEntry {
+  name: string;
+  code: string;
+  flag: string;
+  digits: number | [number, number]; // exact length or [min, max]
+}
+
+const COUNTRIES: CountryEntry[] = [
+  { name: "Afghanistan", code: "+93", flag: "🇦🇫", digits: 9 },
+  { name: "Albania", code: "+355", flag: "🇦🇱", digits: 9 },
+  { name: "Algeria", code: "+213", flag: "🇩🇿", digits: 9 },
+  { name: "Argentina", code: "+54", flag: "🇦🇷", digits: 10 },
+  { name: "Australia", code: "+61", flag: "🇦🇺", digits: 9 },
+  { name: "Austria", code: "+43", flag: "🇦🇹", digits: [4, 13] },
+  { name: "Bangladesh", code: "+880", flag: "🇧🇩", digits: 10 },
+  { name: "Belgium", code: "+32", flag: "🇧🇪", digits: 9 },
+  { name: "Brazil", code: "+55", flag: "🇧🇷", digits: 11 },
+  { name: "Canada", code: "+1", flag: "🇨🇦", digits: 10 },
+  { name: "Chile", code: "+56", flag: "🇨🇱", digits: 9 },
+  { name: "China", code: "+86", flag: "🇨🇳", digits: 11 },
+  { name: "Colombia", code: "+57", flag: "🇨🇴", digits: 10 },
+  { name: "Croatia", code: "+385", flag: "🇭🇷", digits: [8, 9] },
+  { name: "Czech Republic", code: "+420", flag: "🇨🇿", digits: 9 },
+  { name: "Denmark", code: "+45", flag: "🇩🇰", digits: 8 },
+  { name: "Egypt", code: "+20", flag: "🇪🇬", digits: 10 },
+  { name: "Ethiopia", code: "+251", flag: "🇪🇹", digits: 9 },
+  { name: "Finland", code: "+358", flag: "🇫🇮", digits: [5, 12] },
+  { name: "France", code: "+33", flag: "🇫🇷", digits: 9 },
+  { name: "Germany", code: "+49", flag: "🇩🇪", digits: [10, 11] },
+  { name: "Ghana", code: "+233", flag: "🇬🇭", digits: 9 },
+  { name: "Greece", code: "+30", flag: "🇬🇷", digits: 10 },
+  { name: "Hong Kong", code: "+852", flag: "🇭🇰", digits: 8 },
+  { name: "Hungary", code: "+36", flag: "🇭🇺", digits: 9 },
+  { name: "India", code: "+91", flag: "🇮🇳", digits: 10 },
+  { name: "Indonesia", code: "+62", flag: "🇮🇩", digits: [9, 12] },
+  { name: "Iran", code: "+98", flag: "🇮🇷", digits: 10 },
+  { name: "Iraq", code: "+964", flag: "🇮🇶", digits: 10 },
+  { name: "Ireland", code: "+353", flag: "🇮🇪", digits: 9 },
+  { name: "Israel", code: "+972", flag: "🇮🇱", digits: 9 },
+  { name: "Italy", code: "+39", flag: "🇮🇹", digits: [9, 10] },
+  { name: "Japan", code: "+81", flag: "🇯🇵", digits: 10 },
+  { name: "Jordan", code: "+962", flag: "🇯🇴", digits: 9 },
+  { name: "Kenya", code: "+254", flag: "🇰🇪", digits: 9 },
+  { name: "Kuwait", code: "+965", flag: "🇰🇼", digits: 8 },
+  { name: "Malaysia", code: "+60", flag: "🇲🇾", digits: [9, 10] },
+  { name: "Mexico", code: "+52", flag: "🇲🇽", digits: 10 },
+  { name: "Morocco", code: "+212", flag: "🇲🇦", digits: 9 },
+  { name: "Myanmar", code: "+95", flag: "🇲🇲", digits: [7, 9] },
+  { name: "Nepal", code: "+977", flag: "🇳🇵", digits: 10 },
+  { name: "Netherlands", code: "+31", flag: "🇳🇱", digits: 9 },
+  { name: "New Zealand", code: "+64", flag: "🇳🇿", digits: [8, 9] },
+  { name: "Nigeria", code: "+234", flag: "🇳🇬", digits: 10 },
+  { name: "Norway", code: "+47", flag: "🇳🇴", digits: 8 },
+  { name: "Oman", code: "+968", flag: "🇴🇲", digits: 8 },
+  { name: "Pakistan", code: "+92", flag: "🇵🇰", digits: 10 },
+  { name: "Peru", code: "+51", flag: "🇵🇪", digits: 9 },
+  { name: "Philippines", code: "+63", flag: "🇵🇭", digits: 10 },
+  { name: "Poland", code: "+48", flag: "🇵🇱", digits: 9 },
+  { name: "Portugal", code: "+351", flag: "🇵🇹", digits: 9 },
+  { name: "Qatar", code: "+974", flag: "🇶🇦", digits: 8 },
+  { name: "Romania", code: "+40", flag: "🇷🇴", digits: 9 },
+  { name: "Russia", code: "+7", flag: "🇷🇺", digits: 10 },
+  { name: "Saudi Arabia", code: "+966", flag: "🇸🇦", digits: 9 },
+  { name: "Singapore", code: "+65", flag: "🇸🇬", digits: 8 },
+  { name: "South Africa", code: "+27", flag: "🇿🇦", digits: 9 },
+  { name: "South Korea", code: "+82", flag: "🇰🇷", digits: [9, 10] },
+  { name: "Spain", code: "+34", flag: "🇪🇸", digits: 9 },
+  { name: "Sri Lanka", code: "+94", flag: "🇱🇰", digits: 9 },
+  { name: "Sweden", code: "+46", flag: "🇸🇪", digits: [7, 9] },
+  { name: "Switzerland", code: "+41", flag: "🇨🇭", digits: 9 },
+  { name: "Taiwan", code: "+886", flag: "🇹🇼", digits: 9 },
+  { name: "Tanzania", code: "+255", flag: "🇹🇿", digits: 9 },
+  { name: "Thailand", code: "+66", flag: "🇹🇭", digits: 9 },
+  { name: "Turkey", code: "+90", flag: "🇹🇷", digits: 10 },
+  { name: "UAE", code: "+971", flag: "🇦🇪", digits: 9 },
+  { name: "Uganda", code: "+256", flag: "🇺🇬", digits: 9 },
+  { name: "Ukraine", code: "+380", flag: "🇺🇦", digits: 9 },
+  { name: "United Kingdom", code: "+44", flag: "🇬🇧", digits: 10 },
+  { name: "United States", code: "+1", flag: "🇺🇸", digits: 10 },
+  { name: "Venezuela", code: "+58", flag: "🇻🇪", digits: 10 },
+  { name: "Vietnam", code: "+84", flag: "🇻🇳", digits: 9 },
+  { name: "Yemen", code: "+967", flag: "🇾🇪", digits: 9 },
+];
+
+function getPhoneError(phone: string, country: CountryEntry | null): string {
+  if (!phone) return "";
+  if (!country) {
+    if (phone.length < 4 || phone.length > 15) return "That doesn't look like a valid phone number. Please check and try again.";
+    return "";
+  }
+  const { digits, name } = country;
+  if (typeof digits === "number") {
+    if (phone.length !== digits) return `${name} phone numbers are ${digits} digits long. You've entered ${phone.length} — please double-check.`;
+  } else {
+    const [min, max] = digits;
+    if (phone.length < min || phone.length > max)
+      return `${name} phone numbers are between ${min} and ${max} digits. You've entered ${phone.length} — please double-check.`;
+  }
+  return "";
+}
 
 type OrderStatus =
   | "pending"
@@ -60,8 +162,96 @@ const OrderDrawer = memo(function OrderDrawer({
   isProcessingPayment?: boolean;
 }): JSX.Element | null {
 
+  const { user } = useAuth();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [reorderLoading, setReorderLoading] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [supportForm, setSupportForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<CountryEntry | null>(null);
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showCountryDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target as Node)) {
+        setShowCountryDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showCountryDropdown]);
+
+  const filteredCountries = COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+    c.code.includes(countrySearch)
+  );
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, "");
+    setSupportForm(p => ({ ...p, phone: val }));
+    setPhoneError(getPhoneError(val, selectedCountry));
+  };
+
+  const handleCountrySelect = (c: CountryEntry) => {
+    setSelectedCountry(c);
+    setShowCountryDropdown(false);
+    setPhoneError(getPhoneError(supportForm.phone, c));
+  };
+
+  const openSupportModal = () => {
+    setSupportForm({ name: user?.name || "", email: user?.email || "", phone: "", message: "" });
+    setPhoneError("");
+    setSelectedCountry(null);
+    setCountrySearch("");
+    setShowCountryDropdown(false);
+    setShowSupportModal(true);
+  };
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supportForm.message) {
+      toast.error("Please write a message before sending.");
+      return;
+    }
+    const trimmedMessage = supportForm.message.trim();
+    if (trimmedMessage.length < 15) {
+      toast.error("Your message is too short. Please provide a bit more detail (at least 15 characters).");
+      return;
+    }
+    if (trimmedMessage.length > 2000) {
+      toast.error("Your message is too long. Please keep it under 2000 characters.");
+      return;
+    }
+    if (supportForm.phone && !selectedCountry) {
+      toast.error("Please select a country code for your phone number.");
+      return;
+    }
+    if (!supportForm.phone && selectedCountry) {
+      toast.error("You've selected a country code but haven't entered a phone number.");
+      return;
+    }
+    const phoneErr = getPhoneError(supportForm.phone, selectedCountry);
+    if (phoneErr) {
+      toast.error(phoneErr);
+      return;
+    }
+    const fullPhone = supportForm.phone ? `${selectedCountry!.code}${supportForm.phone}` : "";
+    setSupportLoading(true);
+    try {
+      await submitContactMessage({ ...supportForm, phone: fullPhone, message: trimmedMessage });
+      toast.success("Support request sent. We'll get back to you soon.");
+      setShowSupportModal(false);
+    } catch {
+      toast.error("Something went wrong. Please try again in a moment.");
+    } finally {
+      setSupportLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -107,6 +297,40 @@ const OrderDrawer = memo(function OrderDrawer({
       toast.error("Failed to cancel order. Try again.");
     } finally {
       setCancelLoading(false);
+    }
+  };
+
+  const handleReorder = async () => {
+    if (!order?.items?.length) return;
+    setReorderLoading(true);
+    let added = 0;
+    let skipped = 0;
+    for (const item of order.items) {
+      if (!item.name) { skipped++; continue; }
+      try {
+        const productId = (item as any).productId || (item as any)._id;
+        if (!productId) { skipped++; continue; }
+        await addToCartApi({
+          productId,
+          quantity: item.quantity || 1,
+          color: (item as any).color ?? null,
+          lens: (item as any).lens ?? null,
+          powerType: (item as any).powerType ?? null,
+          powerDetails: (item as any).powerDetails ?? null,
+        });
+        added++;
+      } catch {
+        skipped++;
+      }
+    }
+    setReorderLoading(false);
+    notifyCartUpdated();
+    if (added === 0) {
+      toast.error("None of the items could be added to your cart. They may no longer be available.");
+    } else if (skipped > 0) {
+      toast.success(`${added} item${added > 1 ? "s" : ""} added to cart. ${skipped} item${skipped > 1 ? "s were" : " was"} unavailable and skipped.`);
+    } else {
+      toast.success(`${added} item${added > 1 ? "s" : ""} added to your cart!`);
     }
   };
 
@@ -347,7 +571,7 @@ const OrderDrawer = memo(function OrderDrawer({
               </button>
             )}
 
-            <button className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
+            <button onClick={openSupportModal} className="w-full py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
@@ -355,11 +579,136 @@ const OrderDrawer = memo(function OrderDrawer({
             </button>
 
             {displayStatus === "delivered" && (
-              <button className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">Reorder</button>
+              <button onClick={handleReorder} disabled={reorderLoading} className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {reorderLoading ? "Adding to cart..." : "Reorder"}
+              </button>
             )}
           </div>
         </div>
       </div>
+
+      {showSupportModal && (
+        <div className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onClick={() => setShowSupportModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowSupportModal(false)} className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">Contact Customer Support</h3>
+            <p className="text-sm text-gray-500 mb-4">Order: {order?.orderId || order?._id}</p>
+            <form onSubmit={handleSupportSubmit} className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                <div className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.name}</div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                <div className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.email}</div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Phone (optional)</label>
+                <div className="flex gap-2">
+                  {/* Country code selector */}
+                  <div className="relative shrink-0" ref={countryDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowCountryDropdown(p => !p); setCountrySearch(""); }}
+                      className="h-full min-w-[120px] flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-700 hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200 transition-colors"
+                    >
+                      {selectedCountry ? (
+                        <>
+                          <span className="text-base leading-none">{selectedCountry.flag}</span>
+                          <span className="font-medium">{selectedCountry.code}</span>
+                          <span className="text-gray-500 truncate max-w-[60px]">{selectedCountry.name}</span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">Code</span>
+                      )}
+                      <svg className="w-3 h-3 text-gray-400 ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showCountryDropdown && (
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-[120] overflow-hidden">
+                        <div className="p-2 border-b border-gray-100">
+                          <input
+                            autoFocus
+                            value={countrySearch}
+                            onChange={e => setCountrySearch(e.target.value)}
+                            placeholder="Search country or code…"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
+                          />
+                        </div>
+                        <ul className="max-h-48 overflow-y-auto">
+                          {filteredCountries.length === 0 ? (
+                            <li className="px-3 py-2 text-sm text-gray-400">No results</li>
+                          ) : filteredCountries.map(c => (
+                            <li
+                              key={`${c.code}-${c.name}`}
+                              onClick={() => handleCountrySelect(c)}
+                              className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-teal-50 transition-colors"
+                            >
+                              <span className="text-base leading-none">{c.flag}</span>
+                              <span className="font-medium text-gray-800">{c.code}</span>
+                              <span className="text-gray-500">{c.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Phone number input — digits only */}
+                  <input
+                    value={supportForm.phone}
+                    onChange={handlePhoneChange}
+                    placeholder=""
+                    inputMode="numeric"
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 ${phoneError ? "border-red-400" : "border-gray-200"}`}
+                  />
+                </div>
+                {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
+                <textarea
+                  value={supportForm.message}
+                  onChange={(e) => setSupportForm(p => ({ ...p, message: e.target.value }))}
+                  rows={3}
+                  maxLength={2000}
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
+                />
+                <div className="flex justify-between mt-1">
+                  {supportForm.message.trim().length > 0 && supportForm.message.trim().length < 15 && (
+                    <p className="text-xs text-red-500">Too short — please add a bit more detail.</p>
+                  )}
+                  <p className={`text-xs ml-auto ${
+                    supportForm.message.length > 1900 ? "text-red-500" :
+                    supportForm.message.length > 1500 ? "text-amber-500" : "text-gray-400"
+                  }`}>{supportForm.message.length}/2000</p>
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={supportLoading}
+                className="w-full py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {supportLoading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Sending...
+                  </>
+                ) : "Send Request"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onClick={() => setShowCancelModal(false)}>
@@ -440,13 +789,6 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
     setWhatsappUpdates(prev => !prev);
   }, []);
 
-  const brandLogos = useMemo(() => (
-    CONTACT_LENS_BRANDS.map((brand, index) => (
-      <span key={index} className={`text-sm font-bold ${brand === "B+L" ? "text-blue-600" : brand === "Alcon" ? "text-teal-600" : brand === "J&J" ? "text-red-600" : "text-blue-800"}`}>
-        {brand}
-      </span>
-    ))
-  ), []);
 
   return (
     <>
@@ -458,9 +800,16 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
             </svg>
           </div>
           <span className="text-gray-700 text-xs sm:text-sm">Get Order Updates on WhatsApp</span>
-          <button onClick={toggleWhatsappUpdates} className={`relative w-11 h-5 sm:w-12 sm:h-6 rounded-full transition-colors ${whatsappUpdates ? "bg-teal-600" : "bg-gray-300"}`}>
-            <span className={`absolute top-0.5 sm:top-1 w-4 h-4 bg-white rounded-full transition-transform ${whatsappUpdates ? "translate-x-6 sm:translate-x-7" : "translate-x-1"}`} />
-          </button>
+          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={whatsappUpdates}
+              onChange={toggleWhatsappUpdates}
+            />
+            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-teal-600 transition-colors duration-200" />
+            <span className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-5" />
+          </label>
         </div>
       </div>
 

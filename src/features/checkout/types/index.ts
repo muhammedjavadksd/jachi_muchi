@@ -27,14 +27,15 @@ export interface OrderItemPowerDetails {
   rightCYL?: string | null;
   isSamePower?: boolean;
   hasCylindrical?: boolean;
-  customerName: string;
-  customerPhone: string;
+  customerName?: string;
+  customerPhone?: string;
   knowPowerLater?: boolean;
 }
 
 export interface CreateOrderItem {
   productId: string;
   name: string;
+  image?: string;
   price: number;
   quantity: number;
   color?: OrderItemColor;

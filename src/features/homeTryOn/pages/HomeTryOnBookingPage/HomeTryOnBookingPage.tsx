@@ -53,7 +53,6 @@ const initialForm = (userName: string, userPhone: string, userEmail: string): Fo
 
 const LETTERS_SPACES = /^[A-Za-z\s]+$/;
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
-const DIGITS_ONLY = /^\d+$/;
 
 const getTodayStr = () => new Date().toISOString().split("T")[0];
 const getNowTimeStr = () => {
@@ -61,7 +60,7 @@ const getNowTimeStr = () => {
   return `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 };
 
-export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.Element {
+export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.Element | null {
   const { user } = useAuth();
   const formRef = useRef<HTMLFormElement>(null);
   const todayDate = getTodayStr();
@@ -76,9 +75,7 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
   useEffect(() => {
     if (user) {
-      const fullName = user.firstName && user.lastName
-        ? `${user.firstName} ${user.lastName}`.trim()
-        : user.name || "";
+      const fullName = user.name || "";
       setForm(initialForm(fullName, "", user.email));
     }
   }, [user]);

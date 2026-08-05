@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute/ProtectedRoute";
 import { AccountLayout } from "@/app/layouts";
@@ -67,12 +67,15 @@ export const routes: RouteObject[] = [
     element: <ProtectedRoute><AccountLayout /></ProtectedRoute>,
     children: [
       { path: "/account", element: <AccountPage /> },
+      { path: "/account/orders", element: <AccountPage /> },
+      { path: "/orders", element: <AccountPage /> },
+      { path: "/track-orders", element: <AccountPage /> },
       { path: "/account/3d-model", element: <My3DModelPage /> },
       { path: "/account/info", element: <AccountInfoPage /> },
       { path: "/account/notifications", element: <ManageNotificationsPage /> },
       { path: "/account/address", element: <AddressBookPage /> },
       { path: "/account/home-try-on-appointments", element: <AccountHomeTryOnAppointmentsPage /> },
-      { path: "/account/*", element: <AccountPage /> },
+
     ],
   },
   { path: "/terms", element: <TermsPage /> },

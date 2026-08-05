@@ -57,7 +57,7 @@ export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
                 className="group relative block aspect-square overflow-hidden rounded-lg sm:rounded-xl bg-gray-100"
               >
                 <img
-                  src={collection.image || PLACEHOLDER_IMAGE}
+                  src={collection.image ?? PLACEHOLDER_IMAGE}
                   alt={collection.name}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

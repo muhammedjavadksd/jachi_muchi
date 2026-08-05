@@ -5,6 +5,33 @@ export interface ContainerProps {
   className?: string;
 }
 
+export interface HeaderProps {
+  className?: string;
+  isScrolled?: boolean;
+}
+
+export interface MainNavBarProps {
+  className?: string;
+  isScrolled?: boolean;
+}
+
+export interface GridProps {
+  children: ReactNode;
+  className?: string;
+  cols?: number;
+  columns?: number;
+  gap?: number;
+}
+
+export interface ImageCardProps {
+  src?: string;
+  image?: string;
+  alt?: string;
+  className?: string;
+  link?: string;
+  borderRadius?: string;
+}
+
 export interface ColorVariant {
   colorCode: string;
   image: string;

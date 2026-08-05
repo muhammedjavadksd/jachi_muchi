@@ -1,4 +1,4 @@
-import { memo, useMemo, useState, useCallback, useEffect } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuth } from "@/features/auth/hooks";
 import type { UserProfile } from "@/features/auth/types";

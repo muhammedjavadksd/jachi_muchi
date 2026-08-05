@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from "react";
+import { memo } from "react";
 import { RatingStars } from "@/features/review/components/RatingStars/RatingStars";
 import type { ReviewItem } from "@/features/review/types";
 

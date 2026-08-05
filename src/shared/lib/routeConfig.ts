@@ -13,10 +13,9 @@ const CheckoutPage = lazy(() => import("@/features/checkout/pages/CheckoutPage/C
 const OrderSuccessPage = lazy(() => import("@/features/checkout/pages/OrderSuccessPage/OrderSuccessPage").then(m => ({ default: m.OrderSuccessPage })));
 const OrderFailurePage = lazy(() => import("@/features/checkout/pages/OrderFailurePage/OrderFailurePage").then(m => ({ default: m.OrderFailurePage })));
 const AccountPage = lazy(() => import("@/features/account/pages/AccountPage/AccountPage").then(m => ({ default: m.AccountPage })));
-const My3DModelPage = lazy(() => import("@/pages/My3DModelPage/My3DModelPage").then(m => ({ default: m.My3DModelPage })));
-const AccountInfoPage = lazy(() => import("@/pages/AccountInfoPage/AccountInfoPage").then(m => ({ default: m.AccountInfoPage })));
-const ManageNotificationsPage = lazy(() => import("@/pages/ManageNotificationsPage/ManageNotificationsPage").then(m => ({ default: m.ManageNotificationsPage })));
-const AddressBookPage = lazy(() => import("@/pages/AddressBookPage/AddressBookPage").then(m => ({ default: m.AddressBookPage })));
+const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage })));
+const AccountInfoPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountInfoPage })));
+const AddressBookPage = lazy(() => import("@/features/account").then(m => ({ default: m.AddressBookPage })));
 const TermsPage = lazy(() => import("@/features/account/pages/TermsPage/TermsPage").then(m => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import("@/features/account/pages/PrivacyPage/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const RefundPolicyPage = lazy(() => import("@/features/account/pages/RefundPolicyPage/RefundPolicyPage").then(m => ({ default: m.RefundPolicyPage })));
@@ -27,12 +26,12 @@ const ServerErrorPage = lazy(() => import("@/features/account/pages/ServerErrorP
 const ContactPage = lazy(() => import("@/features/account/pages/ContactPage/ContactPage").then(m => ({ default: m.ContactPage })));
 const AboutPage = lazy(() => import("@/features/account/pages/AboutPage/AboutPage").then(m => ({ default: m.AboutPage })));
 const SupportPage = lazy(() => import("@/features/account/pages/SupportPage/SupportPage").then(m => ({ default: m.SupportPage })));
-const TryAtHomePage = lazy(() => import("@/pages/TryAtHomePage/TryAtHomePage").then(m => ({ default: m.TryAtHomePage })));
+const TryAtHomePage = lazy(() => import("@/features/homeTryOn/pages/TryAtHomePage/TryAtHomePage").then(m => ({ default: m.TryAtHomePage })));
 const WarrantyPage = lazy(() => import("@/features/account/pages/WarrantyPage/WarrantyPage").then(m => ({ default: m.WarrantyPage })));
 const CollectionsPage = lazy(() => import("@/features/collections/pages/CollectionsPage/CollectionsPage").then(m => ({ default: m.CollectionsPage })));
 const ServicesPage = lazy(() => import("@/features/account/pages/ServicesPage/ServicesPage").then(m => ({ default: m.ServicesPage })));
 const HomePage2 = lazy(() => import("@/features/home/pages/HomePage2/HomePage2").then(m => ({ default: m.HomePage2 })));
-const HomeTryOnPage = lazy(() => import("@/pages/HomeTryOnPage/HomeTryOnPage").then(m => ({ default: m.HomeTryOnPage })));
+const HomeTryOnPage = lazy(() => import("@/features/homeTryOn/pages/HomeTryOnPage/HomeTryOnPage").then(m => ({ default: m.HomeTryOnPage })));
 const StoresPage = lazy(() => import("@/features/store/pages/StoresPage/StoresPage").then(m => ({ default: m.StoresPage })));
 const WishlistPage = lazy(() => import("@/features/wishlist/pages/WishlistPage/WishlistPage").then(m => ({ default: m.WishlistPage })));
 
@@ -50,7 +49,6 @@ export const ROUTES: RouteConfig[] = [
   { path: "/account", component: AccountPage, protected: true },
   { path: "/account/3d-model", component: My3DModelPage, protected: true },
   { path: "/account/info", component: AccountInfoPage, protected: true },
-  { path: "/account/notifications", component: ManageNotificationsPage, protected: true },
   { path: "/account/address", component: AddressBookPage, protected: true },
   { path: "/account/*", component: AccountPage, protected: true },
   { path: "/terms", component: TermsPage },

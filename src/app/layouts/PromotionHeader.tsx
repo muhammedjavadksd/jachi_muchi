@@ -93,12 +93,12 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
           {/* Right Section */}
           <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
             {/* Track Orders - Hidden on mobile */}
-            <a 
-              href="/track-orders" 
+            <Link
+              to="/orders"
               className="hidden sm:block text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
             >
               Track Orders
-            </a>
+            </Link>
 
             {/* Sign In / Profile */}
             {isAuthenticated && user ? (

@@ -1,80 +1,102 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import type { CartItemData } from "@/features/cart/types";
+import {
+  fetchCart,
+  addToCartApi,
+  removeCartItemApi,
+  clearCartApi,
+  mapBackendItem,
+  notifyCartUpdated,
+} from "@/features/cart/api/cartApi";
 
 export interface CartItem {
   cartItemId?: string;
+  bogoGroupId?: string;
   productId: string;
   productName: string;
   productPrice: number;
+  productImage?: string;
   mrp?: number;
   quantity?: number;
   color: { name: string; id: string } | null;
-  lens: {
-    id?: string;
-    name: string;
-    price: number;
-  } | null;
+  lens: { id?: string; name: string; price: number } | null;
   lensPrice?: number;
   totalPrice: number;
   powerType?: string;
+  powerDetails?: object | null;
+  isFree?: boolean;
 }
 
 interface CartContextValue {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (cartItemId: string) => void;
+  addItem: (item: CartItem) => Promise<void>;
+  removeItem: (cartItemId: string) => Promise<void>;
   itemCount: number;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
+  loading: boolean;
+  reload: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (Array.isArray(stored)) {
-      setItems(stored);
+  const loadCart = useCallback(async () => {
+    try {
+      const cart = await fetchCart();
+      setItems(cart.items.map(mapBackendItem));
+    } catch {
+      setItems([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const addItem = useCallback((item: CartItem) => {
-    setItems(prev => {
-      const updated = [...prev, item];
-      localStorage.setItem("cart", JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
+  useEffect(() => {
+    loadCart();
+    window.addEventListener("cart-updated", loadCart);
+    return () => window.removeEventListener("cart-updated", loadCart);
+  }, [loadCart]);
 
-  const removeItem = useCallback((cartItemId: string) => {
-    setItems(prev => {
-      const updated = prev.filter(item => item.cartItemId !== cartItemId);
-      localStorage.setItem("cart", JSON.stringify(updated));
-      return updated;
+  const addItem = useCallback(async (item: CartItem) => {
+    await addToCartApi({
+      productId: item.productId,
+      quantity: item.quantity ?? 1,
+      color: item.color,
+      lens: item.lens as any,
+      powerType: item.powerType ?? null,
+      powerDetails: item.powerDetails ?? null,
+      bogoGroupId: item.bogoGroupId ?? null,
+      isFree: item.isFree ?? false,
     });
-  }, []);
+    await loadCart();
+    notifyCartUpdated();
+  }, [loadCart]);
 
-  const clearCart = useCallback(() => {
+  const removeItem = useCallback(async (cartItemId: string) => {
+    await removeCartItemApi(cartItemId);
+    await loadCart();
+    notifyCartUpdated();
+  }, [loadCart]);
+
+  const clearCart = useCallback(async () => {
+    await clearCartApi();
     setItems([]);
-    localStorage.removeItem("cart");
+    notifyCartUpdated();
   }, []);
 
-  const itemCount = useMemo(() => items.reduce((sum, item) => sum + (item.quantity || 1), 0), [items]);
-
-  const value = useMemo(() => ({
-    items,
-    addItem,
-    removeItem,
-    itemCount,
-    clearCart,
-  }), [items, addItem, removeItem, itemCount, clearCart]);
-
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
+  const itemCount = useMemo(
+    () => items.reduce((sum, item) => sum + (item.quantity ?? 1), 0),
+    [items]
   );
+
+  const value = useMemo(
+    () => ({ items, addItem, removeItem, itemCount, clearCart, loading, reload: loadCart }),
+    [items, addItem, removeItem, itemCount, clearCart, loading, loadCart]
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export { CartContext };

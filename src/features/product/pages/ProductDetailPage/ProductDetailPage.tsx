@@ -2,7 +2,6 @@ import { memo, useMemo } from "react";
 import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews } from "@/components";
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
 import { Container } from "@/shared/components/Container/Container";
-import { getImageUrl } from "@/shared/utils/image";
 import { useProductDetail } from "@/features/product/hooks";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -93,7 +92,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
             </div>
             <div className="flex gap-3 mt-4 overflow-x-auto scrollbar-hide pb-2">
               {safeProduct.images.map((image, i) => (
-                <button key={i} onClick={() => goToImage(i)} className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === currentImageIndex ? "border-teal-700 shadow-md opacity-100" : "border-gray-200 opacity-60 hover:opacity-90"}`}>
+                <button key={i} onClick={() => goToImage(i)} className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === currentImageIndex ? "border-teal-700 shadow-md opacity-100" : "border-gray-200 opacity-60 hover:opacity-90"}`}>
                   <img src={image} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-contain p-1.5 bg-gray-50" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
                 </button>
               ))}
@@ -118,7 +117,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   const specsTable = useMemo(() =>
     safeProduct.specs.map((spec, i) => (
       <div key={i} className="flex py-3 border-b border-gray-100 last:border-b-0 text-sm">
-        <span className="w-40 flex-shrink-0 text-gray-500">{spec.label}</span>
+        <span className="w-40 shrink-0 text-gray-500">{spec.label}</span>
         <span className="text-gray-900 font-medium">{spec.value}</span>
       </div>
     ))
@@ -135,7 +134,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         <Container className="py-6 md:py-10">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             <div className="lg:w-3/5 xl:w-2/3">{imageCarousel}</div>
-            <div className="lg:w-2/5 xl:w-1/3 lg:sticky lg:top-[160px] lg:self-start">
+            <div className="lg:w-2/5 xl:w-1/3 lg:sticky lg:top-40 lg:self-start">
               <div className="flex items-center gap-3 mb-3">
                 <span className="flex items-center gap-1 bg-teal-700 text-white text-sm font-semibold px-3 py-1 rounded-full">
                   {safeProduct.rating} <StarIcon />

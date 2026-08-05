@@ -1,5 +1,9 @@
 import { memo, useState, useEffect } from "react";
-import type { Offer } from "@/features/offer/types";
+import type { Offer, OfferProduct } from "@/features/offer/types";
+
+function isOfferProduct(p: OfferProduct | string): p is OfferProduct {
+  return typeof p === "object" && p !== null;
+}
 
 interface OfferCardProps {
   offer: Offer;
@@ -38,7 +42,7 @@ const TYPE_STYLES: Record<string, { badge: string; gradient: string; accent: str
   },
 };
 
-function getDefaultStyle(offerType: string) {
+function getDefaultStyle(_offerType: string) {
   return {
     badge: "bg-gray-800 text-white",
     gradient: "from-gray-700 to-gray-900",
@@ -93,12 +97,12 @@ function OfferImage({ src, alt, fallback }: { src?: string; alt: string; fallbac
   const [error, setError] = useState(false);
   if (!src || error) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+      <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
         <div className="text-center p-4">
           <svg className="w-10 h-10 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
           </svg>
-          <p className="text-xs text-gray-400 truncate max-w-[120px]">{fallback}</p>
+          <p className="text-xs text-gray-400 truncate max-w-30">{fallback}</p>
         </div>
       </div>
     );
@@ -114,7 +118,8 @@ function OfferImage({ src, alt, fallback }: { src?: string; alt: string; fallbac
 }
 
 function getOfferDescription(offer: Offer): string {
-  const buyName = offer.applicableProducts?.[0]?.name;
+  const firstProduct = offer.applicableProducts?.[0];
+  const buyName = firstProduct && isOfferProduct(firstProduct) ? firstProduct.name : undefined;
   const freeName = offer.freeProduct?.name;
   if (offer.offerType === "bogo" && buyName && freeName) {
     return `Buy ${offer.buyQuantity || 1} ${buyName} and get ${freeName} free`;
@@ -132,15 +137,17 @@ function getOfferDescription(offer: Offer): string {
 }
 
 function getProductImage(offer: Offer): string | undefined {
+  const firstProduct = offer.applicableProducts?.[0];
   return (
-    offer.applicableProducts?.[0]?.images?.[0] ||
+    (firstProduct && isOfferProduct(firstProduct) ? firstProduct.images?.[0] : undefined) ||
     offer.freeProduct?.images?.[0] ||
     offer.image
   );
 }
 
 function getProductName(offer: Offer): string {
-  return offer.applicableProducts?.[0]?.name || offer.freeProduct?.name || offer.offerName;
+  const firstProduct = offer.applicableProducts?.[0];
+  return (firstProduct && isOfferProduct(firstProduct) ? firstProduct.name : undefined) || offer.freeProduct?.name || offer.offerName;
 }
 
 export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
@@ -150,12 +157,12 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
   const description = getOfferDescription(offer);
 
   return (
-    <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col md:flex-row-reverse min-h-[320px]">
+    <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col md:flex-row-reverse min-h-80">
       {/* Right: Image Section */}
-      <div className="relative md:w-[280px] lg:w-[320px] h-52 md:h-auto shrink-0 overflow-hidden bg-gray-100">
+      <div className="relative md:w-70 lg:w-[320px] h-52 md:h-auto shrink-0 overflow-hidden bg-gray-100">
         <OfferImage src={productImage} alt={offer.offerName} fallback={productName} />
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white/30 md:block hidden" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent md:hidden" />
+        <div className="absolute inset-0 bg-linear-to-l from-transparent via-transparent to-white/30 md:block hidden" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/10 to-transparent md:hidden" />
       </div>
 
       {/* Left: Content Section */}
@@ -192,7 +199,7 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
 
         {/* Product names row */}
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          {offer.applicableProducts?.[0] && (
+          {offer.applicableProducts?.[0] && isOfferProduct(offer.applicableProducts[0]) && (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-xs font-medium text-gray-700">
               {offer.applicableProducts[0].name}
             </span>
@@ -211,7 +218,7 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
 
         {/* Price info */}
         <div className="flex items-center gap-4 mb-3 text-sm">
-          {offer.applicableProducts?.[0]?.price && (
+          {offer.applicableProducts?.[0] && isOfferProduct(offer.applicableProducts[0]) && offer.applicableProducts[0].price && (
             <span className="text-gray-500">
               MRP: <span className="line-through">₹{offer.applicableProducts[0].price}</span>
             </span>
@@ -233,7 +240,7 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
         <div className="flex items-center gap-3 mt-4">
           <a
             href={offer.link || "#"}
-            className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-gradient-to-r ${style.gradient} hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200`}
+            className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-linear-to-r ${style.gradient} hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200`}
           >
             {offer.buttonText || "Shop Now"}
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

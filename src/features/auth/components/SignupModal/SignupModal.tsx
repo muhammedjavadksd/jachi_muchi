@@ -137,6 +137,8 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
           name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
           email: apiUser.email,
           phone: signupPayload.mobile,
+          role: "user" as const,
+          createdAt: new Date().toISOString(),
         });
         setShowWelcomeCoupon(true);
       } else {

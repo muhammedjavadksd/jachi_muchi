@@ -1,4 +1,9 @@
-export type OfferType = "bogo" | "combo" | "percentage" | "flat" | "category-offer";
+export type OfferType = "bogo" | "combo" | "percentage" | "flat" | "category-offer" | "seasonal";
+
+export interface OfferBadge {
+  label: string;
+  color: string;
+}
 
 export interface OfferProduct {
   _id: string;

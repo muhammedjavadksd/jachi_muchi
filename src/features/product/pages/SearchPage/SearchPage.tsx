@@ -33,13 +33,14 @@ const ProductGrid = memo(function ProductGrid({
 
   const productCards = useMemo(() =>
     products.map((product: any, index) => {
-      const colors = (product.variants || []).map((v: any) => ({
-        colorCode: {
+      const colorMap: Record<string, string> = {
           black: "#000000", blue: "#1e40af", pink: "#ec4899", red: "#dc2626",
           green: "#16a34a", gold: "#d4a017", silver: "#c0c0c0", grey: "#6b7280",
           brown: "#8b4513", transparent: "#f0f0f0", purple: "#7c3aed",
           "rose-gold": "#b76e79", gunmetal: "#2c3539", white: "#ffffff",
-        }[v.color?.toLowerCase()] || v.image || "#888888",
+        };
+      const colors = (product.variants || []).map((v: any) => ({
+        colorCode: colorMap[v.color?.toLowerCase()] || v.image || "#888888",
         image: getImageUrl(v.image || product.images?.[0]),
         name: v.color,
       }));

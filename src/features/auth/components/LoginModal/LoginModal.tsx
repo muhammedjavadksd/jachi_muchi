@@ -74,6 +74,8 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
               id: apiUser._id || apiUser.id || "",
               name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
               email: apiUser.email,
+              role: "user" as const,
+              createdAt: new Date().toISOString(),
             });
             close();
             navigate("/");

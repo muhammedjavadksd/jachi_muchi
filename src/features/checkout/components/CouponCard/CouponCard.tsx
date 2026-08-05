@@ -46,7 +46,7 @@ export const CouponCard = memo(function CouponCard({
   expiresAt,
   isNewUserOnly,
   onCopy,
-}: CouponCardProps): JSX.Element {
+}: CouponCardProps): JSX.Element | null {
   const [copied, setCopied] = useState(false);
   const daysLeft = getDaysRemaining(expiresAt);
   const isExpiringSoon = daysLeft !== null && daysLeft <= 5 && daysLeft > 0;

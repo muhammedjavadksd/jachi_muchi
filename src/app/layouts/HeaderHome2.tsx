@@ -88,7 +88,7 @@ const TOP_SERVICE_PILLS = [
  * Row 3: Category nav. Colors: blue, white, gray, gold, red.
  */
 export const HeaderHome2 = memo(function HeaderHome2({
-  isScrolled,
+  isScrolled: _isScrolled,
 }: HeaderProps): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();

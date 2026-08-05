@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { PopularEyewearItem } from "@/shared/types";
 
 export interface Banner {
   _id: string;

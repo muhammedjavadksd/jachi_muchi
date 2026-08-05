@@ -1,4 +1,4 @@
-export const collections = [
+export const collections: { id: number; name: string; link: string; image?: string }[] = [
     { id: 1, name: "AIR", link: "/search?collection=air" },
   { id: 2, name: "ESSENTIAL", link: "/search?collection=essential" },
   { id: 3, name: "THE ONE", link: "/search?collection=the-one" },

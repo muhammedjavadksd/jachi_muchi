@@ -384,14 +384,16 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={() => handleFormChange("isDefault", !formData.isDefault)}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${
-                      formData.isDefault ? "bg-teal-600" : "bg-gray-300"
-                    }`}
-                  >
-                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.isDefault ? "translate-x-6" : ""}`} />
-                  </button>
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={formData.isDefault}
+                      onChange={() => handleFormChange("isDefault", !formData.isDefault)}
+                    />
+                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-teal-600 transition-colors duration-200" />
+                    <span className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-5" />
+                  </label>
                   <span className="text-sm text-gray-700">Set as default address</span>
                 </div>
               </div>

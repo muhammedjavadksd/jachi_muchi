@@ -1,4 +1,5 @@
 import { createContext, useCallback, useMemo, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { WishlistItem } from "@/features/wishlist/types";
 
 interface WishlistContextValue {
@@ -9,7 +10,7 @@ interface WishlistContextValue {
   close: () => void;
   toggle: () => void;
   isInWishlist: (link: string) => boolean;
-  setItems: (items: WishlistItem[]) => void;
+  setItems: Dispatch<SetStateAction<WishlistItem[]>>;
   setLoading: (loading: boolean) => void;
 }
 

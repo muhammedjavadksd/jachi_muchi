@@ -99,7 +99,6 @@ export const SearchAutocomplete = memo(function SearchAutocomplete({
     [allItems, highlightedIndex, query, triggerSearch]
   );
 
-  const bgClass = variant === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900";
   const inputBg = variant === "dark" ? "bg-gray-700 text-white placeholder:text-gray-400" : "bg-gray-100 text-gray-900 placeholder:text-gray-500";
 
   return (
@@ -150,7 +149,7 @@ export const SearchAutocomplete = memo(function SearchAutocomplete({
           {!loading && results && results.suggestions.length > 0 && (
             <div className="py-2">
               <p className={`px-5 py-1.5 text-xs font-semibold uppercase tracking-wider ${variant === "dark" ? "text-gray-400" : "text-gray-500"}`}>Suggestions</p>
-              {results.suggestions.map((s, i) => {
+              {results.suggestions.map((s, _i) => {
                 const idx = allItems.indexOf(allItems.find((x) => x.type === "suggestion" && x.label === s)!);
                 return (
                   <button

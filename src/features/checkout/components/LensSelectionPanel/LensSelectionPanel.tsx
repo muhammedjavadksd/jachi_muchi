@@ -5,6 +5,7 @@ import type { LensItem } from "@/features/lens/types";
 import { getOffers } from "@/shared/services/offerEngine";
 import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
+import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
 
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
@@ -33,7 +34,6 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   productId,
   productName,
   productPrice,
-  productMrp,
   productImage,
   selectedColor,
 }: LensSelectionPanelProps): JSX.Element | null {
@@ -62,7 +62,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     if (!isOpen) return;
     getOffers().then((allOffers) => {
       const bogo = allOffers.find(
-        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => p._id === productId)
+        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => typeof p === "object" && p._id === productId)
       );
       setBogoOffer(bogo || null);
     }).catch(() => {});
@@ -127,85 +127,53 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     }
   }, [step, selectedPowerType, onClose]);
 
-  const handleAddToCart = useCallback(() => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const handleAddToCart = useCallback(async () => {
     const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
 
-    const tempId = Date.now().toString();
-
-    const cartItem = {
-      cartItemId: tempId,
-      bogoGroupId,
-      productId,
-      productName,
-      productPrice,
-      productImage,
-      mrp: productMrp,
-      color: selectedColor || null,
-      lens: selectedLens
+    const resolvedPowerDetails =
+      selectedPowerType === "with-power" || selectedPowerType === "progressive"
         ? {
-          id: selectedLens._id,
-          name: selectedLens.name,
-          price: selectedLens.price,
-        }
-        : null,
-
-      powerType: selectedPowerType,
-
-      powerDetails:
-        selectedPowerType === "with-power" || selectedPowerType === "progressive"
-          ? {
             leftSPH: powerDetails.leftSph,
-            rightSPH: samePowerBothEyes
-              ? powerDetails.leftSph
-              : powerDetails.rightSph,
-
+            rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
             leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
-            rightCYL: hasCylindrical
-              ? samePowerBothEyes
-                ? powerDetails.leftCyl
-                : powerDetails.rightCyl
-              : null,
-
+            rightCYL: hasCylindrical ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl) : null,
             isSamePower: samePowerBothEyes,
             hasCylindrical,
             customerName: powerDetails.name,
             customerPhone: powerDetails.phone,
             knowPowerLater: powerDetails.knowPowerLater,
           }
-          : null,
+        : null;
 
-      totalPrice:
-        productPrice + (selectedLens?.price || 0),
-    };
+    await addToCartApi({
+      productId,
+      quantity: 1,
+      color: selectedColor ?? null,
+      lens: selectedLens ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price } : null,
+      powerType: selectedPowerType,
+      powerDetails: resolvedPowerDetails,
+      bogoGroupId: bogoGroupId ?? null,
+      isFree: false,
+    });
 
-    const bogoItem = bogoOffer?.freeProduct
-      ? {
-        cartItemId: (Date.now() + 1).toString(),
-        bogoGroupId,
+    if (bogoOffer?.freeProduct) {
+      await addToCartApi({
         productId: bogoOffer.freeProduct._id,
-        productName: `${bogoOffer.freeProduct.name} (FREE)`,
-        productPrice: 0,
-        productImage: bogoOffer.freeProduct.images?.[0],
-        mrp: bogoOffer.freeProduct.price,
+        quantity: 1,
         color: null,
         lens: null,
         powerType: "frame-only",
         powerDetails: null,
-        totalPrice: 0,
-      }
-      : null;
+        bogoGroupId: bogoGroupId ?? null,
+        isFree: true,
+      });
+    }
 
-    cart.push(cartItem);
-    if (bogoItem) cart.push(bogoItem);
-    localStorage.setItem("cart", JSON.stringify(cart));
-
+    notifyCartUpdated();
     onClose();
     navigate("/cart");
   }, [
     productId,
-    productName,
-    productPrice,
     selectedPowerType,
     selectedLens,
     powerDetails,

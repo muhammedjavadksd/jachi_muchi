@@ -125,7 +125,7 @@ export function HomePage2(): JSX.Element {
             {[...EYEGLASS_SHAPES.slice(0, 4), ...SUNGLASS_SHAPES.slice(0, 4)].map((item, i) => (
               <Link
                 key={`${item.label}-${i}`}
-                to={item.link}
+                to={item.link ?? "/"}
                 className="group relative block aspect-[4/5] rounded-3xl overflow-hidden shadow-sm"
               >
                 <img

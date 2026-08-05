@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
 import { fetchAddresses, saveAddress, deleteAddress, type BackendAddress } from "@/features/auth/api/addressApi";
-import { validateCoupon, applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "@/features/coupon/api/couponApi";
+import { applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "@/features/coupon/api/couponApi";
+import { fetchCart, mapBackendItem, clearCartApi } from "@/features/cart/api/cartApi";
 import type { UserCoupon } from "@/features/coupon/types";
 import { createOrder } from "@/features/checkout/api/orderApi";
 import { createSkipCashPayment } from "@/features/checkout/api/paymentApi";
@@ -13,6 +14,7 @@ interface CartItem {
   productId: string;
   productName: string;
   productPrice: number;
+  productImage?: string;
   mrp?: number;
   quantity?: number;
   color: { name: string; id: string } | null;
@@ -255,10 +257,23 @@ export function useCheckout(): UseCheckoutReturn {
     if (!selectedAddress) { alert("Please select address"); return; }
     if (cart.length === 0) { alert("Your cart is empty"); return; }
     setOrderLoading(true);
+
+    let latestCart = cart;
+    try {
+      const backendCart = await fetchCart();
+      latestCart = backendCart.items.map(mapBackendItem);
+      setCart(latestCart);
+    } catch {}
+
+    const latestTotalSellingPrice = latestCart.reduce(
+      (sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0
+    );
+    const latestTotalPayable = latestTotalSellingPrice + fittingFee - couponSavings;
     const orderPayload = {
-      items: cart.map(item => ({
+      items: latestCart.map(item => ({
         productId: item.productId,
         name: item.productName,
+        image: item.productImage || "",
         price: item.productPrice,
         quantity: item.quantity || 1,
         color: item.color || undefined,
@@ -266,7 +281,7 @@ export function useCheckout(): UseCheckoutReturn {
         powerDetails: item.powerDetails || undefined,
       })),
       addressId: selectedAddress.id,
-      totalAmount: totalPayable,
+      totalAmount: latestTotalPayable,
       paymentMethod,
     };
     try {
@@ -277,7 +292,7 @@ export function useCheckout(): UseCheckoutReturn {
         if (appliedCoupon && user?.id && orderId) {
           markCouponAsUsed(appliedCoupon, user.id, orderId).catch(() => {});
         }
-        localStorage.removeItem("cart");
+        await clearCartApi();
         navigate(`/order-success/${orderId}`);
       } else if (paymentMethod === "ONLINE") {
         const orderId = res.data?.orderId;
@@ -294,7 +309,7 @@ export function useCheckout(): UseCheckoutReturn {
             phone: selectedAddr?.phone || "",
           });
           if (paymentRes.success && paymentRes.data?.paymentUrl) {
-            localStorage.removeItem("cart");
+            await clearCartApi();
             window.location.href = paymentRes.data.paymentUrl;
           } else {
             localStorage.removeItem("pendingCouponMark");
@@ -323,8 +338,9 @@ export function useCheckout(): UseCheckoutReturn {
   }, [cart, addresses, paymentMethod, totalPayable, appliedCoupon, user, navigate]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(stored);
+    fetchCart()
+      .then((backendCart) => setCart(backendCart.items.map(mapBackendItem)))
+      .catch(() => setCart([]));
   }, []);
 
   useEffect(() => {

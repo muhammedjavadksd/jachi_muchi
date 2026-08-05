@@ -3,6 +3,7 @@ export { HeaderHome2, HEADER_HOME2_SPACER_HEIGHT } from "./HeaderHome2";
 export { TopUtilityHeader } from "./TopUtilityHeader";
 export { MainNavBar } from "./MainNavBar";
 export { BottomNav } from "./BottomNav";
+export type { NavTab } from "./BottomNav";
 export { AccountSidebar } from "./AccountSidebar";
 export { AccountLayout } from "./AccountLayout";
 export { Footer } from "./Footer";

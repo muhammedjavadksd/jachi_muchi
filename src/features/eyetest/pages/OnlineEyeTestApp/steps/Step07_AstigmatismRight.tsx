@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect, useState, useCallback } from "react";
+import { memo, useRef, useEffect, useState } from "react";
 import { useEyeTest } from "../context/EyeTestContext";
 import { StepWrapper } from "../components/StepWrapper";
 
@@ -102,7 +102,7 @@ export const Step07_AstigmatismRight = memo(function Step07_AstigmatismRight() {
 
         <canvas
           ref={canvasRef}
-          className="w-[260px] sm:w-[280px] h-[260px] sm:h-[280px] mb-5"
+          className="w-65 sm:w-70 h-65 sm:h-70 mb-5"
         />
 
         <p className="text-sm text-gray-600 mb-5 max-w-xs">

@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SEARCH_FILTERS } from "@/features/product/constants";
 import { getProducts } from "@/features/product/api/productApi";
 import { getBrands } from "@/features/product/api/brandApi";
 import { getBanners } from "@/features/home/api/bannerApi";
 import { getOffers, getBestOfferBadge } from "@/features/offer/services/offerEngine";
-import { getImageUrl } from "@/shared/utils/image";
 import { isBannerVisible } from "@/shared/utils/banner";
 import type { Offer, OfferBadge } from "@/features/offer/types";
 

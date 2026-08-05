@@ -1,7 +1,7 @@
-import { memo, useMemo, useRef, useState, useCallback } from "react";
+import { memo, useRef, useState, useCallback } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
-import { useCheckout, type Address } from "@/features/checkout/hooks";
+import { useCheckout } from "@/features/checkout/hooks";
 import type { UserCoupon } from "@/features/coupon/types";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -312,7 +312,6 @@ CustomCouponSection.displayName = "CustomCouponSection";
 
 export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const {
-    cart,
     addresses,
     addressLoading,
     userCoupons,

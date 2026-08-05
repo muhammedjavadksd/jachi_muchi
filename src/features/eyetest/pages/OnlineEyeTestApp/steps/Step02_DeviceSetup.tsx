@@ -11,7 +11,7 @@ const CHECKLIST = [
 ];
 
 export const Step02_DeviceSetup = memo(function Step02_DeviceSetup() {
-  const { state, dispatch } = useEyeTest();
+  const { dispatch } = useEyeTest();
   const [checked, setChecked] = useState<Record<string, boolean>>(
     Object.fromEntries(CHECKLIST.map((c) => [c.id, false]))
   );
