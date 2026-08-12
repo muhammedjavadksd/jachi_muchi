@@ -1,5 +1,5 @@
 import { memo, useState, useRef } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
 import { HeartIcon, CartIcon } from "@/shared/components/Icons";
 import { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
@@ -38,21 +38,28 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
     navigate("/");
   };
 
-  const categoryLinks = SEARCH_CATEGORIES.map((category) => (
-    <NavLink
-      key={category.id}
-      to={category.link}
-      className={({ isActive }) =>
-        `relative text-xs font-semibold whitespace-nowrap transition-colors pb-2 ${
-          isActive
-            ? "text-teal-700 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-teal-700 after:rounded-full"
-            : "text-gray-800 hover:text-teal-700"
-        }`
-      }
-    >
-      {category.label}
-    </NavLink>
-  ));
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isCollectionRoute = location.pathname === "/search" && searchParams.has("collection");
+
+  const categoryLinks = SEARCH_CATEGORIES.map((category) => {
+    const forceActive = category.id === "collections" && isCollectionRoute;
+    return (
+      <NavLink
+        key={category.id}
+        to={category.link}
+        className={({ isActive }) =>
+          `relative text-xs font-semibold whitespace-nowrap transition-colors pb-2 ${
+            isActive || forceActive
+              ? "text-teal-700 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-teal-700 after:rounded-full"
+              : "text-gray-800 hover:text-teal-700"
+          }`
+        }
+      >
+        {category.label}
+      </NavLink>
+    );
+  });
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
