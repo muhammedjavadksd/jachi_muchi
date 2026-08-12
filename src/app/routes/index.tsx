@@ -47,6 +47,7 @@ const VisionScreeningDisclaimerPage = lazy(() => import("@/features/eyetest/page
 const BrightnessSetupPage = lazy(() => import("@/features/eyetest/pages/BrightnessSetupPage/BrightnessSetupPage").then(m => ({ default: m.BrightnessSetupPage })));
 const DeviceCheckPage = lazy(() => import("@/features/eyetest/pages/DeviceCheckPage/DeviceCheckPage").then(m => ({ default: m.DeviceCheckPage })));
 const EyeTestApp = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestApp/EyeTestApp").then(m => ({ default: m.EyeTestApp })));
+const TrackOrderPage = lazy(() => import("@/features/orderTracking/pages/TrackOrderPage/TrackOrderPage").then(m => ({ default: m.TrackOrderPage })));
 
 export const routes: RouteObject[] = [
   { path: "/", element: <App /> },
@@ -60,6 +61,8 @@ export const routes: RouteObject[] = [
   { path: "/checkout", element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
   { path: "/order-success/:id", element: <ProtectedRoute><OrderSuccessPage /></ProtectedRoute> },
   { path: "/order-failure", element: <OrderFailurePage /> },
+  { path: "/track", element: <TrackOrderPage /> },
+  { path: "/track/:orderId", element: <TrackOrderPage /> },
   { path: "/payment/success", element: <PaymentSuccessPage /> },
   { path: "/payment/failed", element: <PaymentFailedPage /> },
   { path: "/payment/pending", element: <PaymentPendingPage /> },
