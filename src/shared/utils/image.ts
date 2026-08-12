@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "";
 
 export function getImageUrl(path?: string | null, fallback = "https://placehold.co/400x300?text=Eyewear"): string {
   if (!path) return fallback;

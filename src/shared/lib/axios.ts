@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from "axios";
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "/api";
 
 const createAxiosInstance = (timeout?: number) => {
   const instance = axios.create({
