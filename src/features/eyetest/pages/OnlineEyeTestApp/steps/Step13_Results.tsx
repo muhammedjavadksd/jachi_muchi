@@ -1,4 +1,5 @@
 import { memo, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Download, RotateCcw, ShoppingBag, AlertTriangle, Eye } from "lucide-react";
 import { useEyeTest } from "../context/EyeTestContext";
 import { StepWrapper } from "../components/StepWrapper";
@@ -6,6 +7,7 @@ import { exportResultsAsPDF } from "../utils/pdfExport";
 
 export const Step13_Results = memo(function Step13_Results() {
   const { state, dispatch } = useEyeTest();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Save to localStorage
@@ -168,7 +170,7 @@ export const Step13_Results = memo(function Step13_Results() {
             <RotateCcw size={16} />
             Retake Test
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm">
+          <button onClick={() => navigate("/search/eyeglasses")} className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm">
             <ShoppingBag size={16} />
             Shop Glasses
           </button>

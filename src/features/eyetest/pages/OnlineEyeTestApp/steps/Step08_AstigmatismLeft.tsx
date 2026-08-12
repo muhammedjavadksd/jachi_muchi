@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect, useState, useCallback } from "react";
+import { memo, useRef, useEffect, useState } from "react";
 import { useEyeTest } from "../context/EyeTestContext";
 import { StepWrapper } from "../components/StepWrapper";
 

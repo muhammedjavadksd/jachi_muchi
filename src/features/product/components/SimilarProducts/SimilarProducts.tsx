@@ -26,7 +26,9 @@ export const SimilarProducts = memo(function SimilarProducts({
   const items = useMemo(() => {
     if (!apiProducts || apiProducts.length === 0) return [];
 
-    return apiProducts.slice(0, 4).map((p: any) => ({
+    return apiProducts
+      .filter((p: any) => p.images?.some((img: string) => img && img.trim() !== ""))
+      .slice(0, 4).map((p: any) => ({
       images: p.images?.length ? p.images.map((img: string) => getImageUrl(img)) : ["https://placehold.co/400x300?text=Product"],
       name: p.name || "",
       price: p.price || 0,

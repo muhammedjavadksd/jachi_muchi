@@ -3,9 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth, useLoginModal, useSignupModal, useForgotPasswordModal } from "@/features/auth/hooks";
 import { authApi } from "@/features/auth/api/authApi";
 
-const LOGIN_IMAGE =
-  "https://images.unsplash.com/photo-1522335789203-aabd1b54eaea?w=480&h=240&fit=crop";
-
 function isValidEmailOrMobile(value: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) return false;
@@ -74,6 +71,8 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
               id: apiUser._id || apiUser.id || "",
               name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
               email: apiUser.email,
+              role: "user" as const,
+              createdAt: new Date().toISOString(),
             });
             close();
             navigate("/");
@@ -120,25 +119,12 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
         aria-modal="true"
         aria-labelledby="login-modal-title"
       >
-        {/* Top image section with close */}
-        <div className="relative h-40 bg-[#e8f5e9] overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-30"
-            style={{
-              backgroundImage: `radial-gradient(circle at center, #81c784 1px, transparent 1px),
-                radial-gradient(circle at center, #a5d6a7 1px, transparent 1px)`,
-              backgroundSize: "24px 24px",
-            }}
-          />
-          <img
-            src={LOGIN_IMAGE}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover object-top"
-          />
+        {/* Branded header */}
+        <div className="bg-[#0a1f44] px-6 pt-8 pb-6 flex flex-col items-center relative">
           <button
             type="button"
             onClick={handleClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-gray-600 hover:bg-white shadow"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20"
             aria-label="Close"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -146,13 +132,12 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
+          <img src="/logo.png" alt="Jachi Muchi" className="h-14 w-auto mb-3 object-contain" />
+          <h2 id="login-modal-title" className="text-xl font-bold text-white">Welcome Back</h2>
+          <p className="text-sm text-blue-200 mt-1">Sign in to continue shopping</p>
         </div>
 
         <div className="p-6">
-          <h2 id="login-modal-title" className="text-2xl font-bold text-gray-900 text-center mb-5">
-            Sign In
-          </h2>
-
           {step === "email" ? (
             <form onSubmit={handleContinue} className="space-y-4">
               <div>

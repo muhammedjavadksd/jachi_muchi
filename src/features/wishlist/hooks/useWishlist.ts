@@ -42,7 +42,7 @@ export function useWishlist() {
 
   const addItem = useCallback(async (item: Omit<WishlistItem, "id">) => {
     if (!isAuthenticated) {
-      console.warn("User must be logged in to add to wishlist");
+      window.dispatchEvent(new Event("auth:require-login"));
       return;
     }
     try {
@@ -71,7 +71,10 @@ export function useWishlist() {
   }, [isAuthenticated, setItems]);
 
   const removeItem = useCallback(async (id: string) => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      window.dispatchEvent(new Event("auth:require-login"));
+      return;
+    }
     try {
       await removeFromWishlistAPI(id);
       setItems((prev: WishlistItem[]) => prev.filter((i) => i.id !== id));

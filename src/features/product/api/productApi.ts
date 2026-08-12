@@ -9,6 +9,7 @@ export const getProducts = async (filters?: {
   color?: string;
   collection?: string;
   q?: string;
+  sortBy?: string;
   [key: string]: any;
 }) => {
   const params: Record<string, any> = {};
@@ -20,6 +21,7 @@ export const getProducts = async (filters?: {
   if (filters?.frameType) params.frameType = filters.frameType;
   if (filters?.color) params.color = filters.color;
   if (filters?.collection) params.collection = filters.collection;
+  if (filters?.sortBy) params.sortBy = filters.sortBy;
 
   const res = await api.get("/products", { params });
   return res.data;

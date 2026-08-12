@@ -15,7 +15,7 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
   }, [navigate]);
 
   const handleBookHomeTest = useCallback(() => {
-    navigate("/home-eye-test");
+    navigate("/home-try-on");
   }, [navigate]);
 
   return (

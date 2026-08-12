@@ -1,13 +1,79 @@
-import { memo, useState, useCallback, useEffect } from "react";
+import { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getLenses } from "@/features/lens/api/lensApi";
 import type { LensItem } from "@/features/lens/types";
 import { getOffers } from "@/shared/services/offerEngine";
 import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
+import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
+import { useAuthGuard } from "@/shared/hooks";
 
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
+
+interface CountryEntry {
+  name: string;
+  code: string;
+  flag: string;
+  digits: number | [number, number];
+}
+
+const COUNTRIES: CountryEntry[] = [
+  { name: "Afghanistan", code: "+93", flag: "🇦🇫", digits: 9 },
+  { name: "Albania", code: "+355", flag: "🇦🇱", digits: 9 },
+  { name: "Algeria", code: "+213", flag: "🇩🇿", digits: 9 },
+  { name: "Argentina", code: "+54", flag: "🇦🇷", digits: 10 },
+  { name: "Australia", code: "+61", flag: "🇦🇺", digits: 9 },
+  { name: "Austria", code: "+43", flag: "🇦🇹", digits: [4, 13] },
+  { name: "Bangladesh", code: "+880", flag: "🇧🇩", digits: 10 },
+  { name: "Belgium", code: "+32", flag: "🇧🇪", digits: 9 },
+  { name: "Brazil", code: "+55", flag: "🇧🇷", digits: 11 },
+  { name: "Canada", code: "+1", flag: "🇨🇦", digits: 10 },
+  { name: "China", code: "+86", flag: "🇨🇳", digits: 11 },
+  { name: "Egypt", code: "+20", flag: "🇪🇬", digits: 10 },
+  { name: "France", code: "+33", flag: "🇫🇷", digits: 9 },
+  { name: "Germany", code: "+49", flag: "🇩🇪", digits: [10, 11] },
+  { name: "India", code: "+91", flag: "🇮🇳", digits: 10 },
+  { name: "Indonesia", code: "+62", flag: "🇮🇩", digits: [9, 12] },
+  { name: "Italy", code: "+39", flag: "🇮🇹", digits: [9, 10] },
+  { name: "Japan", code: "+81", flag: "🇯🇵", digits: 10 },
+  { name: "Malaysia", code: "+60", flag: "🇲🇾", digits: [9, 10] },
+  { name: "Mexico", code: "+52", flag: "🇲🇽", digits: 10 },
+  { name: "Nepal", code: "+977", flag: "🇳🇵", digits: 10 },
+  { name: "Netherlands", code: "+31", flag: "🇳🇱", digits: 9 },
+  { name: "Nigeria", code: "+234", flag: "🇳🇬", digits: 10 },
+  { name: "Pakistan", code: "+92", flag: "🇵🇰", digits: 10 },
+  { name: "Philippines", code: "+63", flag: "🇵🇭", digits: 10 },
+  { name: "Qatar", code: "+974", flag: "🇶🇦", digits: 8 },
+  { name: "Russia", code: "+7", flag: "🇷🇺", digits: 10 },
+  { name: "Saudi Arabia", code: "+966", flag: "🇸🇦", digits: 9 },
+  { name: "Singapore", code: "+65", flag: "🇸🇬", digits: 8 },
+  { name: "South Africa", code: "+27", flag: "🇿🇦", digits: 9 },
+  { name: "South Korea", code: "+82", flag: "🇰🇷", digits: [9, 10] },
+  { name: "Spain", code: "+34", flag: "🇪🇸", digits: 9 },
+  { name: "Sri Lanka", code: "+94", flag: "🇱🇰", digits: 9 },
+  { name: "Thailand", code: "+66", flag: "🇹🇭", digits: 9 },
+  { name: "Turkey", code: "+90", flag: "🇹🇷", digits: 10 },
+  { name: "UAE", code: "+971", flag: "🇦🇪", digits: 9 },
+  { name: "United Kingdom", code: "+44", flag: "🇬🇧", digits: 10 },
+  { name: "United States", code: "+1", flag: "🇺🇸", digits: 10 },
+  { name: "Vietnam", code: "+84", flag: "🇻🇳", digits: 9 },
+];
+
+function getPhoneError(phone: string, country: CountryEntry | null): string {
+  if (!phone) return "";
+  if (!country) return "Please select a country code.";
+  const { digits, name } = country;
+  if (typeof digits === "number") {
+    if (phone.length !== digits)
+      return `${name} numbers are ${digits} digits. You entered ${phone.length}.`;
+  } else {
+    const [min, max] = digits;
+    if (phone.length < min || phone.length > max)
+      return `${name} numbers are ${min}–${max} digits. You entered ${phone.length}.`;
+  }
+  return "";
+}
 
 const LENS_TYPE_MAP: Record<PowerType, string> = {
   "with-power": "with_power",
@@ -33,11 +99,11 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   productId,
   productName,
   productPrice,
-  productMrp,
   productImage,
   selectedColor,
 }: LensSelectionPanelProps): JSX.Element | null {
   const navigate = useNavigate();
+  const { requireAuth } = useAuthGuard();
   const [step, setStep] = useState(1);
   const [selectedPowerType, setSelectedPowerType] = useState<PowerType | null>(null);
   const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
@@ -57,12 +123,36 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     phone: "",
     knowPowerLater: false,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedCountry, setSelectedCountry] = useState<CountryEntry | null>(
+    COUNTRIES.find((c) => c.code === "+91") ?? null
+  );
+  const [countrySearch, setCountrySearch] = useState("");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showCountryDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target as Node)) {
+        setShowCountryDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showCountryDropdown]);
+
+  const filteredCountries = COUNTRIES.filter(
+    (c) =>
+      c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+      c.code.includes(countrySearch)
+  );
 
   useEffect(() => {
     if (!isOpen) return;
     getOffers().then((allOffers) => {
       const bogo = allOffers.find(
-        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => p._id === productId)
+        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => typeof p === "object" && p._id === productId)
       );
       setBogoOffer(bogo || null);
     }).catch(() => {});
@@ -127,85 +217,85 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     }
   }, [step, selectedPowerType, onClose]);
 
-  const handleAddToCart = useCallback(() => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const validatePrescription = useCallback((): boolean => {
+    const errs: Record<string, string> = {};
+
+    const name = powerDetails.name.trim();
+    if (!name) errs.name = "Name is required.";
+    else if (name.length < 2) errs.name = "Name must be at least 2 characters.";
+
+    const phone = powerDetails.phone.trim();
+    if (!phone) errs.phone = "Phone number is required.";
+    else {
+      const phoneErr = getPhoneError(phone, selectedCountry);
+      if (phoneErr) errs.phone = phoneErr;
+    }
+
+    if (!powerDetails.knowPowerLater) {
+      if (!powerDetails.leftSph) errs.leftSph = "Left SPH is required.";
+      if (!samePowerBothEyes && !powerDetails.rightSph) errs.rightSph = "Right SPH is required.";
+      if (hasCylindrical) {
+        if (!powerDetails.leftCyl) errs.leftCyl = "Left CYL is required.";
+        if (!samePowerBothEyes && !powerDetails.rightCyl) errs.rightCyl = "Right CYL is required.";
+      }
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  }, [powerDetails, samePowerBothEyes, hasCylindrical, selectedCountry]);
+
+  const handleAddToCart = useCallback(async () => {
+    requireAuth(async () => {
+    if (selectedPowerType === "with-power" || selectedPowerType === "progressive") {
+      if (!validatePrescription()) return;
+    }
     const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
 
-    const tempId = Date.now().toString();
-
-    const cartItem = {
-      cartItemId: tempId,
-      bogoGroupId,
-      productId,
-      productName,
-      productPrice,
-      productImage,
-      mrp: productMrp,
-      color: selectedColor || null,
-      lens: selectedLens
+    const resolvedPowerDetails =
+      selectedPowerType === "with-power" || selectedPowerType === "progressive"
         ? {
-          id: selectedLens._id,
-          name: selectedLens.name,
-          price: selectedLens.price,
-        }
-        : null,
-
-      powerType: selectedPowerType,
-
-      powerDetails:
-        selectedPowerType === "with-power" || selectedPowerType === "progressive"
-          ? {
             leftSPH: powerDetails.leftSph,
-            rightSPH: samePowerBothEyes
-              ? powerDetails.leftSph
-              : powerDetails.rightSph,
-
+            rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
             leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
-            rightCYL: hasCylindrical
-              ? samePowerBothEyes
-                ? powerDetails.leftCyl
-                : powerDetails.rightCyl
-              : null,
-
+            rightCYL: hasCylindrical ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl) : null,
             isSamePower: samePowerBothEyes,
             hasCylindrical,
             customerName: powerDetails.name,
-            customerPhone: powerDetails.phone,
+            customerPhone: powerDetails.phone ? `${selectedCountry?.code ?? ""}${powerDetails.phone}` : "",
             knowPowerLater: powerDetails.knowPowerLater,
           }
-          : null,
+        : null;
 
-      totalPrice:
-        productPrice + (selectedLens?.price || 0),
-    };
+    await addToCartApi({
+      productId,
+      quantity: 1,
+      color: selectedColor ?? null,
+      lens: selectedLens ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price } : null,
+      powerType: selectedPowerType,
+      powerDetails: resolvedPowerDetails,
+      bogoGroupId: bogoGroupId ?? null,
+      isFree: false,
+    });
 
-    const bogoItem = bogoOffer?.freeProduct
-      ? {
-        cartItemId: (Date.now() + 1).toString(),
-        bogoGroupId,
+    if (bogoOffer?.freeProduct) {
+      await addToCartApi({
         productId: bogoOffer.freeProduct._id,
-        productName: `${bogoOffer.freeProduct.name} (FREE)`,
-        productPrice: 0,
-        productImage: bogoOffer.freeProduct.images?.[0],
-        mrp: bogoOffer.freeProduct.price,
+        quantity: 1,
         color: null,
         lens: null,
         powerType: "frame-only",
         powerDetails: null,
-        totalPrice: 0,
-      }
-      : null;
+        bogoGroupId: bogoGroupId ?? null,
+        isFree: true,
+      });
+    }
 
-    cart.push(cartItem);
-    if (bogoItem) cart.push(bogoItem);
-    localStorage.setItem("cart", JSON.stringify(cart));
-
+    notifyCartUpdated();
     onClose();
     navigate("/cart");
+    }); // end requireAuth
   }, [
     productId,
-    productName,
-    productPrice,
     selectedPowerType,
     selectedLens,
     powerDetails,
@@ -215,6 +305,9 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     bogoOffer,
     navigate,
     onClose,
+    requireAuth,
+    validatePrescription,
+    selectedCountry,
   ]);
 
   const completedSteps = step - 1;
@@ -300,23 +393,163 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
 
   const renderStep3 = () => (
     <div className="flex flex-col">
-      <label className="flex items-center gap-2 mb-4"><input type="checkbox" checked={samePowerBothEyes} onChange={(e) => setSamePowerBothEyes(e.target.checked)} className="w-4 h-4 text-teal-600 rounded" /><span className="text-sm text-gray-700">I have same power for both eyes</span></label>
-      <label className="flex items-center gap-2 mb-4"><input type="checkbox" checked={hasCylindrical} onChange={(e) => setHasCylindrical(e.target.checked)} className="w-4 h-4 text-teal-600 rounded" /><span className="text-sm text-gray-700">I have cylindrical power</span></label>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div><p className="text-sm font-medium text-gray-700 mb-2">LEFT (OS)</p><select value={powerDetails.leftSph} onChange={(e) => setPowerDetails({ ...powerDetails, leftSph: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg"><option value="">Select SPH</option>{Array.from({ length: 41 }, (_, i) => (i - 20) * 0.25).map((v) => <option key={v} value={v}>{v <= 0 ? v : `+${v}`}</option>)}</select></div>
-        <div><p className="text-sm font-medium text-gray-700 mb-2">RIGHT (OD)</p><select value={powerDetails.rightSph} onChange={(e) => setPowerDetails({ ...powerDetails, rightSph: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg"><option value="">Select SPH</option>{Array.from({ length: 41 }, (_, i) => (i - 20) * 0.25).map((v) => <option key={v} value={v}>{v <= 0 ? v : `+${v}`}</option>)}</select></div>
+      <label className="flex items-center gap-2 mb-4">
+        <input type="checkbox" checked={samePowerBothEyes} onChange={(e) => { setSamePowerBothEyes(e.target.checked); setErrors({}); }} className="w-4 h-4 text-teal-600 rounded" />
+        <span className="text-sm text-gray-700">I have same power for both eyes</span>
+      </label>
+      <label className="flex items-center gap-2 mb-4">
+        <input type="checkbox" checked={hasCylindrical} onChange={(e) => { setHasCylindrical(e.target.checked); setErrors({}); }} className="w-4 h-4 text-teal-600 rounded" />
+        <span className="text-sm text-gray-700">I have cylindrical power</span>
+      </label>
+
+      <div className="grid grid-cols-2 gap-4 mb-1">
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-2">LEFT (OS) <span className="text-red-500">*</span></p>
+          <select
+            value={powerDetails.leftSph}
+            onChange={(e) => setPowerDetails({ ...powerDetails, leftSph: e.target.value })}
+            className={`w-full p-3 border rounded-lg ${errors.leftSph ? "border-red-400" : "border-gray-200"}`}
+          >
+            <option value="">Select SPH</option>
+            {Array.from({ length: 41 }, (_, i) => (i - 20) * 0.25).map((v) => <option key={v} value={v}>{v <= 0 ? v : `+${v}`}</option>)}
+          </select>
+          {errors.leftSph && <p className="text-red-500 text-xs mt-1">{errors.leftSph}</p>}
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-2">
+            RIGHT (OD) {!samePowerBothEyes && <span className="text-red-500">*</span>}
+          </p>
+          <select
+            value={samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph}
+            onChange={(e) => setPowerDetails({ ...powerDetails, rightSph: e.target.value })}
+            disabled={samePowerBothEyes}
+            className={`w-full p-3 border rounded-lg ${
+              samePowerBothEyes ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-100" :
+              errors.rightSph ? "border-red-400" : "border-gray-200"
+            }`}
+          >
+            <option value="">Select SPH</option>
+            {Array.from({ length: 41 }, (_, i) => (i - 20) * 0.25).map((v) => <option key={v} value={v}>{v <= 0 ? v : `+${v}`}</option>)}
+          </select>
+          {samePowerBothEyes && <p className="text-xs text-teal-600 mt-1">Same as left eye</p>}
+          {!samePowerBothEyes && errors.rightSph && <p className="text-red-500 text-xs mt-1">{errors.rightSph}</p>}
+        </div>
       </div>
-      {hasCylindrical && <div className="grid grid-cols-2 gap-4 mb-4"><div><p className="text-sm font-medium text-gray-700 mb-2">LEFT CYL</p><select value={powerDetails.leftCyl} onChange={(e) => setPowerDetails({ ...powerDetails, leftCyl: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg"><option value="">Select CYL</option>{Array.from({ length: 21 }, (_, i) => (i - 10) * 0.25).map((v) => <option key={v} value={v}>{v}</option>)}</select></div><div><p className="text-sm font-medium text-gray-700 mb-2">RIGHT CYL</p><select value={powerDetails.rightCyl} onChange={(e) => setPowerDetails({ ...powerDetails, rightCyl: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg"><option value="">Select CYL</option>{Array.from({ length: 21 }, (_, i) => (i - 10) * 0.25).map((v) => <option key={v} value={v}>{v}</option>)}</select></div></div>}
-      <input type="text" placeholder="Name (required)" value={powerDetails.name} onChange={(e) => setPowerDetails({ ...powerDetails, name: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg mb-3" />
-      <input type="tel" placeholder="Phone Number (required)" value={powerDetails.phone} onChange={(e) => setPowerDetails({ ...powerDetails, phone: e.target.value })} className="w-full p-3 border border-gray-200 rounded-lg mb-4" />
-      <p className="text-sm text-gray-500 text-center">Can't find your power? Call <span className="font-medium text-teal-600">+91 8470007367</span></p>
-      <button onClick={handleAddToCart} disabled={
-        selectedPowerType !== "frame-only" &&
-        selectedPowerType !== "zero-power" &&
-        (!powerDetails.name ||
-          !powerDetails.phone ||
-          (!powerDetails.knowPowerLater && !powerDetails.leftSph))
-      } className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">Save & Proceed</button>
+
+      {hasCylindrical && (
+        <div className="grid grid-cols-2 gap-4 mb-1 mt-4">
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">LEFT CYL <span className="text-red-500">*</span></p>
+            <select
+              value={powerDetails.leftCyl}
+              onChange={(e) => setPowerDetails({ ...powerDetails, leftCyl: e.target.value })}
+              className={`w-full p-3 border rounded-lg ${errors.leftCyl ? "border-red-400" : "border-gray-200"}`}
+            >
+              <option value="">Select CYL</option>
+              {Array.from({ length: 21 }, (_, i) => (i - 10) * 0.25).map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            {errors.leftCyl && <p className="text-red-500 text-xs mt-1">{errors.leftCyl}</p>}
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">
+              RIGHT CYL {!samePowerBothEyes && <span className="text-red-500">*</span>}
+            </p>
+            <select
+              value={samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl}
+              onChange={(e) => setPowerDetails({ ...powerDetails, rightCyl: e.target.value })}
+              disabled={samePowerBothEyes}
+              className={`w-full p-3 border rounded-lg ${
+                samePowerBothEyes ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-100" :
+                errors.rightCyl ? "border-red-400" : "border-gray-200"
+              }`}
+            >
+              <option value="">Select CYL</option>
+              {Array.from({ length: 21 }, (_, i) => (i - 10) * 0.25).map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+            {samePowerBothEyes && <p className="text-xs text-teal-600 mt-1">Same as left eye</p>}
+            {!samePowerBothEyes && errors.rightCyl && <p className="text-red-500 text-xs mt-1">{errors.rightCyl}</p>}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4">
+        <input
+          type="text"
+          placeholder="Name (required)"
+          value={powerDetails.name}
+          onChange={(e) => setPowerDetails({ ...powerDetails, name: e.target.value })}
+          className={`w-full p-3 border rounded-lg mb-1 ${errors.name ? "border-red-400" : "border-gray-200"}`}
+        />
+        {errors.name && <p className="text-red-500 text-xs mb-2">{errors.name}</p>}
+
+        <p className="text-sm font-medium text-gray-700 mb-1 mt-2">Phone Number <span className="text-red-500">*</span></p>
+        <div className="flex gap-2">
+          <div className="relative shrink-0" ref={countryDropdownRef}>
+            <button
+              type="button"
+              onClick={() => { setShowCountryDropdown((p) => !p); setCountrySearch(""); }}
+              className="h-full min-w-[90px] flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-3 text-sm text-gray-700 hover:border-teal-400 focus:outline-none transition-colors"
+            >
+              {selectedCountry ? (
+                <>
+                  <span className="text-base leading-none">{selectedCountry.flag}</span>
+                  <span className="font-medium">{selectedCountry.code}</span>
+                </>
+              ) : (
+                <span className="text-gray-400">Code</span>
+              )}
+              <svg className="w-3 h-3 text-gray-400 ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showCountryDropdown && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-[200] overflow-hidden">
+                <div className="p-2 border-b border-gray-100">
+                  <input
+                    autoFocus
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                    placeholder="Search country or code…"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  />
+                </div>
+                <ul className="max-h-48 overflow-y-auto">
+                  {filteredCountries.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-gray-400">No results</li>
+                  ) : filteredCountries.map((c) => (
+                    <li
+                      key={`${c.code}-${c.name}`}
+                      onClick={() => { setSelectedCountry(c); setShowCountryDropdown(false); }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-teal-50 transition-colors"
+                    >
+                      <span className="text-base leading-none">{c.flag}</span>
+                      <span className="font-medium text-gray-800">{c.code}</span>
+                      <span className="text-gray-500">{c.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Phone number"
+            value={powerDetails.phone}
+            onChange={(e) => setPowerDetails({ ...powerDetails, phone: e.target.value.replace(/\D/g, "") })}
+            className={`flex-1 p-3 border rounded-lg ${errors.phone ? "border-red-400" : "border-gray-200"}`}
+          />
+        </div>
+        {errors.phone && <p className="text-red-500 text-xs mt-1 mb-2">{errors.phone}</p>}
+      </div>
+
+      <p className="text-sm text-gray-500 text-center mt-2">Can't find your power? Call <span className="font-medium text-teal-600">+91 8470007367</span></p>
+      <button
+        onClick={handleAddToCart}
+        className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors"
+      >
+        Save &amp; Proceed
+      </button>
     </div>
   );
 

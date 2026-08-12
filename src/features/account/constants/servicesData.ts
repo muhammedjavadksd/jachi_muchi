@@ -47,7 +47,7 @@ export const serviceSections = [
     title: "Shops",
     description:
       "Visit us in store for a personalised fitting, expert advice, and to try on frames. Find your nearest location and experience our full range of services.",
-    link: "/store-locator",
+    link: "/stores",
     imageFirst: false,
   },
   {

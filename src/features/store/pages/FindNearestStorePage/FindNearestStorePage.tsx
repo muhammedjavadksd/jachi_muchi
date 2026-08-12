@@ -41,11 +41,11 @@ export const FindNearestStorePage = memo(function FindNearestStorePage(): JSX.El
         const lng = position.coords.longitude;
         setUserLat(lat);
         setUserLng(lng);
-        const store = await findNearestStore(lat, lng);
-        if (store) {
-          const dist = getDistance(lat, lng, store.lat, store.lng);
+        const result = await findNearestStore(lat, lng);
+        if (result) {
+          const dist = getDistance(lat, lng, result.store.lat, result.store.lng);
           setDistance(dist);
-          setNearestStore(store);
+          setNearestStore(result.store);
           setStatus("success");
         } else {
           setStatus("empty");

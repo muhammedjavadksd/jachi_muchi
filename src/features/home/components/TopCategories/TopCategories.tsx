@@ -4,7 +4,7 @@ import { Container } from "@/shared/components/Container/Container";
 import { api } from "@/shared/lib/axios";
 import { getImageUrl } from "@/shared/utils/image";
 
-export const TopCategories = memo(function TopCategories(): JSX.Element {
+export const TopCategories = memo(function TopCategories(): JSX.Element | null {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   const [categories, setCategories] = useState<any[]>([]);

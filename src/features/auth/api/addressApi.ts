@@ -1,6 +1,8 @@
 import { api } from "@/shared/lib/axios";
 import type { BackendAddress, AddressFormData } from "@/features/auth/types";
 
+export type { BackendAddress };
+
 export const fetchAddresses = async (): Promise<BackendAddress[]> => {
   const res = await api.get("/address");
   return res.data.data || [];

@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SEARCH_FILTERS } from "@/features/product/constants";
 import { getProducts } from "@/features/product/api/productApi";
 import { getBrands } from "@/features/product/api/brandApi";
 import { getBanners } from "@/features/home/api/bannerApi";
 import { getOffers, getBestOfferBadge } from "@/features/offer/services/offerEngine";
-import { getImageUrl } from "@/shared/utils/image";
 import { isBannerVisible } from "@/shared/utils/banner";
 import type { Offer, OfferBadge } from "@/features/offer/types";
 
@@ -73,6 +72,7 @@ export function useProductSearch() {
     if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
     if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
     if (filters["brands"]?.length) params.brand = filters["brands"].join(",");
+    params.sortBy = sortBy;
 
     console.log("Search query:", searchQuery);
     console.log("Request params:", params);
@@ -90,7 +90,7 @@ export function useProductSearch() {
         setLoading(false);
         setFetching(false);
       });
-  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy]);
 
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);

@@ -70,6 +70,7 @@ export const ProductCard = memo(function ProductCard({
           alt={name}
           className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
+          onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
         />
         {offerLabel && (
           <div

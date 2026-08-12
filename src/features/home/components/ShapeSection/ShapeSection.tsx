@@ -16,7 +16,8 @@ export const ShapeSection = memo(function ShapeSection({
   shape = "box", 
   items,
   categorySlug,
-}: ShapeSectionProps): JSX.Element {
+}: ShapeSectionProps): JSX.Element | null {
+  if (!items || items.length === 0) return null;
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerView, setItemsPerView] = useState(() => {

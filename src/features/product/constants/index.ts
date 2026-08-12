@@ -12,9 +12,8 @@ export const SEARCH_CATEGORIES: CategoryNavItem[] = [
   { id: "kids-glasses", label: "KIDS GLASSES", link: "/search/kids-glasses" },
   { id: "contact-lenses", label: "CONTACT LENSES", link: "/search/contact-lenses" },
   { id: "sunglasses", label: "SUNGLASSES", link: "/search/sunglasses" },
-  { id: "home-eye-test", label: "HOME EYE-TEST", link: "/home-eye-test" },
-  { id: "store-locator", label: "STORE LOCATOR", link: "/store-locator" },
-  { id: "sale", label: "SALE", link: "/sale" },
+  { id: "home-eye-test", label: "HOME EYE-TEST", link: "/online-eye-test" },
+  { id: "store-locator", label: "STORE LOCATOR", link: "/stores" },
 ];
 
 export const SEARCH_FILTERS: FilterGroup[] = [

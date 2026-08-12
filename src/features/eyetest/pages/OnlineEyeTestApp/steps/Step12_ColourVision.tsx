@@ -59,7 +59,7 @@ function generateIshiharaPlate(canvas: HTMLCanvasElement, number: string): Plate
   return { number, dots };
 }
 
-function isInsideNumber(x: number, y: number, size: number, num: string): boolean {
+function isInsideNumber(x: number, y: number, _size: number, num: string): boolean {
   // Rough bounding areas for numbers in a 240x240 canvas
   const regions: Record<string, Array<[number, number, number, number]>> = {
     "12": [[60, 60, 120, 120], [130, 60, 190, 120]],
@@ -140,7 +140,7 @@ export const Step12_ColourVision = memo(function Step12_ColourVision() {
 
         <canvas
           ref={canvasRef}
-          className="w-[240px] h-[240px] rounded-xl mb-4 border border-gray-200"
+          className="w-60 h-60 rounded-xl mb-4 border border-gray-200"
         />
 
         <p className="text-sm text-gray-600 mb-4">

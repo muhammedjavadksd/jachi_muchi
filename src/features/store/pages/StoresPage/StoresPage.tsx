@@ -6,10 +6,15 @@ import { Container } from "@/shared/components/Container/Container";
 import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { getStores, findNearestStore } from "@/features/store/api/storeApi";
 import type { Store } from "@/features/store/types";
+import { getImageUrl } from "@/shared/utils/image";
 
 const ALL = "All";
 
-const PLACEHOLDER_IMG = "https://placehold.co/600x400?text=Store";
+const PLACEHOLDER_IMG = "https://placehold.co/600x400/f6f6f6/999999?text=Store";
+
+function storeImg(images?: string[]): string {
+  return getImageUrl(images?.[0] ?? null, PLACEHOLDER_IMG);
+}
 
 export const StoresPage = memo(function StoresPage(): JSX.Element {
   const [searchParams] = useSearchParams();
@@ -148,9 +153,10 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
                 <div className="flex flex-col sm:flex-row">
                   <div className="sm:w-48 h-40 shrink-0">
                     <img
-                      src={nearestStore.images && nearestStore.images.length > 0 ? nearestStore.images[0] : PLACEHOLDER_IMG}
+                    src={storeImg(nearestStore.images)}
                       alt={nearestStore.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
                     />
                   </div>
                   <div className="flex-1 p-5">
@@ -194,10 +200,11 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
                     >
                       <div className="relative">
                         <img
-                          src={store.images && store.images.length > 0 ? store.images[0] : PLACEHOLDER_IMG}
+                          src={storeImg(store.images)}
                           alt={store.name}
                           className="w-full h-48 object-cover"
                           loading="lazy"
+                          onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
                         />
                         {isNearest && (
                           <div className="absolute top-3 left-3 bg-teal-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">

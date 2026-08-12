@@ -128,15 +128,18 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
     setApiError("");
     try {
       const response = await authApi.verifyOtp({ email: signupEmail, otp });
-      const token = response.data?.token || response.token;
+      const accessToken = response.data?.accessToken || response.accessToken;
+      const refreshToken = response.data?.refreshToken || response.refreshToken;
       const apiUser = response.data?.user;
 
-      if (response.success && token && apiUser) {
-        login(token, token, {
+      if (response.success && accessToken && apiUser) {
+        login(accessToken, refreshToken ?? "", {
           id: apiUser._id || apiUser.id || "",
           name: `${apiUser.firstName || ""} ${apiUser.lastName || ""}`.trim(),
           email: apiUser.email,
           phone: signupPayload.mobile,
+          role: "user" as const,
+          createdAt: new Date().toISOString(),
         });
         setShowWelcomeCoupon(true);
       } else {

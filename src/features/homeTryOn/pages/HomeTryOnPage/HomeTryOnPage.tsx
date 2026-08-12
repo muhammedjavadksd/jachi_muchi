@@ -25,17 +25,6 @@ const FAQS = [
   { question: "How to Check the Eye Number at Home?", answer: "Our professional eye test includes all the necessary checks to determine your eye number." },
 ];
 
-const REVIEWS = [
-  { name: "Neha Kapoor", rating: 5, comment: "Top-notch service, convenient and accurate." },
-  { name: "Mohan Joshi", rating: 4, comment: "Quality check-up at home. Highly recommended!" },
-];
-
-const StarIcon = ({ filled = true }: { filled?: boolean }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill={filled ? "#0FBD95" : "none"} stroke={filled ? "#0FBD95" : "#0FBD95"} strokeWidth="1">
-    <path d="m12 .587 3.668 7.568L24 9.306l-6.064 5.828 1.48 8.279L12 19.446l-7.417 3.967 1.481-8.279L0 9.306l8.332-1.151z" />
-  </svg>
-);
-
 export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const navigate = useNavigate();

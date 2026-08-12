@@ -9,17 +9,6 @@ const HEADER_SPACER_HEIGHT = 140;
 
 
 
-interface FAQItem {
-  question: string;
-  answer: string;
-}
-
-interface FAQCategory {
-  title: string;
-  items: FAQItem[];
-}
-
-
 
 /**
  * FAQ Page with Size Guide and collapsible FAQ by category

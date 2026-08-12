@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   HeartIcon,
@@ -88,7 +88,7 @@ const TOP_SERVICE_PILLS = [
  * Row 3: Category nav. Colors: blue, white, gray, gold, red.
  */
 export const HeaderHome2 = memo(function HeaderHome2({
-  isScrolled,
+  isScrolled: _isScrolled,
 }: HeaderProps): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
@@ -96,6 +96,16 @@ export const HeaderHome2 = memo(function HeaderHome2({
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDropdownEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setShowUserDropdown(true);
+  };
+
+  const handleDropdownLeave = () => {
+    closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
+  };
 
   const handleLogout = () => {
     logout();
@@ -164,7 +174,7 @@ export const HeaderHome2 = memo(function HeaderHome2({
             <img
               src={BRAND_LOGO_URL}
               alt="Brand"
-              className="h-7 w-auto"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
           </Link>
 
@@ -195,7 +205,7 @@ export const HeaderHome2 = memo(function HeaderHome2({
           {/* Login & Cart */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {isAuthenticated && user ? (
-              <div className="relative" onMouseEnter={() => setShowUserDropdown(true)} onMouseLeave={() => setShowUserDropdown(false)}>
+              <div className="relative" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
                 <button className="flex items-center gap-1.5 text-slate-700 hover:text-teal-600 transition-colors">
                   <UserIcon className="w-5 h-5" />
                   <span className="hidden sm:inline text-sm font-medium">{user.name.split(" ")[0]}</span>

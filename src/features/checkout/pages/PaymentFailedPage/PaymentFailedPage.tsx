@@ -7,7 +7,7 @@ const PROMOTION_HEADER_HEIGHT = 140;
 
 export const PaymentFailedPage = memo(function PaymentFailedPage(): JSX.Element {
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("orderId") || "";
+  searchParams.get("orderId"); // orderId reserved for future use
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,

@@ -59,7 +59,7 @@ export const ProductReviews = memo(function ProductReviews({
 
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const [submitting, setSubmitting] = useState(false);
+  const [_submitting, setSubmitting] = useState(false);
   const [editingReview, setEditingReview] = useState<ReviewItem | null>(null);
 
   const currentUserId = user?.id || (user as any)?._id;

@@ -1,4 +1,4 @@
-export const BRAND_LOGO_URL = "https://static.lenskart.com/media/desktop/img/site-images/main_logo.svg";
+export const BRAND_LOGO_URL = "/logo.png";
 
 export const SUPPORT_PHONE = "+91-7034-683-567";
 

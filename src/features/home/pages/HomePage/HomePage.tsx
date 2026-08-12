@@ -1,6 +1,6 @@
-import { lazy, Suspense, useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { PromotionHeader, Footer, BottomNav, SearchAutocomplete } from "@/components";
+import { PromotionHeader, Footer, BottomNav } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NavTab } from "@/app/layouts";
@@ -9,25 +9,21 @@ import { FREE_CHECKUP } from "@/features/home/constants";
 const HEADER_SPACER_HEIGHT = 110;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
 import { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCarousel";
-import { OffersSection } from "@/features/home/components/OffersSection/OffersSection";
-import { PromoBanner } from "@/features/home/components/PromoBanner/PromoBanner";
 import { api } from "@/shared/lib/axios";
 import { getBanners } from "@/features/home/api/bannerApi";
 import { isBannerVisible } from "@/shared/utils/banner";
 import { getCollections } from "@/features/collections/api/collectionApi";
 import { getBrands } from "@/features/product/api/brandApi";
 import type { BrandItem } from "@/features/product/types";
+import { BrandsSection } from "@/features/home/components/BrandsSection/BrandsSection";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
-import { getImageUrl } from "@/shared/utils/image";
 
 const HeroSlider = lazy(() => import("@/features/home/components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
-const SecondaryBannerCarousel = lazy(() => import("@/features/home/components/SecondaryBannerCarousel/SecondaryBannerCarousel").then(m => ({ default: m.SecondaryBannerCarousel })));
 const Campaign = lazy(() => import("@/features/home/components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
 const ShapeSection = lazy(() => import("@/features/home/components/ShapeSection/ShapeSection").then(m => ({ default: m.ShapeSection })));
 const NearbyServices = lazy(() => import("@/features/home/components/NearbyServices/NearbyServices").then(m => ({ default: m.NearbyServices })));
 const GridSection = lazy(() => import("@/features/home/components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
-const EyeCheckupFeatures = lazy(() => import("@/features/home/components/EyeCheckupFeatures/EyeCheckupFeatures").then(m => ({ default: m.EyeCheckupFeatures })));
 const FeaturedGrid = lazy(() => import("@/features/home/components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
 
 export function HomePage(): JSX.Element {
@@ -38,7 +34,7 @@ export function HomePage(): JSX.Element {
 
   const [heroBanners, setHeroBanners] = useState<any[]>([]);
   const [promoBanners, setPromoBanners] = useState<any[]>([]);
-  const [featuredBanner, setFeaturedBanner] = useState<any>(null);
+  const [bannersLoaded, setBannersLoaded] = useState(false);
   const [collections, setCollections] = useState<any[]>([]);
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const { isAuthenticated } = useAuth();
@@ -97,6 +93,7 @@ export function HomePage(): JSX.Element {
 
       setHeroBanners(homepage);
       setPromoBanners(promotional);
+      setBannersLoaded(true);
     });
 
     getCollections()
@@ -113,30 +110,6 @@ export function HomePage(): JSX.Element {
 
   }, [isAuthenticated]);
 
-  const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 8, minutes: 51, seconds: 44 });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev;
-        seconds--;
-        if (seconds < 0) { seconds = 59; minutes--; }
-        if (minutes < 0) { minutes = 59; hours--; }
-        if (hours < 0) { hours = 23; days--; }
-        return { days, hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formattedBrands = brands
-    .filter((b: any) => b.isActive)
-    .map((brand: any) => ({
-      title: brand.name,
-      image: getImageUrl(brand.logo) || "https://placehold.co/400x300?text=Brand",
-      link: `/search?brand=${brand._id}`,
-    }));
 
   return (
     <div className="w-full flex flex-col bg-white min-h-screen font-sans">
@@ -147,23 +120,23 @@ export function HomePage(): JSX.Element {
       <main className="flex-1 pb-20 md:pb-0">
 
         <Suspense fallback={<LoadingSkeleton />}>
-          {heroBanners.length > 0 ? (
+          {!bannersLoaded ? (
+            <div className="h-62.5 bg-gray-100 animate-pulse" />
+          ) : heroBanners.length > 0 ? (
             <HeroSlider banners={heroBanners} />
-          ) : (
-            <div className="h-[250px] bg-gray-100 animate-pulse flex items-center justify-center">Loading Banners...</div>
-          )}        </Suspense>
+          ) : null}        </Suspense>
 
         <TopCategories />
 
         <OfferCarousel />
 
-        {categories.filter((c) => c.isActive).map((category) => (
+        {categories.filter((c) => c.isActive && c.shapes?.length > 0).map((category) => (
           <Suspense key={category._id} fallback={<LoadingSkeleton />}>
             <ShapeSection
               title={category.name}
               shape="circle"
               categorySlug={category.slug}
-              items={(category.shapes || []).map((shape: any) => ({
+              items={category.shapes.map((shape: any) => ({
                 label: shape.name,
                 image: shape.image || "https://placehold.co/200x200?text=Shape",
               }))}
@@ -254,12 +227,9 @@ export function HomePage(): JSX.Element {
           )}
         </Suspense>
 
-        <div className="px-4 space-y-8 mt-8">
-          <GridSection
-            title="Our Brands"
-            columns={3}
-            items={formattedBrands}
-          />
+        <BrandsSection brands={brands} />
+
+        <div className="px-4 mt-8">
           <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 

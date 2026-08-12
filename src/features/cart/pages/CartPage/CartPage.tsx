@@ -10,9 +10,7 @@ const PROMOTION_HEADER_HEIGHT = 140;
 export const CartPage = memo(function CartPage(): JSX.Element {
   const {
     cartItems,
-    offers,
     subtotal,
-    totalSellingPrice,
     totalDiscount,
     totalOfferSavings,
     totalComboSavings,
@@ -214,10 +212,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                         <span className="text-amber-600">-₹{Math.round(totalComboSavings)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Fitting Fee</span>
-                      <span>₹{fittingFee}</span>
-                    </div>
+                    {fittingFee > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Fitting Fee</span>
+                        <span>₹{fittingFee}</span>
+                      </div>
+                    )}
 
                     <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-semibold text-lg">Total payable</span>
@@ -236,17 +236,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                     Proceed To Checkout →
                   </Link>
                 ) : (
-                  <div className="space-y-3">
-                    <button
-                      disabled
-                      className="block w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-2xl text-center text-base cursor-not-allowed"
-                    >
-                      Cart is Empty
-                    </button>
-                    <p className="text-center text-sm text-gray-500">
-                      Add items to cart to proceed to checkout
-                    </p>
-                  </div>
+                  <button
+                    disabled
+                    className="block w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-2xl text-center text-base cursor-not-allowed"
+                  >
+                    Proceed To Checkout →
+                  </button>
                 )}
               </div>
             </div>

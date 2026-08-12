@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo } from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 import { fetchApplicableCoupons } from "@/features/coupon/api/couponApi";
 import type { ApplicableCoupon } from "@/features/coupon/types";
 
@@ -72,10 +72,8 @@ export const CouponSection = memo(function CouponSection({
     [onCouponInputChange, onApplyCoupon]
   );
 
-  const bestCoupon = useMemo(
-    () => (availableCoupons.length > 0 ? availableCoupons[0] : null),
-    [availableCoupons]
-  );
+  // bestCoupon reserved for future use
+  // const bestCoupon = availableCoupons[0] ?? null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-3xl p-6">
