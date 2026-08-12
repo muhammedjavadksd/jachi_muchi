@@ -5,7 +5,8 @@ import type { FeaturedGridProps } from "@/features/home/types";
 export const FeaturedGrid = memo(function FeaturedGrid({
   title,
   items,
-}: FeaturedGridProps): JSX.Element {
+}: FeaturedGridProps): JSX.Element | null {
+  if (!items || items.length === 0) return null;
   const featuredItem = items[0];
   const gridItems = items.slice(1, 5);
 

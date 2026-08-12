@@ -68,8 +68,6 @@ export const routes: RouteObject[] = [
     children: [
       { path: "/account", element: <AccountPage /> },
       { path: "/account/orders", element: <AccountPage /> },
-      { path: "/orders", element: <AccountPage /> },
-      { path: "/track-orders", element: <AccountPage /> },
       { path: "/account/3d-model", element: <My3DModelPage /> },
       { path: "/account/info", element: <AccountInfoPage /> },
       { path: "/account/notifications", element: <ManageNotificationsPage /> },

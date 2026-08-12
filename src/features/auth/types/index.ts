@@ -45,11 +45,13 @@ export interface OtpVerifyResponse {
   success: boolean;
   message: string;
   data?: {
-    token: string;
+    accessToken: string;
+    refreshToken: string;
     user: ApiUser;
   };
   user?: User;
-  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 export interface LoginRequest {

@@ -7,6 +7,7 @@ import {
   mapBackendItem,
   notifyCartUpdated,
 } from "@/features/cart/api/cartApi";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export interface CartItem {
   cartItemId?: string;
@@ -41,6 +42,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }): JSX.Element {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   const loadCart = useCallback(async () => {
     try {
@@ -60,6 +62,10 @@ export function CartProvider({ children }: { children: React.ReactNode }): JSX.E
   }, [loadCart]);
 
   const addItem = useCallback(async (item: CartItem) => {
+    if (!isAuthenticated) {
+      window.dispatchEvent(new Event("auth:require-login"));
+      return;
+    }
     await addToCartApi({
       productId: item.productId,
       quantity: item.quantity ?? 1,
@@ -72,13 +78,17 @@ export function CartProvider({ children }: { children: React.ReactNode }): JSX.E
     });
     await loadCart();
     notifyCartUpdated();
-  }, [loadCart]);
+  }, [isAuthenticated, loadCart]);
 
   const removeItem = useCallback(async (cartItemId: string) => {
+    if (!isAuthenticated) {
+      window.dispatchEvent(new Event("auth:require-login"));
+      return;
+    }
     await removeCartItemApi(cartItemId);
     await loadCart();
     notifyCartUpdated();
-  }, [loadCart]);
+  }, [isAuthenticated, loadCart]);
 
   const clearCart = useCallback(async () => {
     await clearCartApi();

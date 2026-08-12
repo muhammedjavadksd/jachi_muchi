@@ -9,7 +9,8 @@ export const GridSection = memo(function GridSection({
   columns = 3,
   gap = 5,
   items,
-}: GridSectionProps): JSX.Element {
+}: GridSectionProps): JSX.Element | null {
+  if (!items || items.length === 0) return null;
   return (
     <section
       className="w-full bg-white"

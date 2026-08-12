@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
 import { fetchAddresses, saveAddress, deleteAddress, type BackendAddress } from "@/features/auth/api/addressApi";
+import { authApi } from "@/features/auth/api/authApi";
 import { applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "@/features/coupon/api/couponApi";
 import { fetchCart, mapBackendItem, clearCartApi } from "@/features/cart/api/cartApi";
 import type { UserCoupon } from "@/features/coupon/types";
@@ -72,9 +73,12 @@ export interface UseCheckoutReturn {
   totalPayable: number;
   fittingFee: number;
   isModalOpen: boolean;
+  editingAddressId: string | null;
+  setEditingAddressId: (id: string | null) => void;
   handleSelectAddress: (id: string) => void;
   handleDeleteAddress: (id: string) => void;
-  handleAddAddress: (addressData: Omit<Address, "id" | "isSelected" | "deliveryDate">) => Promise<void>;
+  handleAddAddress: (addressData: { name: string; phone: string; addressLine1: string; addressLine2?: string; city: string; state: string; pincode: string; type: "home" | "work" | "other"; isDefault?: boolean }) => Promise<void>;
+  handleEditAddress: (id: string, data: { name: string; phone: string; addressLine1: string; addressLine2?: string; city: string; state: string; pincode: string; type: "home" | "work" | "other" }) => Promise<void>;
   handleApplyCoupon: () => Promise<void>;
   handleRemoveCoupon: () => Promise<void>;
   handleCopyCoupon: (code: string) => Promise<void>;
@@ -90,6 +94,7 @@ export function useCheckout(): UseCheckoutReturn {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressLoading, setAddressLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [orderLoading, setOrderLoading] = useState(false);
   const [couponInput, setCouponInput] = useState("");
@@ -216,23 +221,24 @@ export function useCheckout(): UseCheckoutReturn {
     }
   }, []);
 
-  const handleAddAddress = useCallback(async (addressData: Omit<Address, "id" | "isSelected" | "deliveryDate">) => {
+  const handleAddAddress = useCallback(async (addressData: { name: string; phone: string; addressLine1: string; addressLine2?: string; city: string; state: string; pincode: string; type: "home" | "work" | "other"; isDefault?: boolean }) => {
     try {
       const res = await saveAddress({
         name: addressData.name,
         phone: addressData.phone,
-        addressLine1: addressData.fullAddress.split(',')[0],
-        addressLine2: addressData.fullAddress.split(',').slice(1, -2).join(',').trim() || undefined,
-        city: addressData.fullAddress.split(',').slice(-2)[0].trim(),
-        state: addressData.fullAddress.split(' ')[0],
-        pincode: addressData.fullAddress.split(' ').slice(-1)[0],
-        type: addressData.type === "HOME" ? "home" : addressData.type === "OFFICE" ? "work" : "other",
+        addressLine1: addressData.addressLine1,
+        addressLine2: addressData.addressLine2 || undefined,
+        city: addressData.city,
+        state: addressData.state,
+        pincode: addressData.pincode,
+        type: addressData.type,
       });
       if (res.success && res.data) {
+        const typeMap: Record<string, "HOME" | "OFFICE" | "OTHER"> = { home: "HOME", work: "OFFICE", other: "OTHER" };
         const newAddr: Address = {
           id: res.data._id,
-          type: addressData.type,
-          fullAddress: addressData.fullAddress,
+          type: typeMap[addressData.type] ?? "HOME",
+          fullAddress: `${addressData.addressLine1}${addressData.addressLine2 ? ", " + addressData.addressLine2 : ""}, ${addressData.city}, ${addressData.state} ${addressData.pincode}`,
           name: addressData.name,
           phone: addressData.phone,
           deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -242,6 +248,24 @@ export function useCheckout(): UseCheckoutReturn {
       }
     } catch (error) {
       console.error("Failed to save address:", error);
+    }
+  }, []);
+
+  const handleEditAddress = useCallback(async (id: string, data: { name: string; phone: string; addressLine1: string; addressLine2?: string; city: string; state: string; pincode: string; type: "home" | "work" | "other" }) => {
+    try {
+      const res = await authApi.updateAddress(id, data);
+      if (res.success) {
+        const typeMap: Record<string, "HOME" | "OFFICE" | "OTHER"> = { home: "HOME", work: "OFFICE", other: "OTHER" };
+        setAddresses(prev => prev.map(a => a.id !== id ? a : {
+          ...a,
+          type: typeMap[data.type] ?? "HOME",
+          fullAddress: `${data.addressLine1}${data.addressLine2 ? ", " + data.addressLine2 : ""}, ${data.city}, ${data.state} ${data.pincode}`,
+          name: data.name,
+          phone: data.phone,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to update address:", error);
     }
   }, []);
 
@@ -402,6 +426,9 @@ export function useCheckout(): UseCheckoutReturn {
     handleSelectAddress,
     handleDeleteAddress,
     handleAddAddress,
+    handleEditAddress,
+    editingAddressId,
+    setEditingAddressId,
     handleApplyCoupon,
     handleRemoveCoupon,
     handleCopyCoupon,

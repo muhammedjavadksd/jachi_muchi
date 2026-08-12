@@ -72,6 +72,7 @@ export function useProductSearch() {
     if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
     if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
     if (filters["brands"]?.length) params.brand = filters["brands"].join(",");
+    params.sortBy = sortBy;
 
     console.log("Search query:", searchQuery);
     console.log("Request params:", params);
@@ -89,7 +90,7 @@ export function useProductSearch() {
         setLoading(false);
         setFetching(false);
       });
-  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy]);
 
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);

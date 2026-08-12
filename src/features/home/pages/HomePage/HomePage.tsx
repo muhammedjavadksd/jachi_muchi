@@ -15,9 +15,9 @@ import { isBannerVisible } from "@/shared/utils/banner";
 import { getCollections } from "@/features/collections/api/collectionApi";
 import { getBrands } from "@/features/product/api/brandApi";
 import type { BrandItem } from "@/features/product/types";
+import { BrandsSection } from "@/features/home/components/BrandsSection/BrandsSection";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
-import { getImageUrl } from "@/shared/utils/image";
 
 const HeroSlider = lazy(() => import("@/features/home/components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const Campaign = lazy(() => import("@/features/home/components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
@@ -111,14 +111,6 @@ export function HomePage(): JSX.Element {
   }, [isAuthenticated]);
 
 
-  const formattedBrands = brands
-    .filter((b: any) => b.isActive)
-    .map((brand: any) => ({
-      title: brand.name,
-      image: getImageUrl(brand.logo) || "https://placehold.co/400x300?text=Brand",
-      link: `/search?brand=${brand._id}`,
-    }));
-
   return (
     <div className="w-full flex flex-col bg-white min-h-screen font-sans">
       <PromotionHeader />
@@ -138,13 +130,13 @@ export function HomePage(): JSX.Element {
 
         <OfferCarousel />
 
-        {categories.filter((c) => c.isActive).map((category) => (
+        {categories.filter((c) => c.isActive && c.shapes?.length > 0).map((category) => (
           <Suspense key={category._id} fallback={<LoadingSkeleton />}>
             <ShapeSection
               title={category.name}
               shape="circle"
               categorySlug={category.slug}
-              items={(category.shapes || []).map((shape: any) => ({
+              items={category.shapes.map((shape: any) => ({
                 label: shape.name,
                 image: shape.image || "https://placehold.co/200x200?text=Shape",
               }))}
@@ -235,12 +227,9 @@ export function HomePage(): JSX.Element {
           )}
         </Suspense>
 
-        <div className="px-4 space-y-8 mt-8">
-          <GridSection
-            title="Our Brands"
-            columns={3}
-            items={formattedBrands}
-          />
+        <BrandsSection brands={brands} />
+
+        <div className="px-4 mt-8">
           <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
         </div>
 

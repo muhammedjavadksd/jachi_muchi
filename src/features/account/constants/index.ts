@@ -1,16 +1,6 @@
 import type { FooterLinkColumn } from "@/shared/types";
 
-export const UTILITY_LINKS: string[] = [
-  "Corporate",
-  "Store Locator",
-  "Singapore",
-  "UAE",
-  "John Jacobs",
-  "Aqualens",
-  "Cobrowsing",
-  "Engineering Blog",
-  "Partner With Us",
-];
+export const UTILITY_LINKS: string[] = [];
 
 export const NAV_CATEGORIES: string[] = [
   "Eyeglasses",
@@ -25,7 +15,7 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
   {
     title: "Services",
     links: [
-      { label: "Store Locator", href: "/store-locator" },
+      { label: "Store Locator", href: "/stores" },
       { label: "Buying Guide", href: "/buying-guide" },
       { label: "Frame Size", href: "/frame-size" },
     ],

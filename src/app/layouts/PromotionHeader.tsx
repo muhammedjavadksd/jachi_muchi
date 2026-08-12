@@ -1,13 +1,12 @@
-import { memo, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { memo, useState, useRef } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
-import { PhoneIcon, HeartIcon, CartIcon } from "@/shared/components/Icons";
+import { HeartIcon, CartIcon } from "@/shared/components/Icons";
 import { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
-import { SUPPORT_PHONE, BRAND_LOGO_URL } from "@/shared/constants";
-import { UTILITY_LINKS } from "@/features/account/constants";
+import { BRAND_LOGO_URL } from "@/shared/constants";
 import { SEARCH_CATEGORIES } from "@/features/product/constants";
 
 /**
@@ -22,6 +21,16 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDropdownEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setShowUserDropdown(true);
+  };
+
+  const handleDropdownLeave = () => {
+    closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
+  };
 
   const handleLogout = () => {
     logout();
@@ -29,61 +38,35 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
     navigate("/");
   };
 
-  /** Memoize utility links */
-  const utilityLinksElements = useMemo(() => (
-    UTILITY_LINKS.map((link) => (
-      <span key={link} className="flex items-center">
-        <a
-          href={`#${link.toLowerCase().replace(/ /g, "-")}`}
-          className="hover:underline"
-        >
-          {link}
-        </a>
-      </span>
-    ))
-  ), []);
-
-  /** Memoize category links */
-  const categoryLinks = useMemo(() => (
-    SEARCH_CATEGORIES.map((category) => (
-      <a
-        key={category.id}
-        href={category.link}
-        className={`text-xs font-semibold whitespace-nowrap transition-colors hover:text-teal-700 ${
-          category.id === "sale" ? "text-red-500" : "text-gray-800"
-        }`}
-      >
-        {category.label}
-      </a>
-    ))
-  ), []);
+  const categoryLinks = SEARCH_CATEGORIES.map((category) => (
+    <NavLink
+      key={category.id}
+      to={category.link}
+      className={({ isActive }) =>
+        `relative text-xs font-semibold whitespace-nowrap transition-colors pb-2 ${
+          isActive
+            ? "text-teal-700 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-teal-700 after:rounded-full"
+            : "text-gray-800 hover:text-teal-700"
+        }`
+      }
+    >
+      {category.label}
+    </NavLink>
+  ));
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
-      {/* Top Utility Bar */}
-      <div className="w-full bg-white border-b border-gray-100">
-        <Container className="flex justify-between h-8 items-center">
-          <div className="hidden sm:flex items-center gap-4 text-xs text-gray-600">
-            {utilityLinksElements}
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-800 font-medium">
-            <PhoneIcon className="text-gray-600 w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">{SUPPORT_PHONE}</span>
-          </div>
-        </Container>
-      </div>
-
       {/* Main Navigation Bar */}
       <div className="w-full bg-white border-b border-gray-200">
         <Container className="flex items-center justify-between h-12 sm:h-16 py-2 sm:py-0">
           {/* Logo */}
-          <a href="/" className="flex items-center">
+          <Link to="/" className="flex items-center">
             <img
               src={BRAND_LOGO_URL}
               alt="Brand Logo"
-              className="h-5 sm:h-6 w-auto"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
-          </a>
+          </Link>
 
           {/* Search Bar - Hidden on mobile */}
           <div className="hidden md:flex flex-1 max-w-xl mx-8">
@@ -94,7 +77,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
           <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
             {/* Track Orders - Hidden on mobile */}
             <Link
-              to="/orders"
+              to="/account/orders"
               className="hidden sm:block text-sm text-gray-700 hover:text-gray-900 whitespace-nowrap"
             >
               Track Orders
@@ -102,7 +85,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
             {/* Sign In / Profile */}
             {isAuthenticated && user ? (
-              <div className="relative" onMouseEnter={() => setShowUserDropdown(true)} onMouseLeave={() => setShowUserDropdown(false)}>
+              <div className="relative" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
                 <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-teal-600 rounded-full text-sm font-medium text-white hover:bg-teal-700">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

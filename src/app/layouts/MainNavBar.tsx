@@ -1,9 +1,8 @@
-import { memo, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { memo, useMemo, useState, useRef } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { HeartIcon, CartIcon, UserIcon } from "@/shared/components/Icons";
 import { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
 import { BRAND_LOGO_URL } from "@/shared/constants";
-import { NAV_CATEGORIES } from "@/features/account/constants";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
@@ -20,9 +19,19 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDropdownEnter = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    setShowUserDropdown(true);
+  };
+
+  const handleDropdownLeave = () => {
+    closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
+  };
 
   const logoClassName = useMemo(() => (
-    `h-6 sm:h-7 md:h-8 w-auto`
+    `h-10 sm:h-12 md:h-14 w-auto object-contain`
   ), []);
 
   const accountButtonStyle = useMemo(() => ({
@@ -66,7 +75,7 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
           </button>
 
           {isAuthenticated && user ? (
-            <div className="relative" onMouseEnter={() => setShowUserDropdown(true)} onMouseLeave={() => setShowUserDropdown(false)}>
+            <div className="relative" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
               <button className="flex items-center gap-2 px-3 py-2 rounded-full bg-teal-600 text-white">
                 <UserIcon />
                 <span className="text-sm font-medium hidden sm:inline">{user.name}</span>
@@ -111,13 +120,27 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
 
       {/* Navigation Links */}
       <nav className="flex items-center gap-1 sm:gap-3 md:gap-4 px-3 sm:px-4 py-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-        {NAV_CATEGORIES.map((category) => (
-          <span
-            key={category}
-            className="text-xs sm:text-sm font-medium text-white hover:text-gray-300 transition-colors cursor-pointer"
+        {([
+          { label: "EYEGLASSES",  to: "/search/eyeglasses" },
+          { label: "SUNGLASSES",  to: "/search/sunglasses" },
+          { label: "COLLECTIONS", to: "/collections" },
+          { label: "CONTACT",     to: "/search/contact-lenses" },
+          { label: "STORES",      to: "/stores" },
+          { label: "TRY @ HOME",  to: "/try-at-home" },
+        ] as const).map(({ label, to }) => (
+          <NavLink
+            key={label}
+            to={to}
+            className={({ isActive }) =>
+              `relative text-xs sm:text-sm font-medium transition-colors pb-1 ${
+                isActive
+                  ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-white after:rounded-full"
+                  : "text-gray-300 hover:text-white"
+              }`
+            }
           >
-            {category.toUpperCase()}
-          </span>
+            {label}
+          </NavLink>
         ))}
       </nav>
 

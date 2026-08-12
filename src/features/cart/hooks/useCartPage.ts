@@ -16,12 +16,14 @@ import {
   mapBackendItem,
 } from "@/features/cart/api/cartApi";
 import type { CartItem } from "@/app/providers/CartProvider";
+import { useAuthGuard } from "@/shared/hooks";
 
 export function useCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>({});
   const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
+  const { requireAuth } = useAuthGuard();
 
   const loadCart = useCallback(async () => {
     try {
@@ -38,6 +40,7 @@ export function useCartPage() {
   }, [loadCart]);
 
   const handleRemoveItem = useCallback(async (cartItemId: string) => {
+    requireAuth(async () => {
     setCartItems((prev) => {
       const target = prev.find((i) => i.cartItemId === cartItemId);
       const bogoGroupId = target?.bogoGroupId;
@@ -54,10 +57,12 @@ export function useCartPage() {
     } catch {
       await loadCart();
     }
-  }, [loadCart]);
+    });
+  }, [loadCart, requireAuth]);
 
   const handleUpdateQuantity = useCallback(
     async (cartItemId: string, action: "increment" | "decrement") => {
+      requireAuth(async () => {
       setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
       setStockErrors((prev) => ({ ...prev, [cartItemId]: "" }));
       try {
@@ -71,8 +76,9 @@ export function useCartPage() {
       } finally {
         setUpdatingItems((prev) => ({ ...prev, [cartItemId]: false }));
       }
+      });
     },
-    []
+    [requireAuth]
   );
 
   const handleClearCart = useCallback(async () => {
