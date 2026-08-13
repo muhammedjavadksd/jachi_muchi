@@ -1,28 +1,88 @@
 import { memo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/components";
+import {
+  PromotionHeader,
+  Footer,
+  WhatsAppButton,
+  Container,
+} from "@/components";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 
 const HEADER_SPACER_HEIGHT = 140;
 
 const SIX_SIGNS = [
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/Eye.svg", text1: "Bright Light", text2: "Discomfort" },
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/EyeWithDrop.svg", text1: "Water Eyes", text2: "Discomfort" },
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/PersonTwo.svg", text1: "Frequent", text2: "Neck Pain" },
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/Person.svg", text1: "Frequent", text2: "Headeches" },
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/A_char.svg", text1: "Difficulty", text2: "Reading" },
-  { icon: "https://static.lenskart.com/media/desktop/img/HTO/EyeMulti.svg", text1: "Hazy", text2: "Vision" },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/Eye.svg",
+    text1: "Bright Light",
+    text2: "Discomfort",
+  },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/EyeWithDrop.svg",
+    text1: "Water Eyes",
+    text2: "Discomfort",
+  },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/PersonTwo.svg",
+    text1: "Frequent",
+    text2: "Neck Pain",
+  },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/Person.svg",
+    text1: "Frequent",
+    text2: "Headeches",
+  },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/A_char.svg",
+    text1: "Difficulty",
+    text2: "Reading",
+  },
+  {
+    icon: "https://static.lenskart.com/media/desktop/img/HTO/EyeMulti.svg",
+    text1: "Hazy",
+    text2: "Vision",
+  },
 ];
 
 const FAQS = [
-  { question: "What is Jachi&Muchi Home Eye Test?", answer: "Jachi&Muchi Home Eye Test is a convenient service where our certified professionals visit your home to conduct a comprehensive eye check-up." },
-  { question: "Why Should I Opt for the Jachi&Muchi Home Eye Test?", answer: "It's convenient, hassle-free, and done by certified professionals in the comfort of your home." },
-  { question: "What Cities Is this Service Available In?", answer: "This service is available in major cities across India. Please check availability for your location." },
-  { question: "Where to Go for an Eye Check-Up?", answer: "You can either visit our stores or book a home eye test appointment." },
-  { question: "How Much Does the Jachi&Muchi Eye Check Up Cost?", answer: "The home eye test starts at just ₹99." },
-  { question: "How to Test Eye Power at Home?", answer: "Book a home eye test appointment and our certified professionals will conduct a 12-step eye check-up at your home." },
-  { question: "How to Check Your Eyesight at Home?", answer: "Simply book an appointment through our website and our team will visit your home." },
-  { question: "How to Check the Eye Number at Home?", answer: "Our professional eye test includes all the necessary checks to determine your eye number." },
+  {
+    question: "What is Jachi&Muchi Home Eye Test?",
+    answer:
+      "Jachi&Muchi Home Eye Test is a convenient service where our certified professionals visit your home to conduct a comprehensive eye check-up.",
+  },
+  {
+    question: "Why Should I Opt for the Jachi&Muchi Home Eye Test?",
+    answer:
+      "It's convenient, hassle-free, and done by certified professionals in the comfort of your home.",
+  },
+  {
+    question: "What Cities Is this Service Available In?",
+    answer:
+      "This service is available in major cities across India. Please check availability for your location.",
+  },
+  {
+    question: "Where to Go for an Eye Check-Up?",
+    answer:
+      "You can either visit our stores or book a home eye test appointment.",
+  },
+  {
+    question: "How Much Does the Jachi&Muchi Eye Check Up Cost?",
+    answer: "The home eye test starts at just ₹99.",
+  },
+  {
+    question: "How to Test Eye Power at Home?",
+    answer:
+      "Book a home eye test appointment and our certified professionals will conduct a 12-step eye check-up at your home.",
+  },
+  {
+    question: "How to Check Your Eyesight at Home?",
+    answer:
+      "Simply book an appointment through our website and our team will visit your home.",
+  },
+  {
+    question: "How to Check the Eye Number at Home?",
+    answer:
+      "Our professional eye test includes all the necessary checks to determine your eye number.",
+  },
 ];
 
 export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
@@ -63,9 +123,9 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                   loop
                   playsInline
                   className="w-full h-auto"
-                  poster="https://static.lenskart.com/media/desktop/img/DesignStudioIcons/HTO_video_placeholder.png"
+                  poster="/videos/home-eye-test-poster.png"
                 >
-                  <source src="https://static.lenskart.io/video/yt-videos/EyeTest-Square-LK@Home.mp4#t=0.1" type="video/mp4" />
+                  <source src="/videos/home-eye-test.mp4" type="video/mp4" />
                 </video>
               </div>
 
@@ -73,7 +133,9 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
               <div className="mt-10">
                 <div className="text-center mb-6">
                   <span className="text-5xl font-bold text-gray-900">6</span>
-                  <h2 className="text-xl font-semibold text-gray-900 mt-2">Signs you need an eyetest</h2>
+                  <h2 className="text-xl font-semibold text-gray-900 mt-2">
+                    Signs you need an eyetest
+                  </h2>
                 </div>
 
                 {/* Carousel dots/page indicators */}
@@ -89,8 +151,15 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 {/* Cards Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
                   {SIX_SIGNS.map((sign, index) => (
-                    <div key={index} className="bg-gray-50 rounded-xl p-4 text-center">
-                      <img src={sign.icon} alt="icon" className="w-10 h-10 mx-auto mb-3" />
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-xl p-4 text-center"
+                    >
+                      <img
+                        src={sign.icon}
+                        alt="icon"
+                        className="w-10 h-10 mx-auto mb-3"
+                      />
                       <p className="text-sm text-gray-900">{sign.text1}</p>
                       <p className="text-sm text-gray-600">{sign.text2}</p>
                     </div>
@@ -100,23 +169,35 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
               {/* FAQs Section */}
               <div className="mt-12">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-6">FAQs About Home Eye Tests</h2>
+                <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                  FAQs About Home Eye Tests
+                </h2>
                 <div className="space-y-3">
                   {FAQS.map((faq, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-lg overflow-hidden"
+                    >
                       <button
                         type="button"
                         onClick={() => toggleFaq(index)}
                         className="w-full flex items-center justify-between p-4 text-left bg-gray-50 hover:bg-gray-100 transition-colors"
                       >
-                        <span className="font-medium text-gray-900">{faq.question}</span>
+                        <span className="font-medium text-gray-900">
+                          {faq.question}
+                        </span>
                         <svg
                           className={`w-5 h-5 text-teal-600 transition-transform ${openFaq === index ? "rotate-180" : ""}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </button>
                       {openFaq === index && (
@@ -139,8 +220,18 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                   className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium"
                 >
                   <span>Chat with us</span>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </a>
               </div>
@@ -148,7 +239,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
               {/* Rating & Reviews */}
               <div className="mt-10">
                 {/* <h2 className="text-2xl font-semibold text-gray-900 mb-6">Rating & Reviews</h2> */}
-                
+
                 {/* Overall Rating */}
                 {/* <div className="flex items-center gap-1 mb-6">
                   {[0, 1, 2, 3, 4].map((i) => (
@@ -181,7 +272,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                     </div>
                   ))}
                 </div> */}
-{/* 
+                {/* 
                 <button type="button" className="mt-4 text-teal-600 font-medium hover:text-teal-700">
                   Load More Reviews...
                 </button> */}
@@ -192,12 +283,25 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                 <details className="border border-gray-200 rounded-lg overflow-hidden">
                   <summary className="p-4 bg-gray-50 cursor-pointer font-semibold text-gray-900 list-none flex items-center justify-between">
                     <span>Terms and conditions</span>
-                    <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="w-5 h-5 text-teal-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </summary>
                   <div className="p-4 bg-white">
-                    <p className="text-gray-600 text-sm">Applicable terms and conditions apply. For more details, please contact our support team.</p>
+                    <p className="text-gray-600 text-sm">
+                      Applicable terms and conditions apply. For more details,
+                      please contact our support team.
+                    </p>
                   </div>
                 </details>
               </div>
@@ -206,8 +310,12 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
             {/* Right Side - Content */}
             <div className="w-full lg:w-1/2 lg:sticky lg:top-24 lg:self-start">
               <div className="lg:pl-8">
-                <h1 className="text-3xl font-bold text-gray-900">Jachi&Muchi at Home</h1>
-                <h2 className="text-xl text-gray-600 mt-1">Eye Test & Frame Trial Service</h2>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Jachi&Muchi at Homet
+                </h1>
+                <h2 className="text-xl text-gray-600 mt-1">
+                  Eye Test & Frame Trial Service
+                </h2>
 
                 {/* Rating */}
                 {/* <div className="flex items-center gap-1 mt-4">
@@ -220,19 +328,40 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
                 {/* Eye Test Eligibility */}
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Eye test eligibility</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Eye test eligibility
+                  </h3>
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/HTO/HTOAppointmentConfirmed.svg" alt="check" className="w-5 h-5 mt-1" />
-                      <p className="text-gray-700">A well-lit room with 10 ft space is required</p>
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/HTO/HTOAppointmentConfirmed.svg"
+                        alt="check"
+                        className="w-5 h-5 mt-1"
+                      />
+                      <p className="text-gray-700">
+                        A well-lit room with 10 ft space is required
+                      </p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/HTO/HTOAppointmentConfirmed.svg" alt="check" className="w-5 h-5 mt-1" />
-                      <p className="text-gray-700">Required age for eye test is 14 - 75 years</p>
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/HTO/HTOAppointmentConfirmed.svg"
+                        alt="check"
+                        className="w-5 h-5 mt-1"
+                      />
+                      <p className="text-gray-700">
+                        Required age for eye test is 14 - 75 years
+                      </p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/DesignStudioIcons/RedCross.svg" alt="cross" className="w-5 h-5 mt-1" />
-                      <p className="text-gray-700">Not for Diabetics or those with High BP (Clinical eye test is required)</p>
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/DesignStudioIcons/RedCross.svg"
+                        alt="cross"
+                        className="w-5 h-5 mt-1"
+                      />
+                      <p className="text-gray-700">
+                        Not for Diabetics or those with High BP (Clinical eye
+                        test is required)
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -241,18 +370,36 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
                 {/* What to Expect */}
                 <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">What to expect?</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    What to expect?
+                  </h3>
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/HTO/EyeWithTorch.svg" alt="icon" className="w-5 h-5 mt-1" />
-                      <p className="text-gray-700">12 Step Eye Checkup by certified professionals</p>
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/HTO/EyeWithTorch.svg"
+                        alt="icon"
+                        className="w-5 h-5 mt-1"
+                      />
+                      <p className="text-gray-700">
+                        12 Step Eye Checkup by certified professionals
+                      </p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/HTO/EyeWithBoxes.svg" alt="icon" className="w-5 h-5 mt-1" />
-                      <p className="text-gray-700">Latest Eye Test Equipments</p>
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/HTO/EyeWithBoxes.svg"
+                        alt="icon"
+                        className="w-5 h-5 mt-1"
+                      />
+                      <p className="text-gray-700">
+                        Latest Eye Test Equipments
+                      </p>
                     </div>
                     <div className="flex items-start gap-3">
-                      <img src="https://static.lenskart.com/media/desktop/img/HTO/Glasses.svg" alt="icon" className="w-5 h-5 mt-1" />
+                      <img
+                        src="https://static.lenskart.com/media/desktop/img/HTO/Glasses.svg"
+                        alt="icon"
+                        className="w-5 h-5 mt-1"
+                      />
                       <p className="text-gray-700">Try 150+ frames at home</p>
                     </div>
                   </div>
@@ -262,7 +409,9 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
                 {/* Price */}
                 <div className="mt-6">
-                  <h2 className="text-lg font-semibold text-gray-900">Jachi&Muchi at Home</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Jachi&Muchi at Home
+                  </h2>
                   {/* <div className="flex items-center gap-3 mt-2">
                     <span className="text-xl text-gray-400 line-through">₹120</span>
                     <span className="text-2xl font-bold text-gray-900">₹99</span>
