@@ -36,7 +36,11 @@ function mapOfferToSlide(offer: Offer): CarouselSlide {
       subtitle = `Special Combo at ₹${offer.comboPrice}`;
       break;
     case "seasonal":
-      subtitle = `${offer.discountValue}% OFF on selected items`;
+      if (offer.discountType === "percentage") {
+        subtitle = `${offer.discountValue}% OFF on selected items${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+      } else {
+        subtitle = `₹${offer.discountValue} OFF on selected items${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+      }
       break;
     default:
       subtitle = "";
