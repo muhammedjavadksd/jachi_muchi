@@ -96,22 +96,22 @@ export const POPULAR_EYEWEAR: PopularEyewearItem[] = [
 export const NEARBY_SERVICES: NearbyServiceItem[] = [
   {
     title: "Visit Your Nearest Store",
-    image: "/near/near_store.png",
+    image: "/near/near---store.png",
     link: "/stores",
   },
   {
     title: "Experience Our Home Try-On",
-    image: "/near/try_on.png",
+    image: "/near/try---on.png",
     link: "/home-try-on",
   },
   {
     title: "Order Now on WhatsApp",
-    image: "/near/order_whatsapp.png",
+    image: "/near/order--whatsapp.png",
     link: "https://wa.me/917034683567?text=Hi%20Jachi%26Muchi%2C%20I%20am%20on%20Desktop.%20Can%20you%20guide%20me%3F",
   },
 {
   title: "Connect with your Experts",
-  image: "/near/connect_experts.png",
+  image: "/near/connect--experts.png",
   link: "tel:7034683567",
 }
 ];
@@ -157,12 +157,12 @@ export const FREE_CHECKUP: ExclusiveItem[] = [
   },
   {
     title: "Schedule Eye Test at Home",
-    image: "https://static5.lenskart.com/media/uploads/Home-Eye-Test-5X6desktop-18-12-AV.png",
+    image: "/free/image2.png",
     link: "/home-try-on",
   },
   {
     title: "Take an Online Eye Test",
-    image: "/free/Online-Eye-Test.png",
+    image: "/free/Online-Eye-Test1.png",
     link: "/online-eye-test",
   },
 ];
