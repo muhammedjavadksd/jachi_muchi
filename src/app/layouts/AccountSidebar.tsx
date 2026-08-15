@@ -19,10 +19,11 @@ import { useAuth } from "@/features/auth/hooks";
 
 const SHOW_PRESCRIPTIONS = import.meta.env.VITE_FEATURE_MY_PRESCRIPTIONS === "true";
 const SHOW_NOTIFICATIONS = import.meta.env.VITE_FEATURE_MANAGE_NOTIFICATIONS === "true";
+const SHOW_3D_MODEL = import.meta.env.VITE_FEATURE_MY_3D_MODEL === "true";
 
 const ALL_MENU_ITEMS = [
   { id: "orders", label: "My Orders", icon: Package, link: "/account/orders" },
-  { id: "3d-model", label: "My 3D Model", icon: Box, link: "/account/3d-model" },
+  { id: "3d-model", label: "My 3D Model", icon: Box, link: "/account/3d-model", feature: "3d-model" },
   { id: "account-info", label: "Account Information", icon: User, link: "/account/info" },
   { id: "notifications", label: "Manage Notifications", icon: Bell, link: "/account/notifications", feature: "notifications" },
   { id: "address", label: "Address Book", icon: MapPin, link: "/account/address" },
@@ -33,7 +34,8 @@ const ALL_MENU_ITEMS = [
 const MENU_ITEMS = ALL_MENU_ITEMS.filter(
   (item) =>
     (item.feature !== "prescriptions" || SHOW_PRESCRIPTIONS) &&
-    (item.feature !== "notifications" || SHOW_NOTIFICATIONS)
+    (item.feature !== "notifications" || SHOW_NOTIFICATIONS) &&
+    (item.feature !== "3d-model" || SHOW_3D_MODEL)
 );
 
 const SIDEBAR_WIDTH = 280;

@@ -49,6 +49,8 @@ const DeviceCheckPage = lazy(() => import("@/features/eyetest/pages/DeviceCheckP
 const EyeTestApp = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestApp/EyeTestApp").then(m => ({ default: m.EyeTestApp })));
 const TrackOrderPage = lazy(() => import("@/features/orderTracking/pages/TrackOrderPage/TrackOrderPage").then(m => ({ default: m.TrackOrderPage })));
 
+const SHOW_3D_MODEL = import.meta.env.VITE_FEATURE_MY_3D_MODEL === "true";
+
 export const routes: RouteObject[] = [
   { path: "/", element: <App /> },
   { path: "/home-2", element: <HomePage2 /> },
@@ -71,7 +73,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: "/account", element: <AccountPage /> },
       { path: "/account/orders", element: <AccountPage /> },
-      { path: "/account/3d-model", element: <My3DModelPage /> },
+      { path: "/account/3d-model", element: SHOW_3D_MODEL ? <My3DModelPage /> : <AccountPage /> },
       { path: "/account/info", element: <AccountInfoPage /> },
       { path: "/account/notifications", element: <ManageNotificationsPage /> },
       { path: "/account/address", element: <AddressBookPage /> },
