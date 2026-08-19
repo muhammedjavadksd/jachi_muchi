@@ -53,7 +53,7 @@ const ProductGrid = memo(function ProductGrid({
       const offerBadge = getOfferBadge(product._id, product.price);
 
       return (
-        <div key={product._id || index} className="transition-opacity duration-300 ease-in-out">
+        <div key={product._id || index} className="h-full transition-opacity duration-300 ease-in-out">
           <ProductCard
             images={images}
             name={product.name}

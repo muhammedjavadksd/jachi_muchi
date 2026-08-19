@@ -62,7 +62,7 @@ export const ProductCard = memo(function ProductCard({
   return (
     <a
       href={link}
-      className="group bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+      className="group h-full flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
       <div className="relative aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
         <img
@@ -102,13 +102,13 @@ export const ProductCard = memo(function ProductCard({
           </svg>
         </button>
       </div>
-      <div className="p-4">
-        {rating && (
+      <div className="p-4 flex-1 flex flex-col">
+        {!!rating && (
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-teal-700 text-white text-xs px-2 py-1 rounded-md font-semibold">
               {rating}
             </span>
-            {reviews && (
+            {!!reviews && (
               <span className="text-gray-500 text-xs">{reviews.toLocaleString()}</span>
             )}
           </div>
