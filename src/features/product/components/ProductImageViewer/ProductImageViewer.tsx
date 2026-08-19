@@ -127,9 +127,7 @@ export const ProductImageViewer = memo(function ProductImageViewer({
             <img
               src={image}
               alt={`${productName} view ${i + 1}`}
-              className="w-full h-full object-contain object-center bg-white"
-              loading="lazy"
-              onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
+              className="max-w-full max-h-full object-contain object-center bg-white"
             />
           </button>
         ))}
@@ -210,9 +208,7 @@ export const ProductImageViewer = memo(function ProductImageViewer({
               <img
                 src={image}
                 alt={`${productName} thumb ${i + 1}`}
-                className="w-full h-full object-contain object-center bg-white"
-                loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
+                className="max-w-full max-h-full object-contain object-center bg-white"
               />
             </button>
           ))}
