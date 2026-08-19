@@ -127,7 +127,7 @@ export const ProductImageViewer = memo(function ProductImageViewer({
             <img
               src={image}
               alt={`${productName} view ${i + 1}`}
-              className="w-full h-full object-contain p-1 bg-gray-50"
+              className="w-full h-full object-contain object-center bg-white"
               loading="lazy"
               onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
             />
@@ -147,12 +147,12 @@ export const ProductImageViewer = memo(function ProductImageViewer({
         )}
 
         <div className="flex-1 relative bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
-          <div className="relative w-full" style={{ aspectRatio: "4 / 3" }}>
-            <div className="absolute inset-0 flex items-center justify-center p-6 md:p-8">
+          <div className="relative w-full aspect-[4/3]">
+            <div className="absolute inset-0 flex items-center justify-center p-4">
               <img
                 src={images[currentImageIndex] || FALLBACK_IMG}
                 alt={`${productName} - view ${currentImageIndex + 1}`}
-                className="max-w-full max-h-full object-contain"
+                className="max-w-full max-h-full object-contain object-center"
                 loading="lazy"
                 onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
               />
@@ -210,7 +210,7 @@ export const ProductImageViewer = memo(function ProductImageViewer({
               <img
                 src={image}
                 alt={`${productName} thumb ${i + 1}`}
-                className="w-full h-full object-contain p-1 bg-gray-50"
+                className="w-full h-full object-contain object-center bg-white"
                 loading="lazy"
                 onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
               />
