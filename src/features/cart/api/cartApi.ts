@@ -47,6 +47,7 @@ export function mapBackendItem(item: BackendCartItem) {
     cartItemId: item._id,
     bogoGroupId: item.bogoGroupId ?? undefined,
     productId: item.product._id,
+    variantId: item.color?.id || undefined,
     productName: item.product.name,
     productPrice: item.discountedPrice ?? item.product.price,
     productImage: item.product.images?.[0] ?? "",

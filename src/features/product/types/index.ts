@@ -29,6 +29,7 @@ export interface ProductDetail {
   rating: number;
   reviews: number;
   images: string[];
+  rotation360Images?: string[];
   colors: ColorVariant[];
   specs: ProductSpec[];
   features: string[];
@@ -46,6 +47,7 @@ export interface ProductDetailData {
   rating?: number;
   ratingCount?: number;
   images?: string[];
+  rotation360Images?: string[];
   colors?: { name: string; hex?: string; image?: string }[];
   description?: string;
   brand?: string;

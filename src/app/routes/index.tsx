@@ -15,7 +15,7 @@ const PaymentSuccessPage = lazy(() => import("@/features/checkout").then(m => ({
 const PaymentFailedPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentFailedPage })));
 const PaymentPendingPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentPendingPage })));
 const AccountPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountPage })));
-const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage })));
+// const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage }))); // [HIDDEN] My 3D Model — uncomment to restore
 const AccountInfoPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountInfoPage })));
 const ManageNotificationsPage = lazy(() => import("@/features/account").then(m => ({ default: m.ManageNotificationsPage })));
 const AddressBookPage = lazy(() => import("@/features/account").then(m => ({ default: m.AddressBookPage })));
@@ -71,7 +71,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: "/account", element: <AccountPage /> },
       { path: "/account/orders", element: <AccountPage /> },
-      { path: "/account/3d-model", element: <My3DModelPage /> },
+      // { path: "/account/3d-model", element: <My3DModelPage /> }, // [HIDDEN] My 3D Model — uncomment to restore
       { path: "/account/info", element: <AccountInfoPage /> },
       { path: "/account/notifications", element: <ManageNotificationsPage /> },
       { path: "/account/address", element: <AddressBookPage /> },

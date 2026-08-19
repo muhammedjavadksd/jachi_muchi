@@ -1,5 +1,4 @@
-const API_BASE_URL = "";
-
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || "";
 export function getImageUrl(path?: string | null, fallback = "https://placehold.co/400x300?text=Eyewear"): string {
   if (!path) return fallback;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;

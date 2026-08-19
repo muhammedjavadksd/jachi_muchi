@@ -8,6 +8,7 @@ import { LoginModal } from "@/features/auth/components/LoginModal/LoginModal";
 import { SignupModal } from "@/features/auth/components/SignupModal/SignupModal";
 import { ForgotPasswordModal } from "@/features/auth/components/ForgotPasswordModal/ForgotPasswordModal";
 import { ScrollToTop } from "@/shared/components/ScrollToTop/ScrollToTop";
+import { LoadingScreen } from "@/shared/components/LoadingScreen/LoadingScreen";
 import { Toaster } from "react-hot-toast";
 import "./styles.css";
 
@@ -31,7 +32,7 @@ createRoot(rootElement).render(
           <SignupModalProvider>
             <ForgotPasswordModalProvider>
               <WishlistProvider>
-              <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>}>
+              <Suspense fallback={<LoadingScreen />}>
                 <AppRoutes />
               </Suspense>
                 <WishlistCanvas />

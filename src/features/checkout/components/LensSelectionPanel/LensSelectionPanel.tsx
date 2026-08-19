@@ -315,7 +315,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
   const renderStep1 = () => (
     <div className="flex flex-col gap-4">
       <button onClick={() => handlePowerTypeSelect("with-power")} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-        <img src="/category/image.png" alt="With Power" className="w-16 h-16 rounded-lg object-cover" />
+        <img src="/category/Dual_Power.png" alt="With Power" className="w-16 h-16 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-medium text-gray-900">With Power</p>
           <p className="text-sm text-gray-500">Positive, Negative or Cylindrical</p>
@@ -323,7 +323,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
         <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
       <button onClick={() => handlePowerTypeSelect("zero-power")} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-        <img src="/category/image.png" alt="Zero Power" className="w-16 h-16 rounded-lg object-cover" />
+        <img src="/category/ZeroPowerComputer.png" alt="Zero Power" className="w-16 h-16 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-medium text-gray-900">Zero Power</p>
           <p className="text-sm text-gray-500">BLU Screen lenses (Blue light protection)</p>
@@ -331,7 +331,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
         <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
       <button onClick={() => handlePowerTypeSelect("progressive")} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-        <img src="/category/image.png" alt="Progressive" className="w-16 h-16 rounded-lg object-cover" />
+        <img src="/category/ProgressiveBifocal.png" alt="Progressive" className="w-16 h-16 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-medium text-gray-900">Progressive/Bifocals</p>
           <p className="text-sm text-gray-500">Two powers in one eye</p>
@@ -339,7 +339,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
         <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
       </button>
       <button onClick={() => handlePowerTypeSelect("frame-only")} className="flex items-center gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-        <img src="/category/image.png" alt="Frame Only" className="w-16 h-16 rounded-lg object-cover" />
+        <img src="/category/FrameOnly.png" alt="Frame Only" className="w-16 h-16 rounded-lg object-cover" />
         <div className="flex-1">
           <p className="font-medium text-gray-900">Frame Only</p>
           <p className="text-sm text-gray-500">With no lenses</p>
@@ -574,7 +574,12 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
           </div>
         )}
         <div className="bg-gray-50 rounded-xl p-4 mb-4">
-          <div className="flex items-center gap-4 mb-3"><img src={getImageUrl(productImage)} alt={productName} className="w-16 h-16 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image"; }} /><div><p className="font-medium text-gray-900">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div></div>
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-16 h-16 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center p-1">
+              <img src={getImageUrl(productImage)} alt={productName} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image"; }} />
+            </div>
+            <div className="min-w-0"><p className="font-medium text-gray-900 truncate">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div>
+          </div>
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
             {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+₹{selectedLens.price})</span></div>}

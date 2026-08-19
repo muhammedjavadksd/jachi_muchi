@@ -58,7 +58,7 @@ router.post('/apply', auth, async (req, res) => {
     if (coupon.usedBy && coupon.usedBy.includes(req.user.id)) {
       return res.status(400).json({
         success: false,
-        message: 'This coupon has already been used',
+        message: `You have already used the ${coupon.code} coupon.`,
       });
     }
 
@@ -66,7 +66,7 @@ router.post('/apply', auth, async (req, res) => {
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
       return res.status(400).json({
         success: false,
-        message: 'This coupon has reached its usage limit',
+        message: `The ${coupon.code} coupon has reached its usage limit.`,
       });
     }
 
@@ -199,14 +199,14 @@ router.post('/validate', auth, async (req, res) => {
     if (coupon.usedBy && coupon.usedBy.includes(req.user.id)) {
       return res.status(400).json({
         success: false,
-        message: 'This coupon has already been used',
+        message: `You have already used the ${coupon.code} coupon.`,
       });
     }
 
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
       return res.status(400).json({
         success: false,
-        message: 'This coupon has reached its usage limit',
+        message: `The ${coupon.code} coupon has reached its usage limit.`,
       });
     }
 

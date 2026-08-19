@@ -1,38 +1,14 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useCallback } from "react";
 import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews } from "@/components";
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
+import { ProductImageViewer } from "@/features/product/components/ProductImageViewer/ProductImageViewer";
 import { Container } from "@/shared/components/Container/Container";
 import { useProductDetail } from "@/features/product/hooks";
 
 const PROMOTION_HEADER_HEIGHT = 140;
-const FALLBACK_IMG = "https://placehold.co/400x300?text=No+Image";
-
-function ChevronLeft() {
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>;
-}
-
-function ChevronRight() {
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>;
-}
 
 function StarIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>;
-}
-
-function Badge360() {
-  return (
-    <div className="absolute top-6 right-6 flex items-center justify-center w-14 h-14 bg-white border-2 border-teal-600 rounded-2xl cursor-pointer hover:bg-teal-50 transition-colors shadow-md">
-      <div className="flex flex-col items-center">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-          <path d="M3 3v5h5" />
-          <path d="M21 12a9 9 0 1 0-9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-          <path d="M21 21v-5h-5" />
-        </svg>
-        <span className="text-teal-600 text-xs font-bold -mt-1">360°</span>
-      </div>
-    </div>
-  );
 }
 
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
@@ -61,47 +37,6 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
   } = useProductDetail();
 
   const spacerStyle = useMemo(() => ({ height: PROMOTION_HEADER_HEIGHT }), []);
-
-  const imageCarousel = useMemo(() => {
-    if (!safeProduct.images.length) return null;
-    const hasMultiple = safeProduct.images.length > 1;
-    return (
-      <div className="relative">
-        <div className="relative bg-white border border-gray-200 rounded-2xl overflow-hidden aspect-square">
-          <div className="flex transition-transform duration-500 ease-in-out h-full" style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
-            {safeProduct.images.map((image, i) => (
-              <div key={i} className="min-w-full h-full flex items-center justify-center p-6">
-                <img src={image} alt={`Product view ${i + 1}`} className="w-full h-full object-contain" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
-              </div>
-            ))}
-          </div>
-          {currentImageIndex === 1 && <Badge360 />}
-          {hasMultiple && (
-            <>
-              <button onClick={goToPrev} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all active:scale-90" aria-label="Previous image"><ChevronLeft /></button>
-              <button onClick={goToNext} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center transition-all active:scale-90" aria-label="Next image"><ChevronRight /></button>
-            </>
-          )}
-        </div>
-        {hasMultiple && (
-          <>
-            <div className="flex justify-center gap-2 mt-4">
-              {safeProduct.images.map((_, i) => (
-                <button key={i} onClick={() => goToImage(i)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${i === currentImageIndex ? "bg-teal-700 w-6" : "bg-gray-300 hover:bg-gray-400"}`} />
-              ))}
-            </div>
-            <div className="flex gap-3 mt-4 overflow-x-auto scrollbar-hide pb-2">
-              {safeProduct.images.map((image, i) => (
-                <button key={i} onClick={() => goToImage(i)} className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${i === currentImageIndex ? "border-teal-700 shadow-md opacity-100" : "border-gray-200 opacity-60 hover:opacity-90"}`}>
-                  <img src={image} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-contain p-1.5 bg-gray-50" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }} />
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    );
-  }, [safeProduct.images, currentImageIndex, goToNext, goToPrev, goToImage]);
 
   const colorOptions = useMemo(() =>
     safeProduct.colors.map((color, i) => (
@@ -133,8 +68,19 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
       <main className="flex-1">
         <Container className="py-6 md:py-10">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            <div className="lg:w-3/5 xl:w-2/3">{imageCarousel}</div>
-            <div className="lg:w-2/5 xl:w-1/3 lg:sticky lg:top-40 lg:self-start">
+            <div className="lg:w-3/5 xl:w-2/3">
+              {/* [HIDDEN] rotation360Images prop — uncomment to restore 360° */}
+              <ProductImageViewer
+                images={safeProduct.images}
+                productName={safeProduct.name}
+                currentImageIndex={currentImageIndex}
+                onImageChange={goToImage}
+                onGoPrev={goToPrev}
+                onGoNext={goToNext}
+                productId={safeProduct._id}
+              />
+            </div>
+            <div className="lg:w-2/5 xl:w-1/3 lg:sticky lg:top-40">
               <div className="flex items-center gap-3 mb-3">
                 <span className="flex items-center gap-1 bg-teal-700 text-white text-sm font-semibold px-3 py-1 rounded-full">
                   {safeProduct.rating} <StarIcon />
@@ -193,12 +139,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                   <div className="px-5 pb-5 text-sm animate-[fadeIn_0.2s_ease-out]">{specsTable}</div>
                 )}
               </div>
-              {product?.description && (
-                <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Description</h3>
-                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
-                </div>
-              )}
+
             </div>
           </div>
         </Container>
@@ -229,4 +170,3 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
 });
 
 ProductDetailPage.displayName = "ProductDetailPage";
-

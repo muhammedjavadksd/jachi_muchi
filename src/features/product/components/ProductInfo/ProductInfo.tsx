@@ -45,14 +45,17 @@ export const ProductInfo = memo(function ProductInfo({
 
       <div className="flex items-baseline gap-3">
         <span className="text-2xl sm:text-3xl font-bold text-gray-900">₹{product.price}</span>
-        {product.oldPrice && product.oldPrice > product.price && (
-          <>
-            <span className="text-base text-gray-400 line-through">₹{product.oldPrice}</span>
-            <span className="text-sm font-semibold text-green-600">
-              {product.discount || Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% off
-            </span>
-          </>
-        )}
+        {product.oldPrice && product.oldPrice > product.price && (() => {
+          const d = product.discount || Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+          return d > 0 ? (
+            <>
+              <span className="text-base text-gray-400 line-through">₹{product.oldPrice}</span>
+              <span className="text-sm font-semibold text-green-600">
+                {d}% off
+              </span>
+            </>
+          ) : null;
+        })()}
       </div>
 
       {colorList.length > 0 && (

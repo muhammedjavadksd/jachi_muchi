@@ -34,6 +34,7 @@ export interface UserCoupon {
   discountType: "percentage" | "fixed";
   discountValue: number;
   minPurchase: number;
+  minOrderAmount?: number;
   maxDiscount?: number;
   description?: string;
   expiresAt: string;
