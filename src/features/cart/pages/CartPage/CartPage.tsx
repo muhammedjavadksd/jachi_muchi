@@ -1,9 +1,10 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { getImageUrl } from "@/shared/utils/image";
 import { useCartPage } from "@/features/cart/hooks";
+import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -27,6 +28,26 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     handleRemoveItem,
     handleUpdateQuantity,
   } = useCartPage();
+
+  const [pendingRemoval, setPendingRemoval] = useState<{ cartItemId: string; productId: string; productName: string; productPrice: number; productImage?: string } | null>(null);
+
+  const handleMoveToWishlist = useCallback(async () => {
+    if (!pendingRemoval) return;
+    try {
+      await addToWishlistAPI({
+        productId: pendingRemoval.productId,
+        name: pendingRemoval.productName,
+        image: pendingRemoval.productImage || "",
+        link: `/product/${pendingRemoval.productId}`,
+        price: pendingRemoval.productPrice,
+      });
+      await handleRemoveItem(pendingRemoval.cartItemId);
+    } catch {
+      // failed — silently ignore
+    } finally {
+      setPendingRemoval(null);
+    }
+  }, [pendingRemoval, handleRemoveItem]);
 
   const spacerStyle = useMemo(() => ({
     height: `${PROMOTION_HEADER_HEIGHT}px`,
@@ -100,7 +121,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleUpdateQuantity(item.cartItemId!, "decrement")}
-                    disabled={updatingItems[item.cartItemId!]}
+                    disabled={updatingItems[item.cartItemId!] || (item.quantity || 1) <= 1}
                     className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-lg font-medium text-gray-700 hover:border-teal-600 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     aria-label="Decrease quantity"
                   >
@@ -124,7 +145,14 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
             <div className="flex items-center text-sm pt-2">
               <button
-                onClick={() => handleRemoveItem(item.cartItemId!)} className="text-red-600 font-medium hover:text-red-700 transition-colors"
+                onClick={() => setPendingRemoval({
+                  cartItemId: item.cartItemId!,
+                  productId: item.productId,
+                  productName: item.productName,
+                  productPrice: item.productPrice,
+                  productImage: item.productImage,
+                })}
+                className="text-red-600 font-medium hover:text-red-700 transition-colors"
               >
                 Remove
               </button>
@@ -248,6 +276,46 @@ export const CartPage = memo(function CartPage(): JSX.Element {
           </div>
         </Container>
       </main>
+
+      {pendingRemoval && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setPendingRemoval(null)} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 z-10">
+            <button
+              onClick={() => setPendingRemoval(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <h3 className="text-lg font-semibold text-gray-900 pr-6">Remove Item From Cart?</h3>
+            <p className="text-sm text-gray-500 mt-2">Instead, you could wishlist this item and access it later.</p>
+
+            <div className="flex flex-col gap-3 mt-6">
+              <button
+                onClick={handleMoveToWishlist}
+                className="w-full py-3 px-4 border border-teal-700 text-teal-700 font-semibold rounded-xl hover:bg-teal-50 transition-colors"
+              >
+                Move to wishlist
+              </button>
+              <button
+                onClick={async () => {
+                  if (pendingRemoval) {
+                    await handleRemoveItem(pendingRemoval.cartItemId);
+                  }
+                  setPendingRemoval(null);
+                }}
+                className="w-full py-3 px-4 bg-teal-700 text-white font-semibold rounded-xl hover:bg-teal-800 transition-colors"
+              >
+                Yes, remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
       <WhatsAppButton />

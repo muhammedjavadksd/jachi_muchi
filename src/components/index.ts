@@ -6,6 +6,7 @@ export { BottomNav } from "@/app/layouts";
 
 // Loading Components
 export { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
+export { LoadingScreen } from "@/shared/components/LoadingScreen/LoadingScreen";
 
 // Header Components
 export { Header } from "@/app/layouts";

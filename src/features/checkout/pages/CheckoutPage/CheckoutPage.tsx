@@ -2,7 +2,7 @@ import { memo, useRef, useState, useCallback, useEffect } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { useCheckout } from "@/features/checkout/hooks";
-import type { UserCoupon } from "@/features/coupon/types";
+import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
 
 const PROMOTION_HEADER_HEIGHT = 140;
 
@@ -390,187 +390,6 @@ const AddAddressModal = memo(function AddAddressModal({
 
 AddAddressModal.displayName = "AddAddressModal";
 
-const CouponCardCopyOnly = memo(function CouponCardCopyOnly({
-  coupon,
-  isUsed,
-  onCopy,
-  copiedCode,
-}: {
-  coupon: UserCoupon;
-  isUsed?: boolean;
-  onCopy: (code: string) => void;
-  copiedCode: string | null;
-}) {
-  const isCopied = copiedCode === coupon.code;
-
-  const getDiscountText = () => {
-    if (coupon.discountType === 'percentage') {
-      return `${coupon.discountValue}% OFF`;
-    } else {
-      return `Flat ₹${coupon.discountValue} OFF`;
-    }
-  };
-
-  return (
-    <div className={`border rounded-xl p-4 transition-all bg-white ${isUsed ? "border-gray-200 opacity-60" : "border-gray-200 hover:border-teal-300"}`}>
-      <div className="flex justify-between items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className={`font-mono text-lg font-bold ${isUsed ? "text-gray-400" : "text-gray-900"}`}>{coupon.code}</span>
-            <span className="inline-block px-2 py-0.5 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full">
-              {getDiscountText()}
-            </span>
-            {isUsed && (
-              <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 text-xs font-semibold rounded-full">
-                Already Used
-              </span>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-            {coupon.minPurchase && coupon.minPurchase > 0 && (
-              <span>Min. spend ₹{coupon.minPurchase}</span>
-            )}
-            {coupon.maxDiscount && coupon.discountType === 'percentage' && (
-              <span>Max discount ₹{coupon.maxDiscount}</span>
-            )}
-            {coupon.expiresAt && new Date(coupon.expiresAt) > new Date() && (
-              <span>Valid till {new Date(coupon.expiresAt).toLocaleDateString()}</span>
-            )}
-          </div>
-        </div>
-        {isUsed ? (
-          <span className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
-            Used
-          </span>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onCopy(coupon.code);
-            }}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isCopied
-                ? "bg-green-100 text-green-700 cursor-default"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95"
-            }`}
-          >
-            {isCopied ? (
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Copied!
-              </span>
-            ) : (
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                </svg>
-                Copy Code
-              </span>
-            )}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-});
-
-CouponCardCopyOnly.displayName = "CouponCardCopyOnly";
-
-const CustomCouponSection = memo(function CustomCouponSection({
-  appliedCoupon,
-  couponSavings,
-  couponError,
-  isApplyingCoupon,
-  couponInput,
-  onApplyCoupon,
-  onRemoveCoupon,
-  onCouponInputChange,
-}: {
-  appliedCoupon: string;
-  couponSavings: number;
-  couponError: string;
-  isApplyingCoupon: boolean;
-  couponInput: string;
-  onApplyCoupon: () => void;
-  onRemoveCoupon: () => void;
-  onCouponInputChange: (value: string) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !appliedCoupon && couponInput.trim()) {
-      e.preventDefault();
-      onApplyCoupon();
-    }
-  };
-
-  if (appliedCoupon) {
-    return (
-      <div className="bg-teal-50 border border-teal-200 rounded-xl p-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <span className="font-semibold text-teal-700">{appliedCoupon}</span>
-              <span className="text-sm text-teal-600 ml-2">-₹{couponSavings}</span>
-            </div>
-          </div>
-          <button
-            onClick={onRemoveCoupon}
-            className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-all"
-          >
-            Remove
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <input
-            ref={inputRef}
-            type="text"
-            value={couponInput}
-            onChange={(e) => onCouponInputChange(e.target.value.toUpperCase())}
-            onKeyPress={handleKeyPress}
-            placeholder="Enter coupon code"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all uppercase"
-            disabled={isApplyingCoupon}
-          />
-        </div>
-        <button
-          onClick={onApplyCoupon}
-          disabled={!couponInput.trim() || isApplyingCoupon}
-          className="px-6 py-3 bg-teal-700 text-white font-semibold rounded-xl hover:bg-teal-800 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed active:scale-95"
-        >
-          {isApplyingCoupon ? "Applying..." : "Apply"}
-        </button>
-      </div>
-      {couponError && (
-        <p className="text-sm text-red-500 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {couponError}
-        </p>
-      )}
-      {!couponInput && !appliedCoupon && (
-        <p className="text-xs text-gray-400">Enter a coupon code and click Apply</p>
-      )}
-    </div>
-  );
-});
-
-CustomCouponSection.displayName = "CustomCouponSection";
-
 export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const {
     addresses,
@@ -588,6 +407,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     orderLoading,
     paymentMethod,
     subtotal,
+    totalSellingPrice,
     discount,
     totalPayable,
     fittingFee,
@@ -609,8 +429,25 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   } = useCheckout();
 
   const editingAddress = addresses.find(a => a.id === editingAddressId) ?? null;
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+
+  const COD_MINIMUM = 2000;
+  const isCodAllowed = totalPayable >= COD_MINIMUM;
+
+  // Auto-deselect COD when total drops below minimum
+  useEffect(() => {
+    if (!isCodAllowed && paymentMethod === "COD") {
+      setPaymentMethod("ONLINE");
+    }
+  }, [isCodAllowed, paymentMethod, setPaymentMethod]);
 
   const currentStep = "address";
+
+  useEffect(() => {
+    if (appliedCoupon && isCouponModalOpen) {
+      setIsCouponModalOpen(false);
+    }
+  }, [appliedCoupon]);
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
@@ -711,79 +548,65 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
-                  <div className="flex items-center justify-between cursor-pointer" onClick={toggleCouponList}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Apply Coupon</h3>
-                        <p className="text-xs text-gray-500">Copy & paste coupon code</p>
-                      </div>
-                    </div>
-                    <svg className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isCouponListOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-
-                  <div className="mt-4">
-                    <CustomCouponSection
-                      appliedCoupon={appliedCoupon}
-                      couponSavings={couponSavings}
-                      couponError={couponError}
-                      isApplyingCoupon={isApplyingCoupon}
-                      couponInput={couponInput}
-                      onApplyCoupon={handleApplyCoupon}
-                      onRemoveCoupon={handleRemoveCoupon}
-                      onCouponInputChange={handleCouponInputChange}
-                    />
-                  </div>
-
-                  {userCoupons.length > 0 && (
-                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isCouponListOpen ? 'max-h-[600px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
-                      <div className="pt-4 border-t border-gray-100">
-                        {(eligibleCoupons.length > 0 || usedCoupons.length > 0) ? (
-                          <div className="space-y-3">
-                            {eligibleCoupons.map((coupon) => (
-                              <CouponCardCopyOnly
-                                key={coupon.code}
-                                coupon={coupon}
-                                onCopy={handleCopyCoupon}
-                                copiedCode={copiedCoupon}
-                              />
-                            ))}
-                            {usedCoupons.map((coupon) => (
-                              <CouponCardCopyOnly
-                                key={`used-${coupon.code}`}
-                                coupon={coupon}
-                                isUsed={true}
-                                onCopy={handleCopyCoupon}
-                                copiedCode={copiedCoupon}
-                              />
-                            ))}
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900">{appliedCoupon}</p>
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wide">Applied</span>
                           </div>
-                        ) : (
-                          <div className="text-center py-4">
-                            <p className="text-sm text-gray-500">No coupons available for current cart value</p>
-                            {userCoupons.length > 0 && (
-                              <p className="text-xs text-gray-400 mt-1">Add more items to unlock coupons</p>
-                            )}
-                          </div>
-                        )}
+                          <p className="text-green-600 text-sm font-medium">You saved ₹{couponSavings}</p>
+                        </div>
                       </div>
+                      <button onClick={handleRemoveCoupon} className="px-4 py-2 text-red-600 font-medium text-sm hover:bg-red-50 rounded-xl transition-colors">REMOVE</button>
                     </div>
+                  ) : (
+                    <button
+                      onClick={() => setIsCouponModalOpen(true)}
+                      className="flex items-center justify-between w-full text-left group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 group-hover:text-teal-700 transition-colors">Apply Coupon</h3>
+                          <p className="text-xs text-gray-500">Check available offers</p>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   )}
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6">
                   <p className="font-semibold text-gray-900 mb-3">Payment Method</p>
                   <div className="space-y-3">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input type="radio" name="paymentMethod" value="COD" checked={paymentMethod === "COD"} onChange={() => setPaymentMethod("COD")} className="w-4 h-4 text-teal-600" />
-                      <span className="text-sm text-gray-700">Cash on Delivery</span>
+                    <label className={`flex items-center gap-3 ${isCodAllowed ? "cursor-pointer" : "cursor-not-allowed"}`}>
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="COD"
+                        checked={paymentMethod === "COD"}
+                        disabled={!isCodAllowed}
+                        onChange={() => setPaymentMethod("COD")}
+                        className="w-4 h-4 text-teal-600 disabled:text-gray-300"
+                      />
+                      <span className={`text-sm ${isCodAllowed ? "text-gray-700" : "text-gray-400"}`}>Cash on Delivery</span>
                     </label>
+                    {!isCodAllowed && (
+                      <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 ml-7">
+                        Cash on Delivery is available only for orders above ₹{COD_MINIMUM.toLocaleString("en-IN")}. Please add more items or choose an online payment method.
+                      </p>
+                    )}
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="radio" name="paymentMethod" value="ONLINE" checked={paymentMethod === "ONLINE"} onChange={() => setPaymentMethod("ONLINE")} className="w-4 h-4 text-teal-600" />
                       <span className="text-sm text-gray-700">Pay with SkipCash</span>
@@ -825,6 +648,23 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
             setIsModalOpen(false);
           }
         }}
+      />
+      <CouponModal
+        isOpen={isCouponModalOpen}
+        onClose={() => setIsCouponModalOpen(false)}
+        appliedCoupon={appliedCoupon}
+        couponSavings={couponSavings}
+        couponError={couponError}
+        isApplyingCoupon={isApplyingCoupon}
+        couponInput={couponInput}
+        userCoupons={eligibleCoupons}
+        usedCoupons={usedCoupons}
+        copiedCoupon={copiedCoupon}
+        cartTotal={totalSellingPrice}
+        onApplyCoupon={handleApplyCoupon}
+        onRemoveCoupon={handleRemoveCoupon}
+        onCouponInputChange={handleCouponInputChange}
+        onCopyCoupon={handleCopyCoupon}
       />
     </div>
   );

@@ -9,6 +9,7 @@ const productSchema = new mongoose.Schema({
   rating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
   images: [String],
+  rotation360Images: [String],
   colors: [{
     name: String,
     hex: String,

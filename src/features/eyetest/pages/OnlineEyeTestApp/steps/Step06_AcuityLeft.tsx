@@ -1,7 +1,7 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import { useEyeTest } from "../context/EyeTestContext";
 import { StepWrapper } from "../components/StepWrapper";
-import { SNELLEN_LINES, getSnellenPx } from "../utils/snellenSizes";
+import { SNELLEN_LINES, getSnellenPx, generateOptions } from "../utils/snellenSizes";
 
 export const Step06_AcuityLeft = memo(function Step06_AcuityLeft() {
   const { state, dispatch } = useEyeTest();
@@ -11,21 +11,32 @@ export const Step06_AcuityLeft = memo(function Step06_AcuityLeft() {
   const line = SNELLEN_LINES[lineIndex];
   const fontSizePx = getSnellenPx(lineIndex, state.ppi);
 
-  const handleLetterClick = useCallback((selectedLetter: string) => {
-    const expected = line.letters[0];
-    if (selectedLetter === expected) {
-      if (lineIndex >= SNELLEN_LINES.length - 1) {
-        dispatch({ type: "SET_LEFT_ACUITY", payload: line.label });
-        setDone(true);
+  const displayedLetter = useMemo(
+    () => line.letters[Math.floor(Math.random() * line.letters.length)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lineIndex]
+  );
+
+  const options = useMemo(() => generateOptions(displayedLetter), [displayedLetter]);
+
+  const handleLetterClick = useCallback(
+    (selectedLetter: string) => {
+      if (selectedLetter === displayedLetter) {
+        if (lineIndex >= SNELLEN_LINES.length - 1) {
+          dispatch({ type: "SET_LEFT_ACUITY", payload: line.label });
+          setDone(true);
+        } else {
+          setLineIndex((i) => i + 1);
+        }
       } else {
-        setLineIndex((i) => i + 1);
+        const prevLabel =
+          lineIndex > 0 ? SNELLEN_LINES[lineIndex - 1].label : line.label;
+        dispatch({ type: "SET_LEFT_ACUITY", payload: prevLabel });
+        setDone(true);
       }
-    } else {
-      const prevLabel = lineIndex > 0 ? SNELLEN_LINES[lineIndex - 1].label : line.label;
-      dispatch({ type: "SET_LEFT_ACUITY", payload: prevLabel });
-      setDone(true);
-    }
-  }, [line, lineIndex, dispatch]);
+    },
+    [displayedLetter, line, lineIndex, dispatch]
+  );
 
   const handleDone = () => {
     dispatch({ type: "SET_STEP", payload: 7 });
@@ -67,14 +78,14 @@ export const Step06_AcuityLeft = memo(function Step06_AcuityLeft() {
             className="font-mono font-bold text-[#05005B] select-none leading-none"
             style={{ fontSize: fontSizePx }}
           >
-            {line.letters[0]}
+            {displayedLetter}
           </span>
         </div>
 
         <p className="text-xs text-gray-400 mb-3">Which letter do you see?</p>
 
         <div className="grid grid-cols-5 gap-2 w-full max-w-sm mb-2">
-          {["Z", "L", "P", "E", "D"].map((letter) => (
+          {options.map((letter) => (
             <button
               key={letter}
               onClick={() => handleLetterClick(letter)}

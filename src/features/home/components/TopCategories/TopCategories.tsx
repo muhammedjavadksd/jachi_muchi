@@ -39,7 +39,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
       const categoryImage = getImageUrl(category?.image) || FALLBACK_IMAGE;
 
       return (
-        <div key={category._id || category.name} className="relative group">
+        <div key={category._id || category.name} className="relative group w-[calc(50%-6px)] sm:w-[calc(33.333%-8px)] md:w-[calc(25%-9px)] lg:w-[calc(20%-10px)] xl:w-[calc(16.666%-10px)]">
           <Link
             to={`/category/${category.slug}`}
             className="flex flex-col items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity"
@@ -50,7 +50,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
               className="relative flex items-center justify-center overflow-hidden w-full"
               style={{ backgroundColor: "#f6f6f6", borderRadius: "16px", aspectRatio: "1 / 0.7" }}
             >
-              <img src={categoryImage} alt={category.name} className="w-4/5 h-4/5 object-contain" loading="lazy" />
+              <img src={categoryImage} alt={category.name} className="w-full h-full object-cover" loading="lazy" />
             </div>
             <span className="text-center font-medium text-xs sm:text-sm md:text-base leading-tight" style={{ color: "darkgoldenrod" }}>
               {category.name}
@@ -96,9 +96,9 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
       <section className="relative py-12">
         <Container>
           <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-4" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex flex-col items-center gap-2">
+              <div key={i} className="flex flex-col items-center gap-2 w-[calc(50%-6px)] sm:w-[calc(33.333%-8px)] md:w-[calc(25%-9px)] lg:w-[calc(20%-10px)] xl:w-[calc(16.666%-10px)]">
                 <div className="w-full bg-gray-200 rounded-2xl animate-pulse" style={{ aspectRatio: "1 / 0.7" }} />
                 <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
               </div>
@@ -117,7 +117,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
     <section className="relative py-12">
       <Container className="overflow-visible">
         <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">Top Categories</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 w-full">{categoryCards}</div>
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-5 w-full">{categoryCards}</div>
       </Container>
     </section>
   );

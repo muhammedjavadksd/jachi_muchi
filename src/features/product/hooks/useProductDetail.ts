@@ -38,6 +38,7 @@ interface SafeProduct {
   rating: number;
   reviews: number;
   images: string[];
+  // rotation360Images: string[]; // [HIDDEN] Commented out — 360° removed; uncomment to restore
   colors: DynamicColor[];
   specs: { label: string; value: string }[];
 }
@@ -68,13 +69,17 @@ export function useProductDetail() {
     setCurrentImageIndex(0);
   }, [product]);
 
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedColorIndex]);
+
   const variants = product?.variants || [];
 
   const dynamicColors: DynamicColor[] = useMemo(() =>
     variants.length > 0
       ? variants.map((v: any) => ({
           colorCode: COLOR_MAP[v.color?.toLowerCase()] || v.colorCode || "#888888",
-          image: getImageUrl(product?.images?.[0]),
+          image: v.image ? getImageUrl(v.image) : getImageUrl(product?.images?.[0]),
           name: v.color, size: v.size, stock: v.stock, _id: v._id,
         }))
       : [],
@@ -87,29 +92,43 @@ export function useProductDetail() {
   );
 
   const dynamicSpecs = useMemo(() => [
-    { label: "Product ID", value: product?._id || "N/A" },
     { label: "Brand", value: product?.brand?.name || product?.brand || "N/A" },
     { label: "Category", value: product?.category?.name || product?.category || "N/A" },
     { label: "Shape", value: product?.shape || "N/A" },
     { label: "Frame Type", value: product?.frameType || "N/A" },
     { label: "Frame Color", value: dynamicColors[selectedColorIndex]?.name || "N/A" },
-    ...(product?.description ? [{ label: "Description", value: product.description }] : []),
   ], [product, dynamicColors, selectedColorIndex]);
 
-  const safeProduct: SafeProduct = useMemo(() => ({
-    _id: product?._id || "",
-    brand: product?.brand?.name || product?.brand || "",
-    name: product?.name || "",
-    description: product?.description || "",
-    price: product?.price || 0,
-    originalPrice: product?.mrp > product?.price ? product.mrp : 0,
-    discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
-    rating: product?.rating || 0,
-    reviews: product?.reviewCount || 0,
-    images: product?.images?.length ? product.images.map((img: string) => getImageUrl(img)) : ["/placeholder.png"],
-    colors: dynamicColors,
-    specs: dynamicSpecs,
-  }), [product, dynamicColors, dynamicSpecs]);
+  const safeProduct: SafeProduct = useMemo(() => {
+    const baseImages = product?.images?.length
+      ? product.images.map((img: string) => getImageUrl(img))
+      : ["/placeholder.png"];
+    const variantImage = selectedVariant?.image
+      ? getImageUrl(selectedVariant.image)
+      : null;
+    const images = variantImage && !baseImages.includes(variantImage)
+      ? [variantImage, ...baseImages]
+      : baseImages;
+    // [HIDDEN] 360° image transformation — uncomment to restore
+    // const rotation360Images = product?.rotation360Images?.length
+    //   ? product.rotation360Images.map((img: string) => getImageUrl(img))
+    //   : [];
+    return {
+      _id: product?._id || "",
+      brand: product?.brand?.name || product?.brand || "",
+      name: product?.name || "",
+      description: product?.description || "",
+      price: product?.price || 0,
+      originalPrice: product?.mrp > product?.price ? product.mrp : 0,
+      discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
+      rating: product?.rating || 0,
+      reviews: product?.reviewCount || 0,
+      images,
+      // rotation360Images, // [HIDDEN] Commented out — 360° removed; uncomment to restore
+      colors: dynamicColors,
+      specs: dynamicSpecs,
+    };
+  }, [product, dynamicColors, dynamicSpecs, selectedVariant]);
 
   const handleColorClick = useCallback((index: number) => setSelectedColorIndex(index), []);
 

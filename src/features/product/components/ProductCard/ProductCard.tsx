@@ -64,11 +64,11 @@ export const ProductCard = memo(function ProductCard({
       href={link}
       className="group bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
-      <div className="relative h-[220px] bg-gray-50 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
         <img
           src={primaryImage}
           alt={name}
-          className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
         />
@@ -119,10 +119,10 @@ export const ProductCard = memo(function ProductCard({
         )}
         <div className="flex items-center gap-2 mt-3">
           <span className="text-lg font-bold text-black">₹{price}</span>
-          {originalPrice && originalPrice > price && (
+          {discount != null && discount > 0 && originalPrice && originalPrice > price && (
             <span className="text-sm text-gray-400 line-through">₹{originalPrice}</span>
           )}
-          {discount && discount > 0 && (
+          {discount != null && discount > 0 && (
             <span className="text-green-600 text-xs font-semibold">({discount}% OFF)</span>
           )}
         </div>
