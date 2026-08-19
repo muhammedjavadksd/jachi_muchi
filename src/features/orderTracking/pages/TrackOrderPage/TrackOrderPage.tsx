@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
+import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { TrackingStepper } from "@/features/orderTracking/components/TrackingStepper/TrackingStepper";
 import { CancelOrderModal } from "@/features/orderTracking/components/CancelOrderModal/CancelOrderModal";
@@ -144,14 +145,35 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
       badge: FALLBACK_PAYMENT_BADGE,
     };
 
-  const canCancel = !isCancelled && (statusKey === "pending" || statusKey === "confirmed");
+  const canCancel = !isCancelled && statusKey === "pending";
   const canDownloadInvoice = statusKey !== "pending";
 
   const isCod = paymentMethodKey === "cod" || paymentMethodKey === "cash";
   const showCodCollectionNote = isCod && statusKey === "delivered" && (paymentStatusKey === "pending" || paymentStatusKey === "");
 
-  const handleDownloadInvoice = () => {
-    toast.info("Invoices will be available once your order is confirmed.");
+  const handleDownloadInvoice = async () => {
+    if (!order) return;
+    try {
+      const orderId = order.orderId || order._id || order.id || "unknown";
+      const addrParts = addressLine
+        ? [addressLine, cityStatePin].filter(Boolean).join(", ")
+        : "";
+      const shippingAddr = addrParts || (typeof order.address === "string" ? order.address : "");
+      await generateInvoicePdf({
+        orderId,
+        date: order.createdAt,
+        items: order.items,
+        customerName: shipping?.name,
+        customerPhone: shipping?.phone,
+        shippingAddress: shippingAddr,
+        total: order.total,
+        totalAmount: order.totalAmount,
+        paymentMethod: order.paymentMethod,
+      });
+      toast.success("Invoice downloaded!");
+    } catch {
+      toast.error("Failed to generate invoice. Please try again.");
+    }
   };
 
   const handleCancelOrder = async () => {

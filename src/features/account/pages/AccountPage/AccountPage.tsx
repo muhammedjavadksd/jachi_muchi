@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
 import toast from "react-hot-toast";
 import { getImageUrl } from "@/shared/utils/image";
+import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { useOrders } from "@/features/account/hooks";
 import { submitContactMessage } from "@/features/account/api/contactApi";
@@ -334,6 +335,29 @@ const OrderDrawer = memo(function OrderDrawer({
     }
   };
 
+  const handleDownloadInvoice = async () => {
+    try {
+      const orderId = order.orderId || order._id || order.id || "unknown";
+      await generateInvoicePdf({
+        orderId,
+        date: order.createdAt,
+        items: order.items,
+        customerName: user?.name,
+        customerEmail: user?.email,
+        shippingAddress: order.address,
+        subtotal: order.subtotal,
+        shipping: order.shipping,
+        discount: order.discount,
+        total: order.total,
+        totalAmount: order.totalAmount,
+        paymentMethod: order.paymentMethod,
+      });
+      toast.success("Invoice downloaded!");
+    } catch {
+      toast.error("Failed to generate invoice. Please try again.");
+    }
+  };
+
   const getTrackingSteps = () => {
     const timeline = order.statusTimeline || [];
 
@@ -553,7 +577,7 @@ const OrderDrawer = memo(function OrderDrawer({
 
           <div className="space-y-3">
             {displayStatus === "delivered" && (
-              <button className="w-full py-3 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors border border-gray-300 flex items-center justify-center gap-2">
+              <button onClick={handleDownloadInvoice} className="w-full py-3 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors border border-gray-300 flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -561,7 +585,7 @@ const OrderDrawer = memo(function OrderDrawer({
               </button>
             )}
 
-            {["pending", "confirmed"].includes(displayStatus) ? (
+            {displayStatus === "pending" ? (
               <button onClick={handleCancelOrder} disabled={cancelLoading} className="w-full py-3 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50">
                 {cancelLoading ? "Cancelling..." : "Cancel Order"}
               </button>
@@ -857,26 +881,37 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                 </div>
               </div>
 
+              
+
               <div className="px-3 sm:px-4 lg:px-5 pb-3 sm:pb-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  {items.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg overflow-hidden border border-gray-200 shrink-0">
-                      <img src={getImageUrl(item.image)} alt={item.name || "Product"} className="w-full h-full object-contain p-0.5 sm:p-1" />
-                    </div>
-                  ))}
-                  {items.length > 3 && (
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
-                      <span className="text-xs sm:text-sm font-medium text-gray-500">+{items.length - 3}</span>
-                    </div>
-                  )}
-                  <div className="ml-auto flex items-center gap-1 sm:gap-2 text-teal-600 shrink-0">
-                    <span className="text-xs sm:text-sm font-medium hidden sm:inline">View Details</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+  <div className="flex items-center gap-2 sm:gap-3">
+    {items.slice(0, 3).map((item, idx) => (
+      <div key={idx} className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg overflow-hidden border border-gray-200 shrink-0">
+        <img src={getImageUrl(item.image)} alt={item.name || "Product"} className="w-full h-full object-contain p-0.5 sm:p-1" />
+      </div>
+    ))}
+    {items.length > 3 && (
+      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
+        <span className="text-xs sm:text-sm font-medium text-gray-500">+{items.length - 3}</span>
+      </div>
+    )}
+
+    {/* Product name(s) */}
+    <div className="min-w-0 flex-1">
+      <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">
+        {items[0]?.name || "Product"}
+        {items.length > 1 && (
+          <span className="text-gray-500"> +{items.length - 1} more</span>
+        )}
+      </p>
+    </div>
+
+    <div className="ml-auto flex items-center gap-1 sm:gap-2 text-teal-600 shrink-0">
+      <span className="text-xs sm:text-sm font-medium hidden sm:inline">View Details</span>
+      ...
+    </div>
+  </div>
+</div>
 
               {order.paymentMethod === "COD" ? (
                 <div className="px-3 sm:px-4 lg:px-5 pb-3 sm:pb-4">

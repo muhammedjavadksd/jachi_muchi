@@ -123,7 +123,7 @@ export function useCheckout(): UseCheckoutReturn {
     return userCoupons.filter(coupon => {
       if (coupon.isUsed) return false;
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return false;
-      const minReq = coupon.minPurchase || coupon.minOrderAmount || 0;
+      const minReq = coupon.minOrderAmount || 0;
       if (minReq > 0 && totalSellingPrice < minReq) return false;
       return true;
     });

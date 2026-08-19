@@ -19,7 +19,7 @@ export function getBestCoupon(coupons: UserCoupon[], totalSellingPrice: number):
     if (coupon.isUsed) continue;
     if (coupon.expiresAt && new Date(coupon.expiresAt) < now) continue;
 
-    const minReq = Number(coupon.minPurchase || coupon.minOrderAmount || 0);
+    const minReq = Number(coupon.minOrderAmount || 0);
     if (minReq > 0 && totalSellingPrice < minReq) continue;
 
     const discount = calculateCouponDiscount(coupon, totalSellingPrice);
@@ -102,7 +102,7 @@ export const CouponModal = memo(function CouponModal({
       if (coupon.isUsed) continue;
       if (coupon.expiresAt && new Date(coupon.expiresAt) < now) continue;
 
-      const minReq = coupon.minPurchase || coupon.minOrderAmount || 0;
+      const minReq = coupon.minOrderAmount || 0;
       if (minReq > 0 && cartTotal < minReq) {
         almostThere.push(coupon);
       } else {
@@ -197,53 +197,65 @@ export const CouponModal = memo(function CouponModal({
           </div>
 
           {/* Best offer — single recommended */}
-          <div className="px-4 pb-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Best offer for you</p>
+          {userCoupons.length === 0 && almostThereCoupons.length === 0 ? (
+            <div className="px-4 pb-4">
+              <div className="text-center py-8">
+                <svg className="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+                </svg>
+                <p className="text-sm font-medium text-gray-500">No coupons available for your order</p>
+                <p className="text-xs text-gray-400 mt-1">Keep shopping to unlock exclusive offers</p>
+              </div>
+            </div>
+          ) : (
+            <div className="px-4 pb-2">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Best offer for you</p>
 
-            {bestCoupon ? (
-              (() => {
-                const isCopied = localCopied === bestCoupon.code;
-                const discountAmount = calculateCouponDiscount(bestCoupon, cartTotal);
-                return (
-                  <div className="border border-teal-200 bg-teal-50/50 rounded-xl p-3.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-mono font-bold text-sm text-gray-900">{bestCoupon.code}</span>
-                          <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-[10px] font-semibold rounded-full">
-                            Save ₹{Math.round(discountAmount).toLocaleString("en-IN")}
-                          </span>
+              {bestCoupon ? (
+                (() => {
+                  const isCopied = localCopied === bestCoupon.code;
+                  const discountAmount = calculateCouponDiscount(bestCoupon, cartTotal);
+                  return (
+                    <div className="border border-teal-200 bg-teal-50/50 rounded-xl p-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="font-mono font-bold text-sm text-gray-900">{bestCoupon.code}</span>
+                            <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-[10px] font-semibold rounded-full">
+                              Save ₹{Math.round(discountAmount).toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500">{getDiscountText(bestCoupon)}</p>
                         </div>
-                        <p className="text-[11px] text-gray-500">{getDiscountText(bestCoupon)}</p>
+                        <button
+                          onClick={() => handleCopy(bestCoupon.code)}
+                          className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all whitespace-nowrap shrink-0 ${
+                            isCopied
+                              ? "bg-green-100 text-green-700"
+                              : "bg-teal-700 text-white hover:bg-teal-800 active:scale-95"
+                          }`}
+                        >
+                          {isCopied ? (
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                              Copied!
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                              Copy
+                            </span>
+                          )}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleCopy(bestCoupon.code)}
-                        className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all whitespace-nowrap shrink-0 ${
-                          isCopied
-                            ? "bg-green-100 text-green-700"
-                            : "bg-teal-700 text-white hover:bg-teal-800 active:scale-95"
-                        }`}
-                      >
-                        {isCopied ? (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                            Copied!
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                            Copy
-                          </span>
-                        )}
-                      </button>
                     </div>
-                  </div>
-                );
-              })()
-            ) : (
-              <p className="text-sm text-gray-400 text-center py-6">No offers available for your current order value. Add more items to unlock discounts!</p>
-            )}
-          </div>
+                  );
+                })()
+              ) : (
+                <p className="text-sm text-gray-400 text-center py-6">No offers available for your current order value. Add more items to unlock discounts!</p>
+              )}
+            </div>
+          )}
 
           {/* Almost there — not yet eligible */}
           {almostThereCoupons.length > 0 && (

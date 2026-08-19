@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { getMyOrders, cancelOrder } from "@/features/checkout/api/orderApi";
 import { retrySkipCashPayment } from "@/features/checkout/api/paymentApi";
-import { getProductById } from "@/features/product/api/productApi";
 
 type OrderStatus =
   | "pending"
@@ -76,40 +75,9 @@ export function useOrders(): UseOrdersReturn {
         }
         const rawOrders: Order[] = response.data || [];
 
-        // Collect unique productIds where image is missing
-        const missingIds = [
-          ...new Set(
-            rawOrders.flatMap(o =>
-              (o.items || [])
-                .filter(item => !item.image && item.productId)
-                .map(item => item.productId as string)
-            )
-          ),
-        ];
-
-        // Fetch current product images for those ids
-        const productImageMap: Record<string, string> = {};
-        await Promise.all(
-          missingIds.map(async id => {
-            try {
-              const product = await getProductById(id) as any;
-              const img = product?.images?.[0] ?? "";
-              if (img) productImageMap[id] = img;
-            } catch {}
-          })
-        );
-
-        // Patch missing images into order items
-        const patched = rawOrders.map(order => ({
-          ...order,
-          items: (order.items || []).map(item =>
-            !item.image && item.productId && productImageMap[item.productId]
-              ? { ...item, image: productImageMap[item.productId] }
-              : item
-          ),
-        }));
-
-        setOrders(patched);
+        // Order items now carry snapshot fields (name, image, price)
+        // directly from the backend — no live product lookup needed.
+        setOrders(rawOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
         setOrders([]);
