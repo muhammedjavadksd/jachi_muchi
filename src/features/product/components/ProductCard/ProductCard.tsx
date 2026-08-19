@@ -68,7 +68,7 @@ export const ProductCard = memo(function ProductCard({
         <img
           src={primaryImage}
           alt={name}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
         />
