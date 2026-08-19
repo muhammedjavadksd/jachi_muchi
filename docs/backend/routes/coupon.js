@@ -424,6 +424,29 @@ router.get('/available', async (req, res) => {
   }
 });
 
+
+
+router.get('/user', auth, async (req, res) => {
+  try {
+    const now = new Date();
+    const coupons = await Coupon.find({
+      isActive: true,
+      expiresAt: { $gte: now },
+    }).lean();
+
+    const mapped = coupons.map(c => ({
+      ...c,
+      minPurchase: c.minOrderAmount || 0,
+      isUsed: false, // adjust this based on how your app tracks per-user usage
+    }));
+
+    res.json({ success: true, data: mapped });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch coupons' });
+  }
+});
+
+
 /**
  * GET /api/coupons/welcome
  * Get welcome coupon for new users

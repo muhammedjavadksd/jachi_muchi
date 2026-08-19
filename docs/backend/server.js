@@ -17,6 +17,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const couponRoutes = require('./routes/coupon');
 const productRoutes = require('./routes/product');
 const paymentRoutes = require('./routes/payment');
+const orderRoutes = require('./routes/order');
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jachi_muchi', {
@@ -32,6 +33,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/jachi_muc
 app.use('/api/coupons', couponRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/track', orderRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
