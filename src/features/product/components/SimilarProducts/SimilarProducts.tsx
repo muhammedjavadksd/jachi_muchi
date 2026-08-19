@@ -33,7 +33,7 @@ export const SimilarProducts = memo(function SimilarProducts({
       name: p.name || "",
       price: p.price || 0,
       originalPrice: p.mrp > p.price ? p.mrp : undefined,
-      discount: p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : undefined,
+      discount: (() => { const d = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0; return d > 0 ? d : undefined; })(),
       rating: p.rating || 0,
       reviews: p.reviewCount || 0,
       link: `/product/${p._id}`,
@@ -43,7 +43,7 @@ export const SimilarProducts = memo(function SimilarProducts({
   if (items.length === 0) return <></>;
 
   return (
-    <section>
+    <section id="similar">
       <h2 className="text-xl font-bold text-gray-900 mb-5">Similar Products</h2>
       <Grid columns={4} gap={6}>
         {items.map((item, i) => (

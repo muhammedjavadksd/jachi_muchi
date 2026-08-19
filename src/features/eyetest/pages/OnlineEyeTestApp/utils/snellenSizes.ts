@@ -41,16 +41,42 @@ export const SNELLEN_LINES: SnellenLine[] = [
 
 /**
  * Get the pixel height for a Snellen line based on the user's PPI.
+ *
+ * The raw clinical calculation (mm → px via PPI) produces sizes that are
+ * far too small for a web-based test where the viewing distance is unknown
+ * and the screen is not calibrated. We apply a multiplier so that the
+ * largest line (6/60) renders around 120–160 px and the smallest (6/6)
+ * around 16–24 px — large enough to be legible while still preserving
+ * the correct relative scaling between lines.
  */
+const WEB_SCALE_MULTIPLIER = 22;
+
 export function getSnellenPx(lineIndex: number, ppi: number): number {
   const mm = SNELLEN_LINES[lineIndex].heightMm;
-  return (mm * ppi) / 25.4;
+  return ((mm * ppi) / 25.4) * WEB_SCALE_MULTIPLIER;
 }
 
 /**
- * Multiple-choice options shown below each Snellen letter.
+ * Pool of distractor letters (not used in SNELLEN_LINES) for the
+ * multiple-choice options.
  */
-export const MULTIPLE_CHOICE_OPTIONS = ["E", "F", "P", "T", "O", "Z", "L", "D", "C"];
+const DISTRACTOR_POOL = ["Z", "L", "D", "C", "H", "N", "R", "S"];
+
+/**
+ * Generate a randomized array of 5 multiple-choice options that always
+ * includes the correct letter from the current Snellen line.
+ *
+ * @param correctLetter  The letter the user should identify.
+ * @returns              Shuffled array of 5 letters (first element is NOT
+ *                       guaranteed to be the correct one).
+ */
+export function generateOptions(correctLetter: string): string[] {
+  const distractors = DISTRACTOR_POOL.filter((l) => l !== correctLetter);
+  const shuffled = [...distractors].sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, 4);
+  const options = [correctLetter, ...picked];
+  return options.sort(() => Math.random() - 0.5);
+}
 
 /**
  * Near vision sizes (N-scale) — text height in mm at 40cm.

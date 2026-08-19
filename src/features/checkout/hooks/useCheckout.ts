@@ -13,6 +13,7 @@ import type { Offer } from "@/features/offer/types";
 
 interface CartItem {
   productId: string;
+  variantId?: string;
   productName: string;
   productPrice: number;
   productImage?: string;
@@ -122,7 +123,8 @@ export function useCheckout(): UseCheckoutReturn {
     return userCoupons.filter(coupon => {
       if (coupon.isUsed) return false;
       if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return false;
-      if (coupon.minPurchase && totalSellingPrice < coupon.minPurchase) return false;
+      const minReq = coupon.minPurchase || coupon.minOrderAmount || 0;
+      if (minReq > 0 && totalSellingPrice < minReq) return false;
       return true;
     });
   }, [userCoupons, totalSellingPrice]);
@@ -151,11 +153,9 @@ export function useCheckout(): UseCheckoutReturn {
       setCouponError("");
     } catch (error: any) {
       const msg = error.message || "Failed to apply coupon";
-      if (msg.toLowerCase().includes("already used")) {
-        setCouponError("You've already used this coupon");
-      } else {
-        setCouponError(msg);
-      }
+      setCouponError(msg);
+      const t = await import("react-hot-toast");
+      t.toast.error(msg);
     } finally {
       setIsApplyingCoupon(false);
     }
@@ -178,31 +178,14 @@ export function useCheckout(): UseCheckoutReturn {
       await navigator.clipboard.writeText(code);
       setCopiedCoupon(code);
       setTimeout(() => setCopiedCoupon(null), 2000);
-
-      if (appliedCoupon) {
-        setCouponError("Please remove the applied coupon first");
-        return;
-      }
-
       setCouponInput(code);
-      setIsApplyingCoupon(true);
       setCouponError("");
-
-      const response = await applyCoupon(code, totalSellingPrice);
-      setAppliedCoupon(response.couponCode);
-      setCouponSavings(response.discount);
-      setCouponInput("");
-    } catch (error: any) {
-      const msg = error.message || "Failed to apply coupon";
-      if (msg.toLowerCase().includes("already used")) {
-        setCouponError("You've already used this coupon");
-      } else {
-        setCouponError(msg);
-      }
-    } finally {
-      setIsApplyingCoupon(false);
+    } catch {
+      // Clipboard API may fail in non-secure contexts; still fill the input
+      setCouponInput(code);
+      setCouponError("");
     }
-  }, [appliedCoupon, totalSellingPrice]);
+  }, []);
 
   const handleSelectAddress = useCallback((id: string) => {
     setAddresses(prev => prev.map(addr => ({ ...addr, isSelected: addr.id === id })));
@@ -296,6 +279,7 @@ export function useCheckout(): UseCheckoutReturn {
     const orderPayload = {
       items: latestCart.map(item => ({
         productId: item.productId,
+        variantId: item.variantId || item.color?.id || undefined,
         name: item.productName,
         image: item.productImage || "",
         price: item.productPrice,

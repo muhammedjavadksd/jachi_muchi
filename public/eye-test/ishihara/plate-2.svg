@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+  <defs>
+    <clipPath id="c"><circle cx="150" cy="150" r="150"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <circle cx="150" cy="150" r="150" fill="#c94a3a"/>
+    <text x="150" y="175" text-anchor="middle" font-size="120" font-weight="bold" font-family="Arial, sans-serif" fill="#2d8f3a">8</text>
+  </g>
+</svg>

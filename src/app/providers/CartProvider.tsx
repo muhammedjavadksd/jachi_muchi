@@ -13,6 +13,7 @@ export interface CartItem {
   cartItemId?: string;
   bogoGroupId?: string;
   productId: string;
+  variantId?: string;
   productName: string;
   productPrice: number;
   productImage?: string;

@@ -13,7 +13,7 @@ const CheckoutPage = lazy(() => import("@/features/checkout/pages/CheckoutPage/C
 const OrderSuccessPage = lazy(() => import("@/features/checkout/pages/OrderSuccessPage/OrderSuccessPage").then(m => ({ default: m.OrderSuccessPage })));
 const OrderFailurePage = lazy(() => import("@/features/checkout/pages/OrderFailurePage/OrderFailurePage").then(m => ({ default: m.OrderFailurePage })));
 const AccountPage = lazy(() => import("@/features/account/pages/AccountPage/AccountPage").then(m => ({ default: m.AccountPage })));
-const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage })));
+// const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage }))); // [HIDDEN] My 3D Model — uncomment to restore
 const AccountInfoPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountInfoPage })));
 const AddressBookPage = lazy(() => import("@/features/account").then(m => ({ default: m.AddressBookPage })));
 const TermsPage = lazy(() => import("@/features/account/pages/TermsPage/TermsPage").then(m => ({ default: m.TermsPage })));
@@ -47,7 +47,7 @@ export const ROUTES: RouteConfig[] = [
   { path: "/order-success/:id", component: OrderSuccessPage, protected: true },
   { path: "/order-failure", component: OrderFailurePage },
   { path: "/account", component: AccountPage, protected: true },
-  { path: "/account/3d-model", component: My3DModelPage, protected: true },
+  // { path: "/account/3d-model", component: My3DModelPage, protected: true }, // [HIDDEN] My 3D Model — uncomment to restore
   { path: "/account/info", component: AccountInfoPage, protected: true },
   { path: "/account/address", component: AddressBookPage, protected: true },
   { path: "/account/*", component: AccountPage, protected: true },
