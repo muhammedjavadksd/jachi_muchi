@@ -17,7 +17,12 @@ interface OrderItem {
   image?: string;
   name?: string;
   quantity?: number;
+  totalQuantity?: number;
   price?: number;
+  isFree?: boolean;
+  bogoGroupId?: string;
+  triggerProductName?: string;
+  mrp?: number;
 }
 
 interface Order {

@@ -46,12 +46,12 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
                 >
                   <Link
                     to={item.link}
-                    className="w-full h-40 bg-gray-50 rounded-xl flex items-center justify-center overflow-hidden border border-gray-100 mb-4"
+                    className="w-full h-40 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-gray-100 mb-4"
                   >
                     <img
                       src={getImageUrl(item.image)}
                       alt={item.name}
-                      className="w-full h-full object-contain p-3"
+                      className="w-full h-full object-cover"
                     />
                   </Link>
                   <p className="font-medium text-gray-900 text-sm truncate mb-1">{item.name}</p>

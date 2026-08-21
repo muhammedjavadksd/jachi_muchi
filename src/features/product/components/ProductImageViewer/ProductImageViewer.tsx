@@ -113,12 +113,12 @@ export const ProductImageViewer = memo(function ProductImageViewer({
   const thumbnailStrip = useMemo(() => {
     if (images.length <= 1) return null;
     return (
-      <div ref={thumbsRef} className="flex flex-col gap-2 overflow-y-auto max-h-[480px] pr-1 scrollbar-thin">
+      <div ref={thumbsRef} className="flex flex-col gap-2 overflow-y-auto max-h-[480px] pr-1 scrollbar-hide">
         {images.map((image, i) => (
           <button
             key={i}
             onClick={() => handleThumbClick(i)}
-            className={`shrink-0 w-[72px] h-[72px] rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+            className={`shrink-0 w-[72px] h-[72px] rounded-lg overflow-hidden border-2 transition-all duration-200 ${
               i === currentImageIndex
                 ? "border-teal-600 shadow-md opacity-100"
                 : "border-gray-200 opacity-50 hover:opacity-80 hover:border-gray-300"
@@ -127,10 +127,17 @@ export const ProductImageViewer = memo(function ProductImageViewer({
             <img
               src={image}
               alt={`${productName} view ${i + 1}`}
-              className="max-w-full max-h-full object-contain object-center bg-white"
+              className="w-full h-full object-cover object-center bg-white"
             />
           </button>
         ))}
+        {images.length > 5 && (
+          <div className="shrink-0 w-[72px] h-6 flex items-center justify-center text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
+        )}
       </div>
     );
   }, [images, currentImageIndex, productName, handleThumbClick]);
@@ -144,13 +151,13 @@ export const ProductImageViewer = memo(function ProductImageViewer({
           </div>
         )}
 
-        <div className="flex-1 relative bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden">
+        <div className="flex-1 relative bg-[#f7f7f7] rounded-2xl overflow-hidden">
           <div className="relative w-full aspect-[4/3]">
-            <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="absolute inset-0 flex items-center justify-center">
               <img
                 src={images[currentImageIndex] || FALLBACK_IMG}
                 alt={`${productName} - view ${currentImageIndex + 1}`}
-                className="max-w-full max-h-full object-contain object-center"
+                className="w-full h-full object-cover object-center"
                 loading="lazy"
                 onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMG; }}
               />
@@ -208,7 +215,7 @@ export const ProductImageViewer = memo(function ProductImageViewer({
               <img
                 src={image}
                 alt={`${productName} thumb ${i + 1}`}
-                className="max-w-full max-h-full object-contain object-center bg-white"
+                className="w-full h-full object-cover object-center bg-white"
               />
             </button>
           ))}

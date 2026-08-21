@@ -11,6 +11,7 @@ export interface ProductCardProps {
   reviews?: number;
   colors?: ColorVariant[];
   link: string;
+  showViewButton?: boolean;
 }
 
 export interface ProductSpec {
@@ -74,7 +75,11 @@ export interface FilterGroup {
 
 export interface FilterSidebarProps {
   filters: FilterGroup[];
-  onFilterChange?: (filters: Record<string, string[]>) => void;
+  pendingFilters: Record<string, string[]>;
+  appliedCount: number;
+  onFilterChange: (filters: Record<string, string[]>) => void;
+  onApply: () => void;
+  onClear: () => void;
 }
 
 export interface BrandItem {

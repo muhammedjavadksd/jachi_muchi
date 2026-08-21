@@ -8,7 +8,7 @@ import { fetchCart, mapBackendItem, clearCartApi } from "@/features/cart/api/car
 import type { UserCoupon } from "@/features/coupon/types";
 import { createOrder } from "@/features/checkout/api/orderApi";
 import { createSkipCashPayment } from "@/features/checkout/api/paymentApi";
-import { getOffers } from "@/shared/services/offerEngine";
+import { getOffers, getComboCartSavings } from "@/shared/services/offerEngine";
 import type { Offer } from "@/features/offer/types";
 
 interface CartItem {
@@ -18,7 +18,12 @@ interface CartItem {
   productPrice: number;
   productImage?: string;
   mrp?: number;
+  setCount?: number;
   quantity?: number;
+  freeCount?: number;
+  freeUnitPrice?: number;
+  isFreeOfferItem?: boolean;
+  bogoGroupId?: string;
   color: { name: string; id: string } | null;
   lens: {
     id?: string;
@@ -39,6 +44,43 @@ interface CartItem {
     customerPhone?: string;
     knowPowerLater?: boolean;
   } | null;
+}
+
+interface NormalizedBill {
+  totalItemPrice: number;
+  totalDiscount: number;
+  offerSavings: number;
+  fittingFee: number;
+  totalPayable: number;
+}
+
+const n = (v: unknown, fallback = 0): number => {
+  const num = Number(v);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+function normalizeBill(raw: Record<string, any> | null | undefined, fallbackTotal: number): NormalizedBill {
+  if (!raw) {
+    return {
+      totalItemPrice: n(fallbackTotal),
+      totalDiscount: 0,
+      offerSavings: 0,
+      fittingFee: 0,
+      totalPayable: n(fallbackTotal),
+    };
+  }
+  return {
+    totalItemPrice:
+      n(raw.totalItemPrice ?? raw.subtotal ?? raw.itemTotal ?? fallbackTotal),
+    totalDiscount:
+      n(raw.totalDiscount ?? raw.discount),
+    offerSavings:
+      n(raw.offerSavings ?? raw.offer_discount),
+    fittingFee:
+      n(raw.fittingFee ?? raw.fitting_fee),
+    totalPayable:
+      n(raw.totalPayable ?? raw.total ?? fallbackTotal),
+  };
 }
 
 export interface Address {
@@ -71,6 +113,7 @@ export interface UseCheckoutReturn {
   subtotal: number;
   totalSellingPrice: number;
   discount: number;
+  offerSavings: number;
   totalPayable: number;
   fittingFee: number;
   isModalOpen: boolean;
@@ -88,6 +131,7 @@ export interface UseCheckoutReturn {
   setPaymentMethod: (method: string) => void;
   handlePlaceOrder: () => Promise<void>;
   setIsModalOpen: (open: boolean) => void;
+  billReady: boolean;
 }
 
 export function useCheckout(): UseCheckoutReturn {
@@ -107,17 +151,24 @@ export function useCheckout(): UseCheckoutReturn {
   const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
   const [isCouponListOpen, setIsCouponListOpen] = useState(true);
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
+  const [normalizedBill, setNormalizedBill] = useState<NormalizedBill | null>(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const fittingFee = 199;
-  const subtotal = useMemo(() =>
-    cart.reduce((sum, item) => sum + ((item.mrp || item.productPrice) * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
-  const totalSellingPrice = useMemo(() =>
-    cart.reduce((sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0), [cart]);
-  const discount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
-  const totalPayable = useMemo(() => totalSellingPrice + fittingFee - couponSavings, [totalSellingPrice, couponSavings]);
+  const fittingFee = normalizedBill?.fittingFee ?? 199;
+  const subtotal = normalizedBill?.totalItemPrice ?? 0;
+  const discount = normalizedBill?.totalDiscount ?? 0;
+
+  const totalComboSavings = useMemo(
+    () => getComboCartSavings(cart, offers),
+    [cart, offers]
+  );
+
+  const offerSavings = (normalizedBill?.offerSavings ?? 0) + Math.round(totalComboSavings);
+  const totalSellingPrice = subtotal - discount;
+  const displayBillTotalPayable = (normalizedBill?.totalPayable ?? 0) - Math.round(totalComboSavings);
+  const totalPayable = useMemo(() => displayBillTotalPayable - couponSavings, [displayBillTotalPayable, couponSavings]);
 
   const eligibleCoupons = useMemo(() => {
     return userCoupons.filter(coupon => {
@@ -263,35 +314,54 @@ export function useCheckout(): UseCheckoutReturn {
     const selectedAddress = addresses.find(a => a.isSelected);
     if (!selectedAddress) { alert("Please select address"); return; }
     if (cart.length === 0) { alert("Your cart is empty"); return; }
+    if (!normalizedBill) { alert("Bill is still loading. Please wait a moment and try again."); return; }
     setOrderLoading(true);
 
     let latestCart = cart;
+    let latestBill = normalizedBill;
     try {
       const backendCart = await fetchCart();
       latestCart = backendCart.items.map(mapBackendItem);
+      latestBill = normalizeBill(backendCart.bill, backendCart.total);
       setCart(latestCart);
-    } catch {}
+      setNormalizedBill(latestBill);
+    } catch (err) {
+      console.warn("Failed to refresh cart before order, using stale state:", err);
+    }
 
-    const latestTotalSellingPrice = latestCart.reduce(
-      (sum, item) => sum + (item.productPrice * (item.quantity || 1)) + (item.lens?.price || 0), 0
-    );
-    const latestTotalPayable = latestTotalSellingPrice + fittingFee - couponSavings;
+    const latestComboSavings = Math.round(getComboCartSavings(latestCart, offers));
+    const latestTotalPayable = Math.max(0, n(latestBill.totalPayable) - latestComboSavings - n(couponSavings));
+
+    if (!Number.isFinite(latestTotalPayable) || latestTotalPayable <= 0) {
+      console.error("[Place Order] Aborting: totalAmount is not valid:", { latestTotalPayable, latestBill, latestComboSavings, couponSavings });
+      const t = await import("react-hot-toast");
+      t.toast.error("Unable to calculate order total. Please refresh and try again.");
+      setOrderLoading(false);
+      return;
+    }
+
     const orderPayload = {
       items: latestCart.map(item => ({
         productId: item.productId,
         variantId: item.variantId || item.color?.id || undefined,
         name: item.productName,
         image: item.productImage || "",
-        price: item.productPrice,
-        quantity: item.quantity || 1,
+        price: n(item.productPrice),
+        totalQuantity: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
+        setCount: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
+        isFree: item.isFreeOfferItem || undefined,
+        freeCount: item.freeCount || undefined,
+        freeUnitPrice: item.freeUnitPrice || undefined,
+        bogoGroupId: item.bogoGroupId || undefined,
         color: item.color || undefined,
-        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: item.lens.price } : undefined,
-        powerDetails: item.powerDetails || undefined,
+        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price) } : undefined,
+        powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0 ? item.powerDetails : undefined,
       })),
       addressId: selectedAddress.id,
       totalAmount: latestTotalPayable,
       paymentMethod,
     };
+    console.log("[Place Order] payload:", JSON.parse(JSON.stringify(orderPayload)));
     try {
       const res = await createOrder(orderPayload);
       if (!res.success) throw new Error("Order failed");
@@ -311,7 +381,7 @@ export function useCheckout(): UseCheckoutReturn {
         try {
           const paymentRes = await createSkipCashPayment({
             orderId,
-            amount: totalPayable,
+            amount: latestTotalPayable,
             customerName: selectedAddr?.name || "Customer",
             email: user?.email || "",
             phone: selectedAddr?.phone || "",
@@ -343,12 +413,18 @@ export function useCheckout(): UseCheckoutReturn {
     } finally {
       setOrderLoading(false);
     }
-  }, [cart, addresses, paymentMethod, totalPayable, appliedCoupon, user, navigate]);
+  }, [cart, addresses, paymentMethod, normalizedBill, couponSavings, appliedCoupon, user, navigate, offers]);
 
   useEffect(() => {
     fetchCart()
-      .then((backendCart) => setCart(backendCart.items.map(mapBackendItem)))
-      .catch(() => setCart([]));
+      .then((backendCart) => {
+        setCart(backendCart.items.map(mapBackendItem));
+        setNormalizedBill(normalizeBill(backendCart.bill, backendCart.total));
+      })
+      .catch(() => {
+        setCart([]);
+        setNormalizedBill(null);
+      });
   }, []);
 
   useEffect(() => {
@@ -384,6 +460,8 @@ export function useCheckout(): UseCheckoutReturn {
     loadAddresses();
   }, []);
 
+  const billReady = normalizedBill !== null;
+
   return {
     cart,
     addresses,
@@ -404,6 +482,7 @@ export function useCheckout(): UseCheckoutReturn {
     subtotal,
     totalSellingPrice,
     discount,
+    offerSavings,
     totalPayable,
     fittingFee,
     isModalOpen,
@@ -421,5 +500,6 @@ export function useCheckout(): UseCheckoutReturn {
     setPaymentMethod,
     handlePlaceOrder,
     setIsModalOpen,
+    billReady,
   };
 }

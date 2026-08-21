@@ -14,7 +14,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
     setLoading(true);
     api.get("/categories")
       .then((res) => {
-        setCategories(res.data?.data?.categories || []);
+        setCategories((res.data?.data?.categories || []).filter((c: any) => c.isActive));
       })
       .catch((err) => {
         console.error("Failed to fetch categories:", err);

@@ -75,7 +75,7 @@ export function HomePage(): JSX.Element {
   useEffect(() => {
     api.get("/categories")
       .then((res) => {
-        setCategories(res.data?.data?.categories || []);
+        setCategories((res.data?.data?.categories || []).filter((c: any) => c.isActive));
       })
       .catch(() => setCategories([]));
 

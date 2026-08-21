@@ -92,12 +92,12 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
           e.preventDefault();
           onView();
         }}
-        className="shrink-0 w-20 h-20 rounded-md overflow-hidden bg-white border border-gray-200"
+        className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-white border border-gray-200"
       >
         <img
           src={getImageUrl(item.image)}
           alt={item.name}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-cover"
         />
       </a>
       <div className="flex-1 min-w-0 flex flex-col justify-between">

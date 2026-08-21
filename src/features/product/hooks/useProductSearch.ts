@@ -8,19 +8,56 @@ import { getOffers, getBestOfferBadge } from "@/features/offer/services/offerEng
 import { isBannerVisible } from "@/shared/utils/banner";
 import type { Offer, OfferBadge } from "@/features/offer/types";
 
+function filtersToParams(
+  filters: Record<string, string[]>,
+  category?: string,
+  shape?: string | null,
+  collectionSlug?: string | null,
+  brandFromQuery?: string | null,
+  searchQuery?: string | null,
+  sortBy?: string,
+): Record<string, any> {
+  const params: Record<string, any> = { category };
+  if (searchQuery) params.q = searchQuery;
+  if (collectionSlug) params.collection = collectionSlug;
+  if (brandFromQuery) params.brand = brandFromQuery;
+  if (shape) params.shape = shape;
+  if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
+  if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
+  if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
+  if (filters["brands"]?.length) params.brand = filters["brands"].join(",");
+  params.sortBy = sortBy || "best-sellers";
+  return params;
+}
+
+function filtersToSearchParams(filters: Record<string, string[]>): Record<string, string> {
+  const sp: Record<string, string> = {};
+  if (filters["frame-shape"]?.length) sp.shape = filters["frame-shape"].join(",");
+  if (filters["frame-type"]?.length) sp.frameType = filters["frame-type"].join(",");
+  if (filters["frame-color"]?.length) sp.color = filters["frame-color"].join(",");
+  if (filters["brands"]?.length) sp.brand = filters["brands"].join(",");
+  return sp;
+}
+
+function filtersCount(filters: Record<string, string[]>): number {
+  return Object.values(filters).reduce((sum, arr) => sum + (arr?.length || 0), 0);
+}
+
 export function useProductSearch() {
   const [sortBy, setSortBy] = useState("best-sellers");
   const [showFilters, setShowFilters] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
+  const [pendingFilters, setPendingFilters] = useState<Record<string, string[]>>({});
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   const [offers, setOffers] = useState<Offer[]>([]);
   const [categoryBanner, setCategoryBanner] = useState<any>(null);
   const [filterConfig, setFilterConfig] = useState(SEARCH_FILTERS);
+  const [applyCount, setApplyCount] = useState(0);
 
   const { category } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const shape = searchParams.get("shape");
   const collectionSlug = searchParams.get("collection");
   const brandFromQuery = searchParams.get("brand");
@@ -63,24 +100,10 @@ export function useProductSearch() {
 
   useEffect(() => {
     setFetching(true);
-    const params: Record<string, any> = { category };
-    if (searchQuery) params.q = searchQuery;
-    if (collectionSlug) params.collection = collectionSlug;
-    if (brandFromQuery) params.brand = brandFromQuery;
-    if (shape) params.shape = shape;
-    if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
-    if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
-    if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
-    if (filters["brands"]?.length) params.brand = filters["brands"].join(",");
-    params.sortBy = sortBy;
-
-    console.log("Search query:", searchQuery);
-    console.log("Request params:", params);
+    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy);
     getProducts(params)
       .then((res) => {
-        console.log("API response:", res);
         const extracted = res.data?.data?.products || res.data?.products || res?.products || [];
-        console.log("Extracted products count:", extracted.length);
         setProducts(extracted);
       })
       .catch((err) => {
@@ -97,12 +120,29 @@ export function useProductSearch() {
   }, []);
 
   const handleFilterChange = useCallback((newFilters: Record<string, string[]>) => {
-    setFilters(newFilters);
+    setPendingFilters(newFilters);
   }, []);
+
+  const applyFilters = useCallback(() => {
+    setFilters(pendingFilters);
+    setApplyCount((c) => c + 1);
+    const sp = filtersToSearchParams(pendingFilters);
+    setSearchParams(sp, { replace: true });
+    setShowFilters(false);
+  }, [pendingFilters, setSearchParams]);
+
+  const clearFilters = useCallback(() => {
+    setPendingFilters({});
+    setFilters({});
+    setSearchParams({}, { replace: true });
+    setShowFilters(false);
+  }, [setSearchParams]);
 
   const getOfferBadge = useCallback((productId: string, price: number): OfferBadge | null => {
     return getBestOfferBadge(productId, price, offers);
   }, [offers]);
+
+  const pendingCount = filtersCount(pendingFilters);
 
   return {
     products,
@@ -111,11 +151,16 @@ export function useProductSearch() {
     offers,
     sortBy,
     showFilters,
+    pendingFilters,
     filters,
     filterConfig,
     categoryBanner,
+    pendingCount,
+    applyCount,
     handleSortChange,
     handleFilterChange,
+    applyFilters,
+    clearFilters,
     setShowFilters,
     getOfferBadge,
   };

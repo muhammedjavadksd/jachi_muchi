@@ -11,10 +11,15 @@ interface OrderItem {
   productId?: string;
   name: string;
   quantity?: number;
+  totalQuantity?: number;
   price?: number;
   totalPrice?: number;
   productPrice?: number;
   color?: { id: string; name: string } | null;
+  isFree?: boolean;
+  bogoGroupId?: string;
+  triggerProductName?: string;
+  mrp?: number;
 }
 
 interface OrderAddress {
@@ -73,11 +78,16 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
           items: (order.items || []).map((item: any) => ({
             productId: item.productId,
             name: item.name,
-            quantity: item.quantity,
+            quantity: item.quantity || item.totalQuantity,
             price: item.price,
             color: item.color || null,
+            isFree: item.isFree || false,
+            bogoGroupId: item.bogoGroupId || undefined,
+            triggerProductName: item.triggerProductName || undefined,
+            mrp: item.mrp || undefined,
           })),
           total: order.totalAmount,
+          discount: order.discount,
           address: {
             name: addr.name || "User",
             fullAddress: fullAddress || "N/A",
@@ -111,9 +121,13 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   const estimatedDelivery = useMemo(() =>
     order?.estimatedDelivery || "3-5 days", [order]);
 
-  const subtotal = useMemo(() =>
-    order?.subtotal ?? safeItems.reduce((sum, item) =>
-      sum + (item.price || 0), 0), [order, safeItems]);
+  const subtotal = useMemo(() => {
+    if (order?.subtotal !== undefined) return order.subtotal;
+    return safeItems.reduce((sum, item) => {
+      const qty = item.totalQuantity || item.quantity || 1;
+      return sum + (item.price || 0) * qty;
+    }, 0);
+  }, [order, safeItems]);
 
   const total = useMemo(() =>
     order?.total ?? subtotal, [order, subtotal]);
@@ -122,6 +136,14 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
     if (order?.discount !== undefined) return order.discount;
     return subtotal > total ? subtotal - total : 0;
   }, [order, subtotal, total]);
+
+  const offerSavings = useMemo(() =>
+    safeItems.filter(item => item.isFree).reduce((sum, item) => {
+      const qty = item.totalQuantity || item.quantity || 1;
+      return sum + (item.price || 0) * qty;
+    }, 0), [safeItems]);
+
+  const totalSaved = discount + offerSavings;
 
   const fittingFee = 199;
 
@@ -217,38 +239,67 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
 
               <h3 className="text-base font-semibold text-gray-700 mb-4">Items Ordered</h3>
               <div className="divide-y divide-gray-100">
-                {safeItems.map((item, index) => (
-                  <div key={index} className="flex justify-between py-3">
-                    <div>
-                      <p className="font-medium text-gray-900">{item.name}</p>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity || 1}</p>
-                      {item.color && (
-                        <p className="text-sm text-gray-500">Color: {item.color.name}</p>
-                      )}
+                {safeItems.map((item, index) => {
+                  const isFree = !!item.isFree;
+                  return (
+                    <div key={index} className="py-3">
+                      <div className="flex justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900">{item.name}</p>
+                            {isFree && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                FREE
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500">Qty: {item.totalQuantity || item.quantity || 1}</p>
+                          {item.color && (
+                            <p className="text-sm text-gray-500">Color: {item.color.name}</p>
+                          )}
+                          {isFree && item.triggerProductName && (
+                            <p className="text-xs text-green-600 mt-0.5">Free with {item.triggerProductName}</p>
+                          )}
+                        </div>
+                        <div className="text-right ml-4 shrink-0">
+                          {isFree ? (
+                            <div>
+                              <p className="text-sm text-gray-400 line-through">₹{formatPrice(item.price)}</p>
+                              <p className="font-bold text-green-600">FREE</p>
+                            </div>
+                          ) : (
+                            <p className="font-medium text-gray-900">₹{formatPrice(item.price)}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="font-medium text-gray-900">₹{item.price}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900">₹{subtotal}</span>
+                    <span className="text-gray-900">₹{formatPrice(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Discount</span>
-                    <span className="text-green-600">-₹{discount}</span>
-                  </div>
+                  {totalSaved > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Offer Savings</span>
+                      <span className="text-green-600 font-medium">-₹{formatPrice(totalSaved)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Fitting Fee</span>
                     <span className="text-gray-900">₹{fittingFee}</span>
                   </div>
                   <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                     <span className="font-semibold text-lg text-gray-900">Total Paid</span>
-                    <span className="font-bold text-2xl text-gray-900">₹{total}</span>
+                    <span className="font-bold text-2xl text-gray-900">₹{formatPrice(total)}</span>
                   </div>
+                  {totalSaved > 0 && (
+                    <p className="text-sm text-green-600 font-medium">You saved ₹{formatPrice(totalSaved)} on this order</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { getImageUrl } from "@/shared/utils/image";
+import { formatPrice } from "@/shared/utils/format";
 import type { ProductCardProps } from "@/features/product/types";
 
 const FALLBACK_IMAGE = "https://placehold.co/400x300?text=Eyewear";
@@ -16,6 +17,7 @@ export const ProductCard = memo(function ProductCard({
   reviews,
   colors,
   link,
+  showViewButton,
   offerLabel,
   offerBadgeColor,
 }: ProductCardProps & { offerLabel?: string; offerBadgeColor?: string }): JSX.Element {
@@ -64,11 +66,11 @@ export const ProductCard = memo(function ProductCard({
       href={link}
       className="group h-full flex flex-col bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
-      <div className="relative aspect-[4/3] bg-gray-50 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-[4/3] bg-white flex items-center justify-center overflow-hidden">
         <img
           src={primaryImage}
           alt={name}
-          className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
           onError={(e) => { (e.target as HTMLImageElement).src = FALLBACK_IMAGE; }}
         />
@@ -101,6 +103,13 @@ export const ProductCard = memo(function ProductCard({
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
+        {showViewButton && (
+          <span className="absolute bottom-3 inset-x-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center pointer-events-none">
+            <span className="w-full py-2 rounded-lg bg-white/95 text-gray-900 text-xs font-semibold shadow-md border border-gray-100 text-center">
+              View
+            </span>
+          </span>
+        )}
       </div>
       <div className="p-4 flex-1 flex flex-col">
         {!!rating && (
@@ -118,9 +127,9 @@ export const ProductCard = memo(function ProductCard({
           <p className="text-xs text-gray-500 mt-1 line-clamp-2 min-h-[32px]">{description}</p>
         )}
         <div className="flex items-center gap-2 mt-3">
-          <span className="text-lg font-bold text-black">₹{price}</span>
+          <span className="text-lg font-bold text-black">₹{formatPrice(price)}</span>
           {discount != null && discount > 0 && originalPrice && originalPrice > price && (
-            <span className="text-sm text-gray-400 line-through">₹{originalPrice}</span>
+            <span className="text-sm text-gray-400 line-through">₹{formatPrice(originalPrice)}</span>
           )}
           {discount != null && discount > 0 && (
             <span className="text-green-600 text-xs font-semibold">({discount}% OFF)</span>
