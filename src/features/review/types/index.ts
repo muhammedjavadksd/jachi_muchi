@@ -11,6 +11,7 @@ export interface ReviewItem {
   user: ReviewUser;
   rating: number;
   comment: string;
+  images?: string[];
   verifiedPurchase: boolean;
   helpfulCount?: number;
   isEdited: boolean;
@@ -39,11 +40,13 @@ export interface ReviewSummary {
 export interface CreateReviewPayload {
   rating: number;
   comment: string;
+  images?: string[];
 }
 
 export interface UpdateReviewPayload {
   rating: number;
   comment: string;
+  images?: string[];
 }
 
 export interface ReviewPagination {

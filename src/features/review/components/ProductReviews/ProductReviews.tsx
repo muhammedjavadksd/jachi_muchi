@@ -159,7 +159,7 @@ export const ProductReviews = memo(function ProductReviews({
   }, []);
 
   const handleSubmitReview = useCallback(
-    async (data: { rating: number; comment: string }) => {
+    async (data: { rating: number; comment: string; images?: string[] }) => {
       if (!productId) return;
       if (editingReview) {
         await updateReview(editingReview._id, data);
@@ -314,7 +314,11 @@ export const ProductReviews = memo(function ProductReviews({
         isEditing={Boolean(editingReview)}
         initialValues={
           editingReview
-            ? { rating: editingReview.rating, comment: editingReview.comment }
+            ? {
+                rating: editingReview.rating,
+                comment: editingReview.comment,
+                images: editingReview.images,
+              }
             : undefined
         }
       />
