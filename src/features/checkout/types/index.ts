@@ -38,7 +38,12 @@ export interface CreateOrderItem {
   name: string;
   image?: string;
   price: number;
-  quantity: number;
+  totalQuantity: number;
+  setCount: number;
+  isFree?: boolean;
+  freeCount?: number;
+  freeUnitPrice?: number;
+  bogoGroupId?: string;
   color?: OrderItemColor;
   lens?: OrderItemLens;
   powerDetails?: OrderItemPowerDetails;

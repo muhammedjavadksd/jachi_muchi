@@ -32,11 +32,19 @@ export interface BackendCartItem {
     knowPowerLater?: boolean;
   } | null;
   bogoGroupId?: string | null;
+  freeCount?: number;
+  freeUnitPrice?: number;
+  setCount?: number;
+  isFreeOfferItem?: boolean;
+  triggerProduct?: {
+    _id: string;
+    name: string;
+  } | null;
 }
 
 export interface BackendCartResponse {
   items: BackendCartItem[];
-  bill: { subtotal: number; discount: number; fittingFee: number; total: number };
+  bill: Record<string, any>;
   total: number;
   totalSavings: number;
 }
@@ -59,6 +67,11 @@ export function mapBackendItem(item: BackendCartItem) {
     powerDetails: item.powerDetails ?? null,
     totalPrice: (item.discountedPrice ?? item.product.price) + (item.lens?.price ?? 0),
     isFree: item.isFree,
+    freeCount: item.freeCount ?? 0,
+    freeUnitPrice: item.freeUnitPrice ?? 0,
+    setCount: item.setCount ?? undefined,
+    isFreeOfferItem: item.isFreeOfferItem ?? false,
+    triggerProductName: item.triggerProduct?.name ?? undefined,
   };
 }
 

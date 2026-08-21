@@ -26,6 +26,11 @@ export interface CartItem {
   powerType?: string;
   powerDetails?: object | null;
   isFree?: boolean;
+  freeCount?: number;
+  freeUnitPrice?: number;
+  setCount?: number;
+  isFreeOfferItem?: boolean;
+  triggerProductName?: string;
 }
 
 interface CartContextValue {

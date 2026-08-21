@@ -18,19 +18,59 @@ import {
 import type { CartItem } from "@/app/providers/CartProvider";
 import { useAuthGuard } from "@/shared/hooks";
 
+interface NormalizedBill {
+  totalItemPrice: number;
+  totalDiscount: number;
+  offerSavings: number;
+  fittingFee: number;
+  totalPayable: number;
+}
+
+const n = (v: unknown, fallback = 0): number => {
+  const num = Number(v);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+function normalizeBill(raw: Record<string, any> | null | undefined, fallbackTotal: number): NormalizedBill {
+  if (!raw) {
+    return {
+      totalItemPrice: n(fallbackTotal),
+      totalDiscount: 0,
+      offerSavings: 0,
+      fittingFee: 0,
+      totalPayable: n(fallbackTotal),
+    };
+  }
+  return {
+    totalItemPrice:
+      n(raw.totalItemPrice ?? raw.subtotal ?? raw.itemTotal ?? fallbackTotal),
+    totalDiscount:
+      n(raw.totalDiscount ?? raw.discount),
+    offerSavings:
+      n(raw.offerSavings ?? raw.offer_discount),
+    fittingFee:
+      n(raw.fittingFee ?? raw.fitting_fee),
+    totalPayable:
+      n(raw.totalPayable ?? raw.total ?? fallbackTotal),
+  };
+}
+
 export function useCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>({});
   const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
+  const [normalizedBill, setNormalizedBill] = useState<NormalizedBill | null>(null);
   const { requireAuth } = useAuthGuard();
 
   const loadCart = useCallback(async () => {
     try {
       const cart = await fetchCart();
       setCartItems(cart.items.map(mapBackendItem));
+      setNormalizedBill(normalizeBill(cart.bill, cart.total));
     } catch {
       setCartItems([]);
+      setNormalizedBill(null);
     }
   }, []);
 
@@ -68,6 +108,7 @@ export function useCartPage() {
       try {
         const updated = await updateCartItemQuantity(cartItemId, action);
         setCartItems(updated.items.map(mapBackendItem));
+        setNormalizedBill(normalizeBill(updated.bill, updated.total));
         notifyCartUpdated();
       } catch (error: any) {
         const msg =
@@ -85,35 +126,35 @@ export function useCartPage() {
     const { clearCartApi } = await import("@/features/cart/api/cartApi");
     await clearCartApi();
     setCartItems([]);
+    setNormalizedBill(null);
     notifyCartUpdated();
   }, []);
 
   const subtotal = useMemo(
     () =>
-      cartItems.reduce(
-        (sum, item) =>
-          sum +
-          ((item.mrp || item.productPrice) * (item.quantity || 1)) +
-          (item.lens?.price || 0),
-        0
-      ),
+      cartItems.reduce((sum, item) => {
+        const paidCount = (item.setCount || 1) - (item.freeCount || 0);
+        return sum + ((item.mrp || item.productPrice) * paidCount) + (item.lens?.price || 0);
+      }, 0),
     [cartItems]
   );
 
   const totalSellingPrice = useMemo(
     () =>
-      cartItems.reduce(
-        (sum, item) =>
-          sum + item.productPrice * (item.quantity || 1) + (item.lens?.price || 0),
-        0
-      ),
+      cartItems.reduce((sum, item) => {
+        const paidCount = (item.setCount || 1) - (item.freeCount || 0);
+        return sum + item.productPrice * paidCount + (item.lens?.price || 0);
+      }, 0),
     [cartItems]
   );
 
   const totalDiscount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
 
   const totalQuantity = useMemo(
-    () => cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0),
+    () =>
+      cartItems.reduce((sum, item) => {
+        return sum + (item.setCount || 1);
+      }, 0),
     [cartItems]
   );
 
@@ -122,6 +163,10 @@ export function useCartPage() {
   const totalOfferSavings = useMemo(
     () =>
       cartItems.reduce((sum, item) => {
+        const freeCount = item.freeCount || 0;
+        if (freeCount > 0 && item.freeUnitPrice) {
+          return sum + item.freeUnitPrice * freeCount;
+        }
         if (offers.length === 0) return sum;
         return (
           sum +
@@ -152,9 +197,18 @@ export function useCartPage() {
   );
 
   const totalPayable = useMemo(
-    () => totalSellingPrice + fittingFee - Math.round(totalComboSavings),
-    [totalSellingPrice, fittingFee, totalComboSavings]
+    () => totalSellingPrice + fittingFee - Math.round(totalComboSavings) - totalOfferSavings,
+    [totalSellingPrice, fittingFee, totalComboSavings, totalOfferSavings]
   );
+
+  const displayBill = useMemo(() => {
+    if (!normalizedBill) return null;
+    return {
+      ...normalizedBill,
+      offerSavings: normalizedBill.offerSavings + Math.round(totalComboSavings),
+      totalPayable: normalizedBill.totalPayable - Math.round(totalComboSavings),
+    };
+  }, [normalizedBill, totalComboSavings]);
 
   const getOfferBadge = useCallback(
     (productId: string, price: number): OfferBadge | null =>
@@ -170,6 +224,7 @@ export function useCartPage() {
   return {
     offers,
     cartItems,
+    displayBill,
     subtotal,
     totalSellingPrice,
     totalDiscount,

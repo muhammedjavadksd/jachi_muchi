@@ -155,10 +155,15 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     fetching,
     sortBy,
     showFilters,
+    pendingFilters,
     filterConfig,
     categoryBanner,
+    pendingCount,
+    applyCount,
     handleSortChange,
     handleFilterChange,
+    applyFilters,
+    clearFilters,
     setShowFilters,
     getOfferBadge,
   } = useProductSearch();
@@ -202,20 +207,23 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             )}
 
             {!loading && (
-              <div className={`lg:w-72 lg:shrink-0 lg:self-start lg:sticky lg:overflow-y-auto ${showFilters ? "fixed inset-0 z-50 bg-white lg:relative" : "hidden lg:block"}`}>
-                <div className="lg:hidden flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10">
+              <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:self-start lg:sticky lg:top-28 lg:h-[calc(100vh-110px)] lg:overflow-hidden`}>
+                <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
                   <h2 className="text-lg font-semibold">Filters</h2>
                   <button onClick={() => setShowFilters(false)} className="p-2">
                     <X size={24} />
                   </button>
                 </div>
 
-                <div className="lg:pr-4 lg:pb-6 p-4 lg:p-0">
-                  <FilterSidebar filters={filterConfig} onFilterChange={handleFilterChange} />
-                </div>
-
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white border-t z-50">
-                  <button onClick={() => setShowFilters(false)} className="w-full bg-teal-600 text-white py-3 rounded-xl font-semibold">Apply Filters</button>
+                <div className="flex-1 min-h-0 p-4 lg:p-0 lg:pr-4">
+                  <FilterSidebar
+                    filters={filterConfig}
+                    pendingFilters={pendingFilters}
+                    appliedCount={applyCount}
+                    onFilterChange={handleFilterChange}
+                    onApply={applyFilters}
+                    onClear={clearFilters}
+                  />
                 </div>
               </div>
             )}

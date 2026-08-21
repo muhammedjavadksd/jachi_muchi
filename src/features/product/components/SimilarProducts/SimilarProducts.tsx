@@ -37,20 +37,25 @@ export const SimilarProducts = memo(function SimilarProducts({
     return apiProducts
       .filter((p: any) => p.images?.some((img: string) => img && img.trim() !== ""))
       .slice(0, 4).map((p: any) => {
-        const colors: ColorVariant[] = (p.variants || []).map((v: any) => ({
-          colorCode: colorMap[v.color?.toLowerCase()] || v.image || "#888888",
+        const rawVariants = p.variants || p.colors || [];
+        const colors: ColorVariant[] = rawVariants.map((v: any) => ({
+          colorCode: colorMap[v.color?.toLowerCase()] || v.colorCode || v.hex || v.image || "#888888",
           image: getImageUrl(v.image || p.images?.[0]),
         }));
+
+        const mrp = p.mrp || p.originalPrice || p.compareAtPrice || 0;
+        const productPrice = p.price || 0;
+        const discountPct = mrp > productPrice ? Math.round(((mrp - productPrice) / mrp) * 100) : 0;
 
         return {
           images: p.images?.length ? p.images.map((img: string) => getImageUrl(img)) : ["https://placehold.co/400x300?text=Product"],
           name: p.name || "",
           description: p.description || undefined,
-          price: p.price || 0,
-          originalPrice: p.mrp > p.price ? p.mrp : undefined,
-          discount: (() => { const d = p.mrp > p.price ? Math.round(((p.mrp - p.price) / p.mrp) * 100) : 0; return d > 0 ? d : undefined; })(),
+          price: productPrice,
+          originalPrice: mrp > productPrice ? mrp : undefined,
+          discount: discountPct > 0 ? discountPct : undefined,
           rating: p.rating || undefined,
-          reviews: p.reviewCount || undefined,
+          reviews: p.reviewCount || p.reviews || undefined,
           colors: colors.length > 0 ? colors : undefined,
           link: `/product/${p._id}`,
         };
@@ -76,6 +81,7 @@ export const SimilarProducts = memo(function SimilarProducts({
             reviews={item.reviews}
             colors={item.colors}
             link={item.link}
+            showViewButton
           />
         ))}
       </Grid>

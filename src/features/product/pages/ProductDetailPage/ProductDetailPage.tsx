@@ -3,6 +3,7 @@ import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductRev
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
 import { ProductImageViewer } from "@/features/product/components/ProductImageViewer/ProductImageViewer";
 import { Container } from "@/shared/components/Container/Container";
+import { formatPrice } from "@/shared/utils/format";
 import { useProductDetail } from "@/features/product/hooks";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -38,26 +39,6 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
 
   const spacerStyle = useMemo(() => ({ height: PROMOTION_HEADER_HEIGHT }), []);
 
-  const colorOptions = useMemo(() =>
-    safeProduct.colors.map((color, i) => (
-      <button key={i} type="button" title={color.name} onClick={() => handleColorClick(i)}
-        className={`w-10 h-10 rounded-full border-2 transition-all flex items-center justify-center ${selectedColorIndex === i ? "border-black scale-110 shadow-md" : "border-gray-300 hover:border-gray-500"}`}
-        style={{ backgroundColor: color.colorCode }} aria-label={`Select ${color.name}`}
-      >
-        {selectedColorIndex === i && <div className="w-3 h-3 bg-white rounded-full border border-gray-400" />}
-      </button>
-    ))
-  , [safeProduct.colors, selectedColorIndex, handleColorClick]);
-
-  const specsTable = useMemo(() =>
-    safeProduct.specs.map((spec, i) => (
-      <div key={i} className="flex py-3 border-b border-gray-100 last:border-b-0 text-sm">
-        <span className="w-40 shrink-0 text-gray-500">{spec.label}</span>
-        <span className="text-gray-900 font-medium">{spec.value}</span>
-      </div>
-    ))
-  , [safeProduct.specs]);
-
   if (loading) return <div className="p-10 text-center">Loading product...</div>;
   if (!product) return <div className="p-10 text-center">Product not found</div>;
 
@@ -81,32 +62,59 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               />
             </div>
             <div className="lg:w-2/5 xl:w-1/3 lg:sticky lg:top-40">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex items-center gap-1 bg-teal-700 text-white text-sm font-semibold px-3 py-1 rounded-full">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{safeProduct.name}</h1>
+              {safeProduct.description && (
+                <p className="text-gray-500 text-sm mb-4">{safeProduct.description}</p>
+              )}
+
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-flex items-center gap-1 bg-teal-700 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
                   {safeProduct.rating} <StarIcon />
                 </span>
                 <span className="text-gray-500 text-sm">{safeProduct.reviews.toLocaleString()} Reviews</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{safeProduct.brand}</h1>
-              <h2 className="text-lg md:text-xl text-gray-600 mb-2">{safeProduct.name}</h2>
-              <p className="text-gray-500 text-sm md:text-base mb-6">{safeProduct.description}</p>
+              <hr className="border-gray-200 mb-5" />
+
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹{safeProduct.price}</span>
-                {safeProduct.originalPrice > safeProduct.price && <span className="text-2xl text-gray-400 line-through">₹{safeProduct.originalPrice}</span>}
-                {safeProduct.discount > 0 && <span className="text-green-600 font-bold text-xl">({safeProduct.discount}% OFF)</span>}
+                <span className="text-3xl md:text-4xl font-bold text-gray-900">₹{formatPrice(safeProduct.price)}</span>
+                {safeProduct.originalPrice > safeProduct.price && (
+                  <span className="text-lg text-gray-400 line-through">₹{formatPrice(safeProduct.originalPrice)}</span>
+                )}
+                {safeProduct.discount > 0 && (
+                  <span className="text-green-600 text-sm font-bold">({safeProduct.discount}% OFF)</span>
+                )}
               </div>
+
               {dynamicColors.length > 0 && (
                 <div className="mb-6">
-                  <p className="text-sm text-gray-600 mb-3">Select Color</p>
-                  <div className="flex items-center gap-4">{colorOptions}</div>
+                  <p className="text-sm font-medium text-gray-700 mb-3">Select Color</p>
+                  <div className="flex items-center gap-3">
+                    {dynamicColors.map((color, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        title={color.name}
+                        onClick={() => handleColorClick(i)}
+                        className={`w-10 h-10 rounded-full transition-all flex items-center justify-center ${
+                          selectedColorIndex === i
+                            ? "ring-2 ring-offset-2 ring-teal-600 scale-110"
+                            : "ring-1 ring-gray-200 hover:ring-gray-400"
+                        }`}
+                        style={{ backgroundColor: color.colorCode }}
+                        aria-label={`Select ${color.name}`}
+                      >
+                        {selectedColorIndex === i && (
+                          <div className="w-3 h-3 bg-white rounded-full border border-gray-400" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
-              <div className="space-y-3 mb-8">
-                <button onClick={openLensPanel} className="w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-xl text-base transition-colors">SELECT LENS</button>
-              </div>
+
               {offers.length > 0 && id && getProductOffers(id, offers).length > 0 && (
-                <div className="mb-8">
-                  <h3 className="font-semibold text-gray-900 mb-3">Available Offers</h3>
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-900 mb-3 text-sm">Available Offers</h3>
                   <div className="space-y-2">
                     {getProductOffers(id, offers).map((offer) => {
                       const offerDiscount = calculateOfferDiscount(id, safeProduct.price, [offer]);
@@ -117,7 +125,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                             <p className="text-sm font-semibold text-gray-900">{offer.offerName}</p>
                             <p className="text-xs text-gray-500 mt-0.5">
                               {getOfferLabel(offer)}
-                              {offerDiscount > 0 && <span className="text-teal-600 font-medium"> · Save ₹{Math.round(offerDiscount)}</span>}
+                              {offerDiscount > 0 && <span className="text-teal-600 font-medium"> · Save ₹{formatPrice(offerDiscount)}</span>}
                             </p>
                             {offer.couponCode && <span className="inline-block mt-1 px-2 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-bold rounded border border-teal-200">Use code: {offer.couponCode}</span>}
                           </div>
@@ -127,19 +135,76 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                   </div>
                 </div>
               )}
-              <hr className="border-gray-200 my-8" />
-              <div className="mb-8 border border-gray-200 rounded-2xl overflow-hidden">
+
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
                 <button onClick={toggleTech} className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
-                  <span className="text-lg font-semibold text-gray-900">Technical Information</span>
-                  <svg className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${techOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="text-base font-semibold text-[#0d4f4a]">Technical Information</span>
+                  <svg className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${techOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {techOpen && (
-                  <div className="px-5 pb-5 text-sm animate-[fadeIn_0.2s_ease-out]">{specsTable}</div>
+                  <div className="px-5 pb-4 animate-[fadeIn_0.2s_ease-out]">
+                    {safeProduct.specs.map((spec, i) => {
+                      const icons: Record<string, JSX.Element> = {
+                        Brand: (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d4f4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="6" cy="14" r="3" /><circle cx="18" cy="14" r="3" /><path d="M10 14h4" /><path d="M2 14V9" /><path d="M22 14V9" />
+                          </svg>
+                        ),
+                        Category: (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d4f4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+                          </svg>
+                        ),
+                        Shape: (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d4f4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                          </svg>
+                        ),
+                        "Frame Type": (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d4f4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="6" cy="14" r="3" /><circle cx="18" cy="14" r="3" /><path d="M10 14h4" /><path d="M2 14V9" /><path d="M22 14V9" />
+                          </svg>
+                        ),
+                        "Frame Color": (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d4f4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="13.5" cy="6.5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="12" r="2.5" /><circle cx="12" cy="18" r="2.5" />
+                          </svg>
+                        ),
+                      };
+                      return (
+                        <div key={i} className={`flex items-center gap-3 py-3 ${i < safeProduct.specs.length - 1 ? "border-b border-gray-100" : ""}`}>
+                          <span className="shrink-0">{icons[spec.label] || (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+                            </svg>
+                          )}</span>
+                          <span className="text-gray-500 text-sm flex-1">{spec.label}</span>
+                          <span className="text-gray-900 text-sm font-medium">{spec.value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 
+              <button
+                onClick={openLensPanel}
+                className="w-full flex items-center justify-between gap-3 py-3.5 px-5 bg-[#0d4f4a] hover:bg-[#0a3d38] text-white font-bold text-sm uppercase tracking-wide rounded-lg transition-colors mt-6"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="6" cy="14" r="4" />
+                  <circle cx="18" cy="14" r="4" />
+                  <path d="M10 14h4" />
+                  <path d="M2 14V8" />
+                  <path d="M22 14V8" />
+                </svg>
+                <span className="flex-1 text-center">Select Lens</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
           </div>
         </Container>

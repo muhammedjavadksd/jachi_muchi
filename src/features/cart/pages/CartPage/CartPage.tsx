@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { getImageUrl } from "@/shared/utils/image";
+import { formatPrice } from "@/shared/utils/format";
 import { useCartPage } from "@/features/cart/hooks";
 import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
 
@@ -11,12 +12,8 @@ const PROMOTION_HEADER_HEIGHT = 140;
 export const CartPage = memo(function CartPage(): JSX.Element {
   const {
     cartItems,
-    subtotal,
-    totalDiscount,
-    totalOfferSavings,
-    totalComboSavings,
-    totalPayable,
-    fittingFee,
+    displayBill,
+    totalQuantity,
     comboOffers,
     activeCombos,
     incompleteCombos,
@@ -24,7 +21,6 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     getComboSavingsForOffer,
     updatingItems,
     stockErrors,
-    totalQuantity,
     handleRemoveItem,
     handleUpdateQuantity,
   } = useCartPage();
@@ -56,14 +52,21 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   const cartItemsList = useMemo(() =>
     cartItems.map((item, index) => {
       const offerBadge = getOfferBadge(item.productId, item.productPrice);
+      const isFreeOffer = !!item.isFreeOfferItem;
+      const isSameProductBogo = (item.freeCount || 0) > 0 && !isFreeOffer;
+
       return (
       <div
         key={item.cartItemId || `${item.productId}-${index}`}
         className="bg-white border border-gray-200 rounded-2xl p-5 mb-5 relative overflow-hidden"
       >
         <div className="flex flex-col sm:flex-row gap-5">
-          <div className="w-full sm:w-40 h-40 sm:h-32 bg-gray-50 rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 relative">
-            {offerBadge && (
+          <div className="w-full sm:w-40 h-40 sm:h-32 bg-white rounded-xl flex items-center justify-center shrink-0 overflow-hidden border border-gray-100 relative">
+            {isFreeOffer ? (
+              <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold shadow-md z-10">
+                FREE
+              </div>
+            ) : offerBadge && (
               <div
                 className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-white text-[9px] font-bold shadow-md z-10"
                 style={{ backgroundColor: offerBadge.color }}
@@ -71,15 +74,10 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 {offerBadge.label}
               </div>
             )}
-            {item.productPrice === 0 && (
-              <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold shadow-md z-10">
-                FREE
-              </div>
-            )}
             <img
               src={getImageUrl(item.productImage)}
               alt={item.productName}
-              className="w-full h-full object-contain p-3"
+              className="w-full h-full object-cover"
               loading="lazy"
             />
           </div>
@@ -90,10 +88,25 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 {item.productName}
               </h3>
               <div className="text-right shrink-0">
-                {item.mrp && item.mrp > item.productPrice && (
-                  <span className="text-gray-400 line-through text-sm">₹{item.mrp}</span>
-                )}                </div>
+                {isFreeOffer ? (
+                  <div className="flex flex-col items-end gap-0.5">
+                    {item.mrp && <span className="text-gray-400 line-through text-sm">₹{formatPrice(item.mrp)}</span>}
+                    <span className="font-bold text-green-600 text-lg">FREE</span>
+                  </div>
+                ) : item.mrp && item.mrp > item.productPrice && (
+                  <span className="text-gray-400 line-through text-sm">₹{formatPrice(item.mrp)}</span>
+                )}
+              </div>
             </div>
+
+            {isFreeOffer && item.triggerProductName && (
+              <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 border border-green-200">
+                <svg className="w-3 h-3 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-green-700 text-xs font-medium">Free with {item.triggerProductName}</span>
+              </div>
+            )}
 
             {item.color && (
               <div className="flex items-center gap-2 mt-2">
@@ -104,30 +117,56 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
             {item.lens && (
               <div className="flex justify-between items-center my-3">
-                <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? ` (+₹${item.lens.price})` : ''}</span>
+                <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? ` (+₹${formatPrice(item.lens.price)})` : ''}</span>
               </div>
             )}
 
             <div className="flex justify-between items-center py-3 border-t border-gray-100">
               <span className="text-gray-700 font-medium">Final Price</span>
               <div className="text-right">
-                <span className="font-bold text-gray-900 text-xl">₹{item.productPrice + (item.lens?.price || 0)}</span>
+                {isFreeOffer ? (
+                  <span className="font-bold text-green-600 text-xl">₹0</span>
+                ) : isSameProductBogo ? (
+                  <span className="font-bold text-gray-900 text-xl">₹{formatPrice((item.setCount || 1) * item.productPrice + (item.lens?.price || 0))}</span>
+                ) : (
+                  <span className="font-bold text-gray-900 text-xl">₹{formatPrice(item.productPrice + (item.lens?.price || 0))}</span>
+                )}
               </div>
             </div>
 
-            {item.cartItemId && (
+            {isFreeOffer && (
+              <div className="pt-2">
+                <Link
+                  to={`/product/${item.productId}`}
+                  className="block w-full py-2.5 text-center text-sm font-medium text-teal-700 border border-teal-200 rounded-xl hover:bg-teal-50 transition-colors"
+                >
+                  View Product
+                </Link>
+              </div>
+            )}
+
+            {!isFreeOffer && item.cartItemId && (
               <div className="flex items-center justify-between py-3 border-t border-gray-100">
                 <span className="text-gray-700 font-medium text-sm">Quantity</span>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleUpdateQuantity(item.cartItemId!, "decrement")}
-                    disabled={updatingItems[item.cartItemId!] || (item.quantity || 1) <= 1}
+                    disabled={updatingItems[item.cartItemId!] || (item.setCount || 1) <= 1}
                     className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-lg font-medium text-gray-700 hover:border-teal-600 hover:text-teal-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     aria-label="Decrease quantity"
                   >
                     −
                   </button>
-                  <span className="w-6 text-center font-semibold text-gray-900">{item.quantity || 1}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 text-center font-semibold text-gray-900">
+                      {item.setCount || 1}
+                    </span>
+                    {isSameProductBogo && (
+                      <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[10px] font-bold leading-none whitespace-nowrap">
+                        +1 FREE
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => handleUpdateQuantity(item.cartItemId!, "increment")}
                     disabled={updatingItems[item.cartItemId!]}
@@ -143,20 +182,22 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               <p className="text-red-600 text-xs mt-1">{stockErrors[item.cartItemId!]}</p>
             )}
 
-            <div className="flex items-center text-sm pt-2">
-              <button
-                onClick={() => setPendingRemoval({
-                  cartItemId: item.cartItemId!,
-                  productId: item.productId,
-                  productName: item.productName,
-                  productPrice: item.productPrice,
-                  productImage: item.productImage,
-                })}
-                className="text-red-600 font-medium hover:text-red-700 transition-colors"
-              >
-                Remove
-              </button>
-            </div>
+            {!isFreeOffer && item.cartItemId && (
+              <div className="flex items-center text-sm pt-2">
+                <button
+                  onClick={() => setPendingRemoval({
+                    cartItemId: item.cartItemId!,
+                    productId: item.productId,
+                    productName: item.productName,
+                    productPrice: item.productPrice,
+                    productImage: item.productImage,
+                  })}
+                  className="text-red-600 font-medium hover:text-red-700 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -195,7 +236,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                     <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold shrink-0">C</div>
                     <div>
                       <p className="text-sm font-semibold text-amber-900">{c.offer.offerName}</p>
-                      <p className="text-xs text-amber-700">Combo active! Save ₹{Math.round(displaySavings)} on this bundle</p>
+                      <p className="text-xs text-amber-700">Combo active! Save ₹{formatPrice(displaySavings)} on this bundle</p>
                     </div>
                   </div>
                   );
@@ -220,39 +261,46 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 mb-6 shadow-sm">
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total item price</span>
-                      <span>₹{subtotal}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total discount</span>
-                      <span className="text-green-600">-₹{totalDiscount}</span>
-                    </div>
-                    {totalOfferSavings > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Offer savings</span>
-                        <span className="text-green-600">-₹{totalOfferSavings}</span>
-                      </div>
+                    {displayBill ? (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Total item price</span>
+                          <span>₹{formatPrice(displayBill.totalItemPrice)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Total discount</span>
+                          {displayBill.totalDiscount > 0 ? (
+                            <span className="text-green-600">-₹{formatPrice(displayBill.totalDiscount)}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Offer savings</span>
+                          {displayBill.offerSavings > 0 ? (
+                            <span className="text-green-600">-₹{formatPrice(displayBill.offerSavings)}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Fitting Fee</span>
+                          {displayBill.fittingFee > 0 ? (
+                            <span>₹{formatPrice(displayBill.fittingFee)}</span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </div>
+                        <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
+                          <span className="font-semibold text-lg">Total payable</span>
+                          <span className="font-bold text-2xl text-gray-900">
+                            ₹{formatPrice(displayBill.totalPayable)}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-gray-400 text-sm text-center py-2">Calculating...</p>
                     )}
-                    {totalComboSavings > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Combo savings</span>
-                        <span className="text-amber-600">-₹{Math.round(totalComboSavings)}</span>
-                      </div>
-                    )}
-                    {fittingFee > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Fitting Fee</span>
-                        <span>₹{fittingFee}</span>
-                      </div>
-                    )}
-
-                    <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
-                      <span className="font-semibold text-lg">Total payable</span>
-                      <span className="font-bold text-2xl text-gray-900">
-                        ₹{totalPayable}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
