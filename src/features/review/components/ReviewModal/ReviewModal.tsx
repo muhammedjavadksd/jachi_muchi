@@ -11,6 +11,8 @@ interface ReviewModalProps {
   }) => Promise<void>;
   isEditing?: boolean;
   initialValues?: { rating: number; comment: string; images?: string[] };
+  /** Photo uploads are restricted to verified purchasers; defaults to true */
+  canAddPhotos?: boolean;
 }
 
 export const ReviewModal = memo(function ReviewModal({
@@ -19,6 +21,7 @@ export const ReviewModal = memo(function ReviewModal({
   onSubmit,
   isEditing = false,
   initialValues,
+  canAddPhotos = true,
 }: ReviewModalProps): JSX.Element | null {
   useEffect(() => {
     if (isOpen) {
@@ -74,6 +77,7 @@ export const ReviewModal = memo(function ReviewModal({
             onSubmit={onSubmit}
             initialValues={initialValues}
             isEditing={isEditing}
+            canAddPhotos={canAddPhotos}
             onCancel={onClose}
           />
         </div>

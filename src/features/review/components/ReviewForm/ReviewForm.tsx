@@ -16,6 +16,8 @@ interface ReviewFormProps {
   }) => Promise<void>;
   initialValues?: { rating: number; comment: string; images?: string[] };
   isEditing?: boolean;
+  /** Photo uploads are restricted to verified purchasers; defaults to true */
+  canAddPhotos?: boolean;
   onCancel?: () => void;
 }
 
@@ -28,6 +30,7 @@ export const ReviewForm = memo(function ReviewForm({
   onSubmit,
   initialValues,
   isEditing = false,
+  canAddPhotos = true,
   onCancel,
 }: ReviewFormProps): JSX.Element {
   const [rating, setRating] = useState(initialValues?.rating || 0);
@@ -147,6 +150,7 @@ export const ReviewForm = memo(function ReviewForm({
         images={images}
         onChange={setImages}
         onBusyChange={setImagesBusy}
+        canAddPhotos={canAddPhotos}
       />
 
       {apiError && (

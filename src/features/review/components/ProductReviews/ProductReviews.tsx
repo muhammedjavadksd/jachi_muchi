@@ -15,6 +15,7 @@ import { ReviewModal } from "@/features/review/components/ReviewModal/ReviewModa
 import { DeleteReviewDialog } from "@/features/review/components/DeleteReviewDialog/DeleteReviewDialog";
 import { ReviewToast } from "@/features/review/components/ReviewToast/ReviewToast";
 import { useReviewToast } from "@/features/review/hooks/useReviewToast";
+import { useVerifiedPurchase } from "@/features/review/hooks/useVerifiedPurchase";
 import {
   ALREADY_REVIEWED_MESSAGE,
   REVIEW_SORT_OPTIONS,
@@ -66,6 +67,7 @@ export const ProductReviews = memo(function ProductReviews({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { toast: reviewToast, showToast } = useReviewToast();
+  const { isVerifiedPurchaser } = useVerifiedPurchase(productId);
 
   const currentUserId = user?.id || (user as { _id?: string })?._id;
 
@@ -312,6 +314,7 @@ export const ProductReviews = memo(function ProductReviews({
         onClose={handleCloseModal}
         onSubmit={handleSubmitReview}
         isEditing={Boolean(editingReview)}
+        canAddPhotos={isVerifiedPurchaser}
         initialValues={
           editingReview
             ? {

@@ -75,8 +75,8 @@ const ProductGrid = memo(function ProductGrid({
 
   if (loading) {
     return (
-      <div className="flex-1 min-w-0 min-h-[400px]">
-        <div className="bg-gray-900 text-white rounded-t-2xl overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-[400px] lg:min-h-0 flex flex-col">
+        <div className="shrink-0 bg-gray-900 text-white rounded-t-2xl overflow-hidden">
           <div className="px-4 py-4 lg:px-6 lg:py-5 flex justify-between items-center">
             <div className="lg:hidden w-24 h-9 bg-gray-800 rounded-xl" />
             <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ const ProductGrid = memo(function ProductGrid({
             </div>
           </div>
         </div>
-        <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 min-h-[400px]">
+        <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 min-h-[400px] lg:min-h-0 flex-1 lg:overflow-y-auto scrollbar-hide">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border border-gray-200 overflow-hidden bg-white">
@@ -109,13 +109,13 @@ const ProductGrid = memo(function ProductGrid({
   }
 
   return (
-    <div className="flex-1 min-w-0 min-h-[400px]">
+    <div className="flex-1 min-w-0 min-h-[400px] lg:min-h-0 flex flex-col">
       {fetching && (
-        <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+        <div className="shrink-0 h-1 bg-gray-100 rounded-full overflow-hidden">
           <div className="h-full bg-teal-500 rounded-full animate-pulse" style={{ width: "60%" }} />
         </div>
       )}
-      <div className="bg-gray-900 text-white rounded-t-2xl overflow-hidden">
+      <div className="shrink-0 bg-gray-900 text-white rounded-t-2xl overflow-hidden">
         <div className="px-4 py-4 lg:px-6 lg:py-5 flex justify-between items-center">
           <button onClick={() => onToggleFilters(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-xl text-sm">
             <SlidersHorizontal size={18} />
@@ -133,7 +133,7 @@ const ProductGrid = memo(function ProductGrid({
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6">
+      <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 flex-1 lg:min-h-0 lg:overflow-y-auto scrollbar-hide">
         {products.length === 0 && !fetching ? (
           <p className="text-center col-span-full py-10">No products found</p>
         ) : (
@@ -185,7 +185,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             </div>
           )}
 
-          <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12">
+          <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12 lg:h-[calc(100vh-140px)] lg:min-h-0">
             {loading && (
               <div className="hidden lg:block lg:w-72 lg:shrink-0 animate-pulse">
                 <div className="lg:pr-4 lg:pb-6">
@@ -207,7 +207,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             )}
 
             {!loading && (
-              <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:self-start lg:sticky lg:top-28 lg:h-[calc(100vh-110px)] lg:overflow-hidden`}>
+              <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:h-full lg:min-h-0 lg:inset-auto lg:z-auto lg:overflow-hidden`}>
                 <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
                   <h2 className="text-lg font-semibold">Filters</h2>
                   <button onClick={() => setShowFilters(false)} className="p-2">

@@ -31,6 +31,14 @@ export const REVIEW_IMAGE_UPLOAD_ERROR =
 export const ALREADY_REVIEWED_MESSAGE = "You've already reviewed this product";
 export const VERIFIED_PURCHASE_BADGE_LABEL = "✅ Verified Purchase";
 
+/** Orders with these statuses never count as a verified purchase */
+export const VERIFIED_PURCHASE_EXCLUDED_ORDER_STATUSES = [
+  "cancelled",
+  "refunded",
+];
+/** Orders whose payment failed never count as a verified purchase */
+export const VERIFIED_PURCHASE_EXCLUDED_PAYMENT_STATUSES = ["failed"];
+
 export const EMPTY_REVIEWS_TITLE = "No reviews yet";
 export const EMPTY_REVIEWS_SUBTITLE = "Be the first to review this product";
 export const EMPTY_VERIFIED_REVIEWS_TITLE = "No verified reviews yet";
