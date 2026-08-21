@@ -54,6 +54,7 @@ const mapReviewItem = (raw: any): ReviewItem => ({
   user: mapReviewUser(raw.user),
   rating: Number(raw.rating),
   comment: raw.comment ?? raw.message ?? "",
+  images: Array.isArray(raw.images) ? raw.images.filter((image: unknown) => typeof image === "string") : [],
   verifiedPurchase: Boolean(raw.verifiedPurchase),
   helpfulCount: raw.helpfulCount ?? raw.helpfulVotes,
   isEdited: Boolean(raw.isEdited),
@@ -159,6 +160,34 @@ export const deleteReview = async (
   } catch (error) {
     throw new Error(getApiErrorMessage(error, "Failed to delete review"));
   }
+};
+
+interface ReviewImagesApiResponse {
+  success?: boolean;
+  message?: string;
+  data?: { images?: unknown[] };
+}
+
+export const uploadReviewImages = async (files: File[]): Promise<string[]> => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("images", file));
+
+  let data: ReviewImagesApiResponse | undefined;
+  try {
+    const res = await api.post<ReviewImagesApiResponse>("/reviews/uploads", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    data = res.data;
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Failed to upload images"));
+  }
+
+  if (!data?.success || !Array.isArray(data?.data?.images)) {
+    throw new Error(data?.message || "Failed to upload images");
+  }
+  return data.data.images.filter(
+    (image): image is string => typeof image === "string" && image.length > 0
+  );
 };
 
 export const getUserReview = async (

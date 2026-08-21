@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks";
+import { getImageUrl } from "@/shared/utils/image";
 import { StarRating } from "@/features/review/components/StarRating/StarRating";
 import { VERIFIED_PURCHASE_BADGE_LABEL } from "@/features/review/constants";
 import type { ReviewItem } from "@/features/review/types";
@@ -97,6 +98,20 @@ export const ReviewCard = memo(function ReviewCard({
       <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
         {review.comment}
       </p>
+
+      {review.images && review.images.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {review.images.map((image, index) => (
+            <img
+              key={`${image}-${index}`}
+              src={getImageUrl(image)}
+              alt={`Photo ${index + 1} from ${reviewerName}`}
+              loading="lazy"
+              className="w-20 h-20 rounded-lg object-cover border border-gray-200"
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 });

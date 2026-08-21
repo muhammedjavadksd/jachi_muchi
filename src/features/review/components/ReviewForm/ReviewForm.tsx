@@ -1,6 +1,7 @@
 import { memo, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { StarRating } from "@/features/review/components/StarRating/StarRating";
+import { ReviewImageUpload } from "@/features/review/components/ReviewImageUpload/ReviewImageUpload";
 import { validateReview } from "@/features/review/validations";
 import {
   REVIEW_MIN_COMMENT_LENGTH,
@@ -8,8 +9,12 @@ import {
 } from "@/features/review/constants";
 
 interface ReviewFormProps {
-  onSubmit: (data: { rating: number; comment: string }) => Promise<void>;
-  initialValues?: { rating: number; comment: string };
+  onSubmit: (data: {
+    rating: number;
+    comment: string;
+    images?: string[];
+  }) => Promise<void>;
+  initialValues?: { rating: number; comment: string; images?: string[] };
   isEditing?: boolean;
   onCancel?: () => void;
 }
@@ -27,6 +32,8 @@ export const ReviewForm = memo(function ReviewForm({
 }: ReviewFormProps): JSX.Element {
   const [rating, setRating] = useState(initialValues?.rating || 0);
   const [comment, setComment] = useState(initialValues?.comment || "");
+  const [images, setImages] = useState<string[]>(initialValues?.images ?? []);
+  const [imagesBusy, setImagesBusy] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [apiError, setApiError] = useState("");
@@ -65,7 +72,7 @@ export const ReviewForm = memo(function ReviewForm({
       try {
         setSubmitting(true);
         setApiError("");
-        await onSubmit({ rating, comment: comment.trim() });
+        await onSubmit({ rating, comment: comment.trim(), images });
       } catch (error) {
         setApiError(
           error instanceof Error
@@ -136,6 +143,12 @@ export const ReviewForm = memo(function ReviewForm({
         )}
       </div>
 
+      <ReviewImageUpload
+        images={images}
+        onChange={setImages}
+        onBusyChange={setImagesBusy}
+      />
+
       {apiError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-sm text-red-700 font-medium">{apiError}</p>
@@ -145,7 +158,7 @@ export const ReviewForm = memo(function ReviewForm({
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || imagesBusy}
           className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-teal-700 hover:bg-teal-800 text-white text-sm font-semibold rounded-xl transition-all active:scale-[0.985] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:active:scale-100"
         >
           {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
