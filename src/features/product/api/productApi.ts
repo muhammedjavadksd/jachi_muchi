@@ -1,6 +1,33 @@
 import { api } from "@/shared/lib/axios";
 import type { ProductDetailData } from "@/features/product/types";
 
+// export const getProducts = async (filters?: {
+//   category?: string;
+//   shape?: string;
+//   brand?: string;
+//   frameType?: string;
+//   color?: string;
+//   collection?: string;
+//   q?: string;
+//   sortBy?: string;
+//   [key: string]: any;
+// }) => {
+//   const params: Record<string, any> = {};
+
+//   if (filters?.category) params.category = filters.category;
+//   if (filters?.q) params.q = filters.q;
+//   if (filters?.shape) params.shape = filters.shape;
+//   if (filters?.brand) params.brand = filters.brand;
+//   if (filters?.frameType) params.frameType = filters.frameType;
+//   if (filters?.color) params.color = filters.color;
+//   if (filters?.collection) params.collection = filters.collection;
+//   if (filters?.sortBy) params.sortBy = filters.sortBy;
+
+//   const res = await api.get("/products", { params });
+//   return res.data;
+// };
+
+
 export const getProducts = async (filters?: {
   category?: string;
   shape?: string;
@@ -10,6 +37,8 @@ export const getProducts = async (filters?: {
   collection?: string;
   q?: string;
   sortBy?: string;
+  limit?: number;      // ← added
+  page?: number;       // ← added
   [key: string]: any;
 }) => {
   const params: Record<string, any> = {};
@@ -22,6 +51,10 @@ export const getProducts = async (filters?: {
   if (filters?.color) params.color = filters.color;
   if (filters?.collection) params.collection = filters.collection;
   if (filters?.sortBy) params.sortBy = filters.sortBy;
+
+  // ↓ added: always fetch everything by default
+  params.limit = filters?.limit ?? 1000;
+  if (filters?.page) params.page = filters.page;
 
   const res = await api.get("/products", { params });
   return res.data;
