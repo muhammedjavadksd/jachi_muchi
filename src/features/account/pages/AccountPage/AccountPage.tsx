@@ -8,6 +8,7 @@ import { useOrders } from "@/features/account/hooks";
 import { submitContactMessage } from "@/features/account/api/contactApi";
 import { useAuth } from "@/features/auth/hooks";
 import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
+import { OrderItemReviewAction } from "@/features/review/components/OrderItemReviewAction/OrderItemReviewAction";
 
 interface CountryEntry {
   name: string;
@@ -120,6 +121,8 @@ type OrderStatus =
   | "refunded";
 
 interface OrderItem {
+  productId?: string;
+  _id?: string;
   image?: string;
   name?: string;
   quantity?: number;
@@ -152,6 +155,9 @@ interface Order {
     date: string;
   }[];
 }
+
+const getItemProductId = (item: OrderItem): string | undefined =>
+  item.productId || item._id || undefined;
 
 const OrderDrawer = memo(function OrderDrawer({
   order,
@@ -491,8 +497,16 @@ const OrderDrawer = memo(function OrderDrawer({
                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.name || "Unnamed Product"}</p>
                     <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
-                      {item.price === 0 ? <span className="text-teal-600">FREE</span> : `₹${formatPrice(item.price)}`}
+                      {item.price === 0 ? <span className="text-teal-600">FREE</span> : `₹${formatPrice(item.price ?? 0)}`}
                     </p>
+                    {displayStatus === "delivered" && getItemProductId(item) && (
+                      <div className="mt-2.5">
+                        <OrderItemReviewAction
+                          productId={getItemProductId(item)}
+                          productName={item.name}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -509,7 +523,7 @@ const OrderDrawer = memo(function OrderDrawer({
               {(order.discount ?? 0) > 0 && (
                 <div className="flex justify-between py-2">
                   <span className="text-gray-600 text-sm">Discount</span>
-                  <span className="text-green-600 text-sm">-₹{formatPrice(order.discount)}</span>
+                  <span className="text-green-600 text-sm">-₹{formatPrice(order.discount ?? 0)}</span>
                 </div>
               )}
               <div className="flex justify-between py-2">
@@ -917,6 +931,24 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
       ...
     </div>
   </div>
+
+  {order.status === "delivered" && (
+    <div
+      className="flex flex-wrap items-center gap-2 mt-3"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {items.slice(0, 3).map((item, idx) => {
+        const reviewProductId = getItemProductId(item);
+        if (!reviewProductId) return null;
+        return (
+          <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg pl-2.5 pr-1 py-1">
+            <span className="text-xs text-gray-600 truncate max-w-[120px] sm:max-w-[180px]">{item.name}</span>
+            <OrderItemReviewAction productId={reviewProductId} productName={item.name} />
+          </div>
+        );
+      })}
+    </div>
+  )}
 </div>
 
               {order.paymentMethod === "COD" ? (

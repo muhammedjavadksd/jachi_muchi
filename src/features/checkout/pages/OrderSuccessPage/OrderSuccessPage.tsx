@@ -2,6 +2,7 @@ import { memo, useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
+import { formatPrice } from "@/shared/utils/format";
 import { getOrderById } from "@/features/checkout/api/orderApi";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -264,11 +265,11 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                         <div className="text-right ml-4 shrink-0">
                           {isFree ? (
                             <div>
-                              <p className="text-sm text-gray-400 line-through">₹{formatPrice(item.price)}</p>
+                              <p className="text-sm text-gray-400 line-through">₹{formatPrice(item.price ?? 0)}</p>
                               <p className="font-bold text-green-600">FREE</p>
                             </div>
                           ) : (
-                            <p className="font-medium text-gray-900">₹{formatPrice(item.price)}</p>
+                            <p className="font-medium text-gray-900">₹{formatPrice(item.price ?? 0)}</p>
                           )}
                         </div>
                       </div>

@@ -35,8 +35,8 @@ interface SafeProduct {
   price: number;
   originalPrice: number;
   discount: number;
-  rating: number;
-  reviews: number;
+  ratingAverage: number;
+  ratingCount: number;
   images: string[];
   // rotation360Images: string[]; // [HIDDEN] Commented out — 360° removed; uncomment to restore
   colors: DynamicColor[];
@@ -121,8 +121,8 @@ export function useProductDetail() {
       price: product?.price || 0,
       originalPrice: product?.mrp > product?.price ? product.mrp : 0,
       discount: product?.mrp > product?.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0,
-      rating: product?.rating || 0,
-      reviews: product?.reviewCount || 0,
+      ratingAverage: product?.ratingAverage ?? product?.rating ?? 0,
+      ratingCount: product?.ratingCount ?? product?.reviewCount ?? 0,
       images,
       // rotation360Images, // [HIDDEN] Commented out — 360° removed; uncomment to restore
       colors: dynamicColors,

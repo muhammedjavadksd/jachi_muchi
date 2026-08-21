@@ -60,7 +60,7 @@ export { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCar
 
 // Review Components
 export { ProductReviews } from "@/features/review/components/ProductReviews/ProductReviews";
-export { RatingStars } from "@/features/review/components/RatingStars/RatingStars";
+export { StarRating } from "@/features/review/components/StarRating/StarRating";
 export { RatingBreakdown } from "@/features/review/components/RatingBreakdown/RatingBreakdown";
 export { ReviewCard } from "@/features/review/components/ReviewCard/ReviewCard";
 export { ReviewForm } from "@/features/review/components/ReviewForm/ReviewForm";

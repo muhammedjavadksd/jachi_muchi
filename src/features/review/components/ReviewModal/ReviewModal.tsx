@@ -4,9 +4,9 @@ import { ReviewForm } from "@/features/review/components/ReviewForm/ReviewForm";
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { rating: number; message: string }) => Promise<void>;
+  onSubmit: (data: { rating: number; comment: string }) => Promise<void>;
   isEditing?: boolean;
-  initialValues?: { rating: number; message: string };
+  initialValues?: { rating: number; comment: string };
 }
 
 export const ReviewModal = memo(function ReviewModal({

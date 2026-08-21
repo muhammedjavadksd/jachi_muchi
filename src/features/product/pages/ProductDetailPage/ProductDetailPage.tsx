@@ -1,5 +1,5 @@
-import { memo, useMemo, useCallback } from "react";
-import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews } from "@/components";
+import { memo, useMemo } from "react";
+import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews, StarRating } from "@/components";
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
 import { ProductImageViewer } from "@/features/product/components/ProductImageViewer/ProductImageViewer";
 import { Container } from "@/shared/components/Container/Container";
@@ -7,10 +7,6 @@ import { formatPrice } from "@/shared/utils/format";
 import { useProductDetail } from "@/features/product/hooks";
 
 const PROMOTION_HEADER_HEIGHT = 140;
-
-function StarIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>;
-}
 
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const {
@@ -68,10 +64,13 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               )}
 
               <div className="flex items-center gap-2 mb-4">
-                <span className="inline-flex items-center gap-1 bg-teal-700 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
-                  {safeProduct.rating} <StarIcon />
+                <StarRating value={safeProduct.ratingAverage} readOnly size="sm" />
+                <span className="text-sm font-semibold text-gray-900">
+                  {safeProduct.ratingAverage.toFixed(1)}
                 </span>
-                <span className="text-gray-500 text-sm">{safeProduct.reviews.toLocaleString()} Reviews</span>
+                <span className="text-gray-500 text-sm">
+                  ({safeProduct.ratingCount.toLocaleString()} Reviews)
+                </span>
               </div>
               <hr className="border-gray-200 mb-5" />
 
@@ -215,7 +214,12 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
         </Container>
         <div className="border-t border-gray-200 my-8" />
         <Container className="pb-12">
-          <ProductReviews productId={id} />
+          <ProductReviews
+            key={id}
+            productId={id}
+            ratingAverage={safeProduct.ratingAverage}
+            ratingCount={safeProduct.ratingCount}
+          />
         </Container>
       </main>
       <Footer />

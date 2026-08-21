@@ -1,5 +1,6 @@
 export interface ReviewUser {
   _id: string;
+  id?: string;
   name: string;
   email?: string;
 }
@@ -9,11 +10,19 @@ export interface ReviewItem {
   product: string;
   user: ReviewUser;
   rating: number;
-  message: string;
+  comment: string;
+  verifiedPurchase: boolean;
+  helpfulCount?: number;
   isEdited: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export type ReviewSortOption =
+  | "mostRecent"
+  | "mostHelpful"
+  | "highestRated"
+  | "lowestRated";
 
 export interface RatingDistributionItem {
   star: number;
@@ -24,18 +33,17 @@ export interface RatingDistributionItem {
 export interface ReviewSummary {
   averageRating: number;
   totalReviews: number;
-  distribution: RatingDistributionItem[];
+  distribution?: RatingDistributionItem[];
 }
 
 export interface CreateReviewPayload {
-  productId: string;
   rating: number;
-  review: string;
+  comment: string;
 }
 
 export interface UpdateReviewPayload {
   rating: number;
-  review: string;
+  comment: string;
 }
 
 export interface ReviewPagination {
@@ -43,18 +51,38 @@ export interface ReviewPagination {
   limit: number;
   total: number;
   totalPages: number;
-  hasMore: boolean;
 }
 
 export interface ReviewListResponse {
   success: boolean;
   data: ReviewItem[];
+  pagination: ReviewPagination;
   summary?: ReviewSummary;
-  pagination?: ReviewPagination;
+}
+
+export interface ReviewStats {
+  averageRating?: number;
+  totalReviews?: number;
+  breakdown?: { _id?: number | string; count?: number }[];
+  [key: string]: unknown;
+}
+
+export interface ReviewListApiPayload {
+  reviews?: any[];
+  total?: number;
+  page?: number;
+  pages?: number;
+  stats?: ReviewStats;
+}
+
+export interface ReviewListApiResponse {
+  success?: boolean;
+  data?: ReviewListApiPayload;
+  message?: string;
 }
 
 export interface ReviewActionResponse {
   success: boolean;
-  data?: ReviewItem | { canReview?: boolean };
+  data?: ReviewItem;
   message?: string;
 }
