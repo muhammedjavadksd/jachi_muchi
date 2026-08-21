@@ -1,4 +1,4 @@
-export { RatingStars } from "./components/RatingStars/RatingStars";
+export { StarRating } from "./components/StarRating/StarRating";
 export { RatingBreakdown } from "./components/RatingBreakdown/RatingBreakdown";
 export { ReviewCard } from "./components/ReviewCard/ReviewCard";
 export { ReviewForm } from "./components/ReviewForm/ReviewForm";

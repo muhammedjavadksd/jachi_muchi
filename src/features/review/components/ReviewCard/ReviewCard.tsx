@@ -1,16 +1,14 @@
 import { memo } from "react";
-import { RatingStars } from "@/features/review/components/RatingStars/RatingStars";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/features/auth/hooks";
+import { StarRating } from "@/features/review/components/StarRating/StarRating";
+import { VERIFIED_PURCHASE_BADGE_LABEL } from "@/features/review/constants";
 import type { ReviewItem } from "@/features/review/types";
 
 interface ReviewCardProps {
   review: ReviewItem;
-  currentUserId?: string;
-  onEdit: (review: ReviewItem) => void;
-  onDelete: (reviewId: string) => void;
-  isDeleting?: boolean;
-  showDeleteConfirm?: boolean;
-  onConfirmDelete?: () => void;
-  onCancelDelete?: () => void;
+  onEdit?: (review: ReviewItem) => void;
+  onDelete?: (reviewId: string) => void;
 }
 
 function formatDate(dateString: string): string {
@@ -29,54 +27,61 @@ function formatDate(dateString: string): string {
 
 export const ReviewCard = memo(function ReviewCard({
   review,
-  currentUserId,
   onEdit,
   onDelete,
-  isDeleting,
-  showDeleteConfirm,
-  onConfirmDelete,
-  onCancelDelete,
 }: ReviewCardProps): JSX.Element {
-  const isOwner = currentUserId === review.user._id;
+  const { user } = useAuth();
+  const currentUserId = user?.id || (user as { _id?: string })?._id;
+  const isOwner =
+    Boolean(currentUserId) &&
+    (review.user?._id === currentUserId || review.user?.id === currentUserId);
+
+  const reviewerName = review.user?.name?.trim() || "Anonymous User";
+  const avatarInitial = reviewerName.charAt(0).toUpperCase() || "?";
 
   return (
-    <div className="border border-gray-200 rounded-2xl p-5 transition-all hover:shadow-sm">
-      <div className="flex items-start gap-3 mb-3">
-        <div className="w-9 h-9 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold text-sm shrink-0">
-          {review.user.name.charAt(0).toUpperCase()}
+    <div className="border border-gray-200 rounded-2xl p-6 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-md hover:border-gray-300">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold text-sm shrink-0">
+          {avatarInitial}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <p className="font-medium text-gray-900 text-sm truncate">
-              {review.user.name}
-            </p>
-            <div className="flex items-center gap-2 shrink-0">
-              {isOwner && !showDeleteConfirm && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => onEdit(review)}
-                    className="p-1.5 text-gray-400 hover:text-teal-600 transition-colors rounded-lg hover:bg-gray-100"
-                    title="Edit review"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => onDelete(review._id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-gray-100"
-                    title="Delete review"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
+            <div className="flex items-center gap-2 min-w-0">
+              <p className="font-medium text-gray-900 text-sm truncate">
+                {reviewerName}
+              </p>
+              {review.verifiedPurchase && (
+                <span className="inline-flex items-center gap-1 shrink-0 bg-green-50 text-green-700 border border-green-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  {VERIFIED_PURCHASE_BADGE_LABEL}
+                </span>
               )}
             </div>
+            {isOwner && (
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onEdit?.(review)}
+                  title="Edit review"
+                  aria-label="Edit review"
+                  className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40 transition-all rounded-lg"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete?.(review._id)}
+                  title="Delete review"
+                  aria-label="Delete review"
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40 transition-all rounded-lg"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <RatingStars rating={review.rating} size="sm" />
+            <StarRating value={review.rating} readOnly size="sm" />
             <span className="text-xs text-gray-400">
               {formatDate(review.createdAt)}
             </span>
@@ -89,32 +94,8 @@ export const ReviewCard = memo(function ReviewCard({
         </div>
       </div>
 
-      {showDeleteConfirm && (
-        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-sm text-red-700 font-medium mb-2">
-            Delete this review?
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onConfirmDelete}
-              disabled={isDeleting}
-              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </button>
-            <button
-              onClick={onCancelDelete}
-              disabled={isDeleting}
-              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
       <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-line">
-        {review.message}
+        {review.comment}
       </p>
     </div>
   );
