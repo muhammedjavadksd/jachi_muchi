@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5000", // ⬅ replace with YOUR backend port
+        target: "https://jachiandmuchi.com", // ⬅ replace with YOUR backend port
         changeOrigin: true,
       },
     },
