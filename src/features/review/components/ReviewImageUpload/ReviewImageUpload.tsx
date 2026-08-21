@@ -17,13 +17,16 @@ interface ReviewImageUploadProps {
   images: string[];
   onChange: (images: string[]) => void;
   onBusyChange?: (busy: boolean) => void;
+  /** Photo uploads are restricted to verified purchasers; defaults to true */
+  canAddPhotos?: boolean;
 }
 
 export const ReviewImageUpload = memo(function ReviewImageUpload({
   images,
   onChange,
   onBusyChange,
-}: ReviewImageUploadProps): JSX.Element {
+  canAddPhotos = true,
+}: ReviewImageUploadProps): JSX.Element | null {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
@@ -114,6 +117,10 @@ export const ReviewImageUpload = memo(function ReviewImageUpload({
     },
     [handleFiles]
   );
+
+  if (!canAddPhotos) {
+    return null;
+  }
 
   return (
     <div className="mb-4">
