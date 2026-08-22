@@ -4,7 +4,7 @@ import { PromotionHeader, Footer, BottomNav } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NavTab } from "@/app/layouts";
-import { FREE_CHECKUP } from "@/features/home/constants";
+import { FREE_CHECKUP, NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
 
 const HEADER_SPACER_HEIGHT = 110;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
@@ -130,7 +130,7 @@ export function HomePage(): JSX.Element {
         <TopCategories />
 
         <Suspense fallback={<LoadingSkeleton />}>
-          <PremiumEyewear />
+          <PremiumEyewear maxHomepageOrder={NEARBY_SERVICES_ORDER_SPLIT} />
         </Suspense>
 
         <OfferCarousel />
@@ -191,6 +191,10 @@ export function HomePage(): JSX.Element {
 
         <Suspense fallback={<LoadingSkeleton />}>
           <NearbyServices />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton />}>
+          <PremiumEyewear minHomepageOrder={NEARBY_SERVICES_ORDER_SPLIT} />
         </Suspense>
 
         {collections

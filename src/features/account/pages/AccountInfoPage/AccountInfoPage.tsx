@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useEffect } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuth } from "@/features/auth/hooks";
 import type { UserProfile } from "@/features/auth/types";
@@ -11,6 +12,48 @@ const GENDER_OPTIONS = [
   { value: "prefer-not-to-say", label: "Prefer not to say" },
 ];
 
+interface PasswordFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  isVisible: boolean;
+  onToggle: () => void;
+}
+
+const PasswordField = memo(function PasswordField({
+  label,
+  value,
+  onChange,
+  isVisible,
+  onToggle,
+}: PasswordFieldProps): JSX.Element {
+  const EyeIcon = isVisible ? Eye : EyeOff;
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div className="relative">
+        <input
+          type={isVisible ? "text" : "password"}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-full px-4 py-3.5 pr-12 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={isVisible ? "Hide password" : "Show password"}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+        >
+          <EyeIcon className="w-5 h-5" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
+});
+
+PasswordField.displayName = "AccountInfoPage.PasswordField";
+
 export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const { user: authUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -19,6 +62,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [editForm, setEditForm] = useState<Partial<UserProfile>>({});
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [passwordVisibility, setPasswordVisibility] = useState({ current: false, newPassword: false, confirmPassword: false });
   const [passwordError, setPasswordError] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
 
@@ -71,6 +115,15 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
   const handlePasswordChange = useCallback((field: string, value: string) => {
     setPasswordForm(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleTogglePasswordVisibility = useCallback((field: keyof typeof passwordVisibility) => {
+    setPasswordVisibility(prev => ({ ...prev, [field]: !prev[field] }));
+  }, []);
+
+  const handleOpenPasswordModal = useCallback(() => {
+    setShowPasswordModal(true);
+    setPasswordVisibility({ current: false, newPassword: false, confirmPassword: false });
   }, []);
 
   const handlePasswordSubmit = useCallback(async () => {
@@ -261,7 +314,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
               <p className="text-xs text-gray-400 mt-0.5">••••••••••</p>
             </div>
             <button
-              onClick={() => setShowPasswordModal(true)}
+              onClick={handleOpenPasswordModal}
               className="shrink-0 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
             >
               Change Password
@@ -285,18 +338,27 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
                 {passwordError && (
                   <p className="text-sm text-red-500 bg-red-50 px-4 py-2 rounded-xl">{passwordError}</p>
                 )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
-                  <input type="password" value={passwordForm.currentPassword} onChange={e => handlePasswordChange("currentPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                  <input type="password" value={passwordForm.newPassword} onChange={e => handlePasswordChange("newPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-                  <input type="password" value={passwordForm.confirmPassword} onChange={e => handlePasswordChange("confirmPassword", e.target.value)} className="w-full px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                </div>
+                <PasswordField
+                  label="Current Password"
+                  value={passwordForm.currentPassword}
+                  onChange={value => handlePasswordChange("currentPassword", value)}
+                  isVisible={passwordVisibility.current}
+                  onToggle={() => handleTogglePasswordVisibility("current")}
+                />
+                <PasswordField
+                  label="New Password"
+                  value={passwordForm.newPassword}
+                  onChange={value => handlePasswordChange("newPassword", value)}
+                  isVisible={passwordVisibility.newPassword}
+                  onToggle={() => handleTogglePasswordVisibility("newPassword")}
+                />
+                <PasswordField
+                  label="Confirm New Password"
+                  value={passwordForm.confirmPassword}
+                  onChange={value => handlePasswordChange("confirmPassword", value)}
+                  isVisible={passwordVisibility.confirmPassword}
+                  onToggle={() => handleTogglePasswordVisibility("confirmPassword")}
+                />
               </div>
               <div className="flex gap-3 px-6 py-5 border-t bg-gray-50">
                 <button onClick={() => setShowPasswordModal(false)} className="flex-1 py-3.5 bg-gray-100 rounded-2xl font-medium">Cancel</button>

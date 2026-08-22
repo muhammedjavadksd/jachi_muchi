@@ -93,6 +93,8 @@ export const POPULAR_EYEWEAR: PopularEyewearItem[] = [
   { name: "Sunglasses", desc: "UV protection" },
 ];
 
+export const NEARBY_SERVICES_ORDER_SPLIT = 2;
+
 export const NEARBY_SERVICES: NearbyServiceItem[] = [
   {
     title: "Visit Your Nearest Store",
