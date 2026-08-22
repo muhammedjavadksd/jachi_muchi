@@ -169,6 +169,13 @@ export const FREE_CHECKUP: ExclusiveItem[] = [
   },
 ];
 
+export const BE_MORE_BANNER = {
+  image: "/bemore.png",
+  alt: "Jachi & Muchi - Eyewear Beyond Expectation",
+  eyebrow: "Jachi & Muchi",
+  tagline: "Discover eyewear crafted for every story",
+};
+
 export const PREMIUM_EYEWEAR: ExclusiveItem[] = [
   {
     title: "Meller - Made in Spain",

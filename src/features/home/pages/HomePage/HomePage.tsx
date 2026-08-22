@@ -26,6 +26,7 @@ const NearbyServices = lazy(() => import("@/features/home/components/NearbyServi
 const GridSection = lazy(() => import("@/features/home/components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
 const FeaturedGrid = lazy(() => import("@/features/home/components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
 const PremiumEyewear = lazy(() => import("@/features/home/components/PremiumEyewear/PremiumEyewear").then(m => ({ default: m.PremiumEyewear })));
+const BeMoreBanner = lazy(() => import("@/features/home/components/BeMoreBanner/BeMoreBanner").then(m => ({ default: m.BeMoreBanner })));
 
 export function HomePage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -239,6 +240,10 @@ export function HomePage(): JSX.Element {
         <BrandsSection brands={brands} />
 
         <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
+
+        <Suspense fallback={<LoadingSkeleton />}>
+          <BeMoreBanner />
+        </Suspense>
 
         <Suspense fallback={<LoadingSkeleton />}>
           {promoBanners.length > 2 && (
