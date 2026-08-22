@@ -1,12 +1,20 @@
 import { api } from "@/shared/lib/axios";
 import type { CollectionSection } from "@/features/home/types";
 
-export const getCollectionSections = async (): Promise<CollectionSection[]> => {
-  try {
-    const response = await api.get("/collection-sections");
-    return response.data?.data?.sections || [];
-  } catch (error) {
-    console.error("Error fetching collection sections:", error);
-    return [];
+let sectionsRequest: Promise<CollectionSection[]> | null = null;
+
+const fetchCollectionSections = async (): Promise<CollectionSection[]> => {
+  const response = await api.get("/collection-sections");
+  return response.data?.data?.sections || [];
+};
+
+export const getCollectionSections = (): Promise<CollectionSection[]> => {
+  if (!sectionsRequest) {
+    sectionsRequest = fetchCollectionSections().catch((error) => {
+      sectionsRequest = null;
+      console.error("Error fetching collection sections:", error);
+      return [] as CollectionSection[];
+    });
   }
+  return sectionsRequest;
 };

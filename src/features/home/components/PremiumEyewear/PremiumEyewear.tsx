@@ -8,6 +8,7 @@ import type {
   CollectionSection,
   CollectionSectionCard,
   PremiumBrandTile,
+  PremiumEyewearProps,
 } from "@/features/home/types";
 
 const FALLBACK_IMAGE = "https://placehold.co/800x600?text=Eyewear";
@@ -15,11 +16,14 @@ const FALLBACK_IMAGE = "https://placehold.co/800x600?text=Eyewear";
 interface BrandCardProps {
   tile: PremiumBrandTile;
   featured?: boolean;
+  /** "hero" = large left tile layout (≤5 cards), "grid" = uniform equal-size tiles (6+ cards) */
+  variant?: "hero" | "grid";
 }
 
 const BrandCard = memo(function BrandCard({
   tile,
   featured = false,
+  variant = "hero",
 }: BrandCardProps): JSX.Element {
   const handleError = useMemo(
     () => (event: React.SyntheticEvent<HTMLImageElement>) => {
@@ -28,15 +32,17 @@ const BrandCard = memo(function BrandCard({
     []
   );
 
+  const cardClassName =
+    variant === "grid"
+      ? "group relative block overflow-hidden rounded-2xl bg-gray-100 h-52 sm:h-60 lg:h-72"
+      : `group relative block overflow-hidden rounded-2xl bg-gray-100 ${
+          featured
+            ? "h-72 sm:h-96 md:h-auto md:min-h-[460px] md:row-span-2"
+            : "h-40 sm:h-48 md:h-auto"
+        }`;
+
   return (
-    <Link
-      to={tile.link}
-      className={`group relative block overflow-hidden rounded-2xl bg-gray-100 ${
-        featured
-          ? "h-72 sm:h-96 md:h-auto md:min-h-[460px] md:row-span-2"
-          : "h-40 sm:h-48 md:h-auto"
-      }`}
-    >
+    <Link to={tile.link} className={cardClassName}>
       <img
         src={getImageUrl(tile.image) || FALLBACK_IMAGE}
         alt={tile.name}
@@ -97,19 +103,42 @@ const SectionBlock = memo(function SectionBlock({
         <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">
           {section.name}
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4 md:gap-5">
-          <BrandCard tile={featured} featured />
-          {rest.map((tile) => (
-            <BrandCard key={tile.link} tile={tile} />
-          ))}
-        </div>
+        {tiles.length >= 6 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {tiles.map((tile) => (
+              <BrandCard key={tile.link} tile={tile} variant="grid" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-4 md:gap-5">
+            <BrandCard tile={featured} featured />
+            {rest.map((tile) => (
+              <BrandCard key={tile.link} tile={tile} />
+            ))}
+          </div>
+        )}
       </Container>
     </section>
   );
 });
 
-export const PremiumEyewear = memo(function PremiumEyewear(): JSX.Element | null {
+export const PremiumEyewear = memo(function PremiumEyewear({
+  minHomepageOrder,
+  maxHomepageOrder,
+}: PremiumEyewearProps): JSX.Element | null {
   const { sections, isLoading } = useCollectionSections();
+
+  const visibleSections = useMemo(
+    () =>
+      sections.filter(
+        (section) =>
+          (minHomepageOrder === undefined ||
+            section.homepageOrder >= minHomepageOrder) &&
+          (maxHomepageOrder === undefined ||
+            section.homepageOrder < maxHomepageOrder)
+      ),
+    [sections, minHomepageOrder, maxHomepageOrder]
+  );
 
   if (isLoading) {
     return (
@@ -130,13 +159,13 @@ export const PremiumEyewear = memo(function PremiumEyewear(): JSX.Element | null
     );
   }
 
-  if (sections.length === 0) {
+  if (visibleSections.length === 0) {
     return null;
   }
 
   return (
     <>
-      {sections.map((section) => (
+      {visibleSections.map((section) => (
         <SectionBlock key={section._id} section={section} />
       ))}
     </>

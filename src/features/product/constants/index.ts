@@ -12,7 +12,8 @@ export const SEARCH_CATEGORIES: CategoryNavItem[] = [
   { id: "kids-glasses", label: "KIDS GLASSES", link: "/search/kids-glasses" },
   { id: "contact-lenses", label: "CONTACT LENSES", link: "/search/contact-lenses" },
   { id: "sunglasses", label: "SUNGLASSES", link: "/search/sunglasses" },
-  { id: "collections", label: "COLLECTIONS", link: "/collections" },
+  // Hidden from nav for now – restore when needed:
+  /* { id: "collections", label: "COLLECTIONS", link: "/collections" }, */
   { id: "home-eye-test", label: "HOME EYE-TEST", link: "/online-eye-test" },
   { id: "store-locator", label: "STORE LOCATOR", link: "/stores" },
 ];

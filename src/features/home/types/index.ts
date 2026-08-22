@@ -107,6 +107,13 @@ export interface FeaturedGridProps {
   items: ExclusiveItem[];
 }
 
+export interface PremiumEyewearProps {
+  /** Render only sections with homepageOrder >= this value */
+  minHomepageOrder?: number;
+  /** Render only sections with homepageOrder < this value */
+  maxHomepageOrder?: number;
+}
+
 export interface CategoryNavItem {
   id: string;
   label: string;
