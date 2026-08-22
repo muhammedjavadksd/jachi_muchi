@@ -87,8 +87,8 @@ export function useProductDetail() {
   );
 
   const selectedVariant = useMemo(() =>
-    variants.find((v: any) => v.color === dynamicColors[selectedColorIndex]?.name) || variants[0],
-    [variants, dynamicColors, selectedColorIndex]
+    variants[selectedColorIndex] || null,
+    [variants, selectedColorIndex]
   );
 
   const dynamicSpecs = useMemo(() => [
@@ -103,12 +103,13 @@ export function useProductDetail() {
     const baseImages = product?.images?.length
       ? product.images.map((img: string) => getImageUrl(img))
       : ["/placeholder.png"];
-    const variantImage = selectedVariant?.image
-      ? getImageUrl(selectedVariant.image)
-      : null;
-    const images = variantImage && !baseImages.includes(variantImage)
-      ? [variantImage, ...baseImages]
-      : baseImages;
+    const variantImages = selectedVariant?.images
+      ? selectedVariant.images.filter(Boolean).map((img: string) => getImageUrl(img))
+      : [];
+    /** Lenskart-style gallery: the selected variant fully replaces the image
+     *  set (main image + thumbnail strip). product.images is only a safety
+     *  net for variants that ship with an empty images array. */
+    const images = variantImages.length > 0 ? variantImages : baseImages;
     // [HIDDEN] 360° image transformation — uncomment to restore
     // const rotation360Images = product?.rotation360Images?.length
     //   ? product.rotation360Images.map((img: string) => getImageUrl(img))
@@ -130,7 +131,10 @@ export function useProductDetail() {
     };
   }, [product, dynamicColors, dynamicSpecs, selectedVariant]);
 
-  const handleColorClick = useCallback((index: number) => setSelectedColorIndex(index), []);
+  const handleColorClick = useCallback((index: number) => {
+    setSelectedColorIndex(index);
+    setCurrentImageIndex(0);
+  }, []);
 
   const goToNext = useCallback(() => setCurrentImageIndex(p => (p + 1) % safeProduct.images.length), [safeProduct.images.length]);
   const goToPrev = useCallback(() => setCurrentImageIndex(p => (p - 1 + safeProduct.images.length) % safeProduct.images.length), [safeProduct.images.length]);

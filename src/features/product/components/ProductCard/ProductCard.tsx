@@ -133,11 +133,12 @@ export const ProductCard = memo(function ProductCard({
             {colors.slice(0, 4).map((color, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={(e) => handleColorClick(e, index)}
-                className={`w-4 h-4 border-2 transition-all ${
+                className={`w-4 h-4 transition-all ${
                   selectedColorIndex === index
-                    ? "border-gray-800 scale-110"
-                    : "border-gray-200 hover:border-gray-400"
+                    ? "ring-2 ring-offset-1 ring-teal-600 scale-110"
+                    : "ring-1 ring-gray-200 hover:ring-gray-400"
                 }`}
                 style={{
                   backgroundColor: color.colorCode,

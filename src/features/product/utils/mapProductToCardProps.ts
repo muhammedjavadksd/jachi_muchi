@@ -33,7 +33,9 @@ export function mapProductToCardProps(
   const colors = (product.variants || []).map((variant: any) => ({
     colorCode:
       COLOR_SWATCHES[variant.color?.toLowerCase()] || variant.image || "#888888",
-    image: getImageUrl(variant.image || product.images?.[0]),
+    /** Prefer the variant's own first gallery image; fall back to its
+     *  single image field, then to the product's default image. */
+    image: getImageUrl(variant.images?.[0] || variant.image || product.images?.[0]),
     name: variant.color,
   }));
 

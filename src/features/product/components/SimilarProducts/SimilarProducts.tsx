@@ -40,7 +40,7 @@ export const SimilarProducts = memo(function SimilarProducts({
         const rawVariants = p.variants || p.colors || [];
         const colors: ColorVariant[] = rawVariants.map((v: any) => ({
           colorCode: colorMap[v.color?.toLowerCase()] || v.colorCode || v.hex || v.image || "#888888",
-          image: getImageUrl(v.image || p.images?.[0]),
+          image: getImageUrl(v.images?.[0] || v.image || p.images?.[0]),
         }));
 
         const mrp = p.mrp || p.originalPrice || p.compareAtPrice || 0;
