@@ -103,13 +103,6 @@ export const ProductCard = memo(function ProductCard({
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
-        {showViewButton && (
-          <span className="absolute bottom-3 inset-x-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200 z-10 flex items-center justify-center pointer-events-none">
-            <span className="w-full py-2 rounded-lg bg-white/95 text-gray-900 text-xs font-semibold shadow-md border border-gray-100 text-center">
-              View
-            </span>
-          </span>
-        )}
       </div>
       <div className="p-4 flex-1 flex flex-col">
         {!!rating && (
@@ -157,6 +150,13 @@ export const ProductCard = memo(function ProductCard({
               <span className="text-xs text-gray-500">+{colors.length - 4}</span>
             )}
           </div>
+        )}
+        {showViewButton && (
+          <span className="mt-auto pt-3 flex">
+            <span className="w-full py-2 rounded-lg bg-teal-700 text-white text-xs font-semibold text-center tracking-wide">
+              View
+            </span>
+          </span>
         )}
       </div>
     </a>

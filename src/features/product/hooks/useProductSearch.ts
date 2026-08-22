@@ -16,12 +16,14 @@ function filtersToParams(
   brandFromQuery?: string | null,
   searchQuery?: string | null,
   sortBy?: string,
+  cardId?: string | null,
 ): Record<string, any> {
   const params: Record<string, any> = { category };
   if (searchQuery) params.q = searchQuery;
   if (collectionSlug) params.collection = collectionSlug;
   if (brandFromQuery) params.brand = brandFromQuery;
   if (shape) params.shape = shape;
+  if (cardId) params.cardId = cardId;
   if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
   if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
   if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
@@ -62,6 +64,7 @@ export function useProductSearch() {
   const collectionSlug = searchParams.get("collection");
   const brandFromQuery = searchParams.get("brand");
   const searchQuery = searchParams.get("q");
+  const cardId = searchParams.get("cardId");
 
   useEffect(() => {
     getBrands().then((brands) => {
@@ -100,7 +103,7 @@ export function useProductSearch() {
 
   useEffect(() => {
     setFetching(true);
-    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy);
+    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId);
     getProducts(params)
       .then((res) => {
         const extracted = res.data?.data?.products || res.data?.products || res?.products || [];
@@ -113,7 +116,7 @@ export function useProductSearch() {
         setLoading(false);
         setFetching(false);
       });
-  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId]);
 
   const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);

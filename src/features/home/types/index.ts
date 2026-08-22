@@ -113,6 +113,30 @@ export interface CategoryNavItem {
   link: string;
 }
 
+export interface PremiumBrandTile {
+  name: string;
+  tagline: string;
+  image: string;
+  link: string;
+}
+
+export interface CollectionSectionCard {
+  _id: string;
+  title: string;
+  tagline: string;
+  thumbnail: string;
+  link: string;
+  order: number;
+}
+
+export interface CollectionSection {
+  _id: string;
+  name: string;
+  slug: string;
+  homepageOrder: number;
+  cards: CollectionSectionCard[];
+}
+
 export interface CategoryNavProps {
   categories: CategoryNavItem[];
   activeCategory?: string;

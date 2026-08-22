@@ -25,6 +25,7 @@ const ShapeSection = lazy(() => import("@/features/home/components/ShapeSection/
 const NearbyServices = lazy(() => import("@/features/home/components/NearbyServices/NearbyServices").then(m => ({ default: m.NearbyServices })));
 const GridSection = lazy(() => import("@/features/home/components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
 const FeaturedGrid = lazy(() => import("@/features/home/components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
+const PremiumEyewear = lazy(() => import("@/features/home/components/PremiumEyewear/PremiumEyewear").then(m => ({ default: m.PremiumEyewear })));
 
 export function HomePage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<NavTab>("home");
@@ -128,6 +129,10 @@ export function HomePage(): JSX.Element {
 
         <TopCategories />
 
+        <Suspense fallback={<LoadingSkeleton />}>
+          <PremiumEyewear />
+        </Suspense>
+
         <OfferCarousel />
 
         {categories.filter((c) => c.isActive && c.shapes?.length > 0).map((category) => (
@@ -229,9 +234,7 @@ export function HomePage(): JSX.Element {
 
         <BrandsSection brands={brands} />
 
-        <div className="px-4 mt-8">
-          <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
-        </div>
+        <GridSection title="Get a FREE Eye Check Up" columns={3} items={FREE_CHECKUP} />
 
         <Suspense fallback={<LoadingSkeleton />}>
           {promoBanners.length > 2 && (
