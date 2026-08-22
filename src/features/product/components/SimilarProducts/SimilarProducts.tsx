@@ -1,6 +1,6 @@
 import { memo, useMemo, useEffect, useState } from "react";
 import { ProductCard } from "@/features/product/components/ProductCard/ProductCard";
-import { Grid } from "@/shared/components/Grid/Grid";
+import { AutoScrollCarousel } from "@/shared/components/AutoScrollCarousel/AutoScrollCarousel";
 import { getSimilarProducts } from "@/features/product/api/productApi";
 import { getImageUrl } from "@/shared/utils/image";
 import type { ColorVariant } from "@/shared/types";
@@ -36,7 +36,7 @@ export const SimilarProducts = memo(function SimilarProducts({
 
     return apiProducts
       .filter((p: any) => p.images?.some((img: string) => img && img.trim() !== ""))
-      .slice(0, 4).map((p: any) => {
+      .slice(0, 12).map((p: any) => {
         const rawVariants = p.variants || p.colors || [];
         const colors: ColorVariant[] = rawVariants.map((v: any) => ({
           colorCode: colorMap[v.color?.toLowerCase()] || v.colorCode || v.hex || v.image || "#888888",
@@ -48,6 +48,7 @@ export const SimilarProducts = memo(function SimilarProducts({
         const discountPct = mrp > productPrice ? Math.round(((mrp - productPrice) / mrp) * 100) : 0;
 
         return {
+          id: p._id,
           images: p.images?.length ? p.images.map((img: string) => getImageUrl(img)) : ["https://placehold.co/400x300?text=Product"],
           name: p.name || "",
           description: p.description || undefined,
@@ -67,10 +68,11 @@ export const SimilarProducts = memo(function SimilarProducts({
   return (
     <section id="similar">
       <h2 className="text-xl font-bold text-gray-900 mb-5">Similar Products</h2>
-      <Grid columns={4} gap={6}>
-        {items.map((item, i) => (
+      <AutoScrollCarousel
+        items={items}
+        keyExtractor={(item) => item.id}
+        renderCard={(item) => (
           <ProductCard
-            key={item.link || i}
             images={item.images}
             name={item.name}
             description={item.description}
@@ -83,8 +85,8 @@ export const SimilarProducts = memo(function SimilarProducts({
             link={item.link}
             showViewButton
           />
-        ))}
-      </Grid>
+        )}
+      />
     </section>
   );
 });

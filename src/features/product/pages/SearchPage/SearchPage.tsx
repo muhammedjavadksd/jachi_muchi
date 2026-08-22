@@ -6,7 +6,7 @@ import { Grid } from "@/shared/components/Grid/Grid";
 import { FilterSidebar } from "@/features/product/components/FilterSidebar/FilterSidebar";
 import { ProductCard } from "@/features/product/components/ProductCard/ProductCard";
 import { X, SlidersHorizontal } from "lucide-react";
-import { getImageUrl } from "@/shared/utils/image";
+import { mapProductToCardProps } from "@/features/product/utils/mapProductToCardProps";
 import { useProductSearch } from "@/features/product/hooks";
 import type { OfferBadge } from "@/features/offer/types";
 
@@ -32,45 +32,11 @@ const ProductGrid = memo(function ProductGrid({
   console.log("ProductGrid rendered");
 
   const productCards = useMemo(() =>
-    products.map((product: any, index) => {
-      const colorMap: Record<string, string> = {
-          black: "#000000", blue: "#1e40af", pink: "#ec4899", red: "#dc2626",
-          green: "#16a34a", gold: "#d4a017", silver: "#c0c0c0", grey: "#6b7280",
-          brown: "#8b4513", transparent: "#f0f0f0", purple: "#7c3aed",
-          "rose-gold": "#b76e79", gunmetal: "#2c3539", white: "#ffffff",
-        };
-      const colors = (product.variants || []).map((v: any) => ({
-        colorCode: colorMap[v.color?.toLowerCase()] || v.image || "#888888",
-        image: getImageUrl(v.image || product.images?.[0]),
-        name: v.color,
-      }));
-
-      const images =
-        product.images && product.images.length > 0
-          ? product.images.map((img: string) => getImageUrl(img))
-          : ["/placeholder.png"];
-
-      const offerBadge = getOfferBadge(product._id, product.price);
-
-      return (
-        <div key={product._id || index} className="h-full transition-opacity duration-300 ease-in-out">
-          <ProductCard
-            images={images}
-            name={product.name}
-            description={product.description || ""}
-            price={product.price}
-            originalPrice={product.mrp > product.price ? product.mrp : undefined}
-            discount={(() => { const d = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0; return d > 0 ? d : undefined; })()}
-            rating={product.rating || undefined}
-            reviews={product.reviewCount || undefined}
-            colors={colors.length > 0 ? colors : undefined}
-            link={`/product/${product._id}`}
-            offerLabel={offerBadge?.label}
-            offerBadgeColor={offerBadge?.color}
-          />
-        </div>
-      );
-    }),
+    products.map((product: any, index) => (
+      <div key={product._id || index} className="h-full transition-opacity duration-300 ease-in-out">
+        <ProductCard {...mapProductToCardProps(product, getOfferBadge)} />
+      </div>
+    )),
   [products, getOfferBadge]);
 
   if (loading) {

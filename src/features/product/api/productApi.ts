@@ -35,6 +35,7 @@ export const getProducts = async (filters?: {
   frameType?: string;
   color?: string;
   collection?: string;
+  cardId?: string;
   q?: string;
   sortBy?: string;
   limit?: number;      // ← added
@@ -50,6 +51,7 @@ export const getProducts = async (filters?: {
   if (filters?.frameType) params.frameType = filters.frameType;
   if (filters?.color) params.color = filters.color;
   if (filters?.collection) params.collection = filters.collection;
+  if (filters?.cardId) params.cardId = filters.cardId;
   if (filters?.sortBy) params.sortBy = filters.sortBy;
 
   // ↓ added: always fetch everything by default

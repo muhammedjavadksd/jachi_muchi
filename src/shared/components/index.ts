@@ -1,4 +1,5 @@
 export { Button } from "@/shared/components/Button";
+export { AutoScrollCarousel } from "@/shared/components/AutoScrollCarousel/AutoScrollCarousel";
 export { Container } from "@/shared/components/Container/Container";
 export { Grid } from "@/shared/components/Grid/Grid";
 export { ImageCard } from "@/shared/components/ImageCard/ImageCard";

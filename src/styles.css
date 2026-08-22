@@ -111,3 +111,49 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Auto-scrolling marquee carousel */
+@keyframes auto-scroll-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.auto-scroll-viewport {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.auto-scroll-track {
+  display: flex;
+  width: max-content;
+  animation: auto-scroll-left var(--auto-scroll-duration, 30s) linear infinite;
+}
+
+.auto-scroll-viewport:hover .auto-scroll-track,
+.auto-scroll-viewport:focus-within .auto-scroll-track,
+.auto-scroll-viewport.paused .auto-scroll-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auto-scroll-track {
+    animation: none;
+  }
+}
