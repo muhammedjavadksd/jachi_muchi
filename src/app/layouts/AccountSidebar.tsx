@@ -8,7 +8,6 @@ import {
   MapPin,
   FileText,
   Home,
-  LogOut,
   ChevronDown,
   Menu,
   X,
@@ -16,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks";
+import { LogoutButton } from "@/features/auth";
 
 const SHOW_PRESCRIPTIONS = import.meta.env.VITE_FEATURE_MY_PRESCRIPTIONS === "true";
 const SHOW_NOTIFICATIONS = import.meta.env.VITE_FEATURE_MANAGE_NOTIFICATIONS === "true";
@@ -48,20 +48,11 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-interface AccountSidebarProps {
-  onLogout?: () => void;
-}
-
-export const AccountSidebar = memo(function AccountSidebar({ onLogout }: AccountSidebarProps) {
+export const AccountSidebar = memo(function AccountSidebar() {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  const handleLogout = useCallback(() => {
-    if (onLogout) onLogout();
-    logout();
-  }, [logout, onLogout]);
 
   const isActive = useCallback((link: string) => location.pathname === link, [location.pathname]);
 
@@ -146,13 +137,7 @@ export const AccountSidebar = memo(function AccountSidebar({ onLogout }: Account
       </nav>
 
       <div className="p-2 border-t border-gray-100">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 group"
-        >
-          <LogOut size={18} className="shrink-0" />
-          <span>Logout</span>
-        </button>
+        <LogoutButton className="flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors duration-200 group" iconSize={18} />
       </div>
     </div>
   );

@@ -56,22 +56,36 @@ export interface CreateOrderPayload {
   paymentMethod?: string;
 }
 
-export interface CreateSkipCashPaymentPayload {
-  orderId: string;
-  amount: number;
-  customerName: string;
-  email: string;
-  phone: string;
+export type SkipCashSessionStatus = "INITIATED" | "COMPLETED" | "FAILED" | "EXPIRED";
+
+export interface InitiateSkipCashPaymentPayload {
+  items: CreateOrderItem[];
+  addressId: string;
+  totalAmount: number;
+  couponCode?: string;
 }
 
-export interface CreateSkipCashPaymentResponse {
+export interface InitiateSkipCashPaymentResponse {
   success: boolean;
   data?: {
+    ref: string;
     paymentUrl: string;
-    transactionId?: string;
-    paymentId?: string;
+    amount?: number;
+    currency?: string;
+    expiresAt?: string;
   };
   message?: string;
+}
+
+export interface SkipCashSessionStatusResponse {
+  success?: boolean;
+  message?: string;
+  data?: {
+    status: SkipCashSessionStatus;
+    orderId?: string;
+  };
+  status?: SkipCashSessionStatus;
+  orderId?: string;
 }
 
 export interface VerifyPaymentResponse {

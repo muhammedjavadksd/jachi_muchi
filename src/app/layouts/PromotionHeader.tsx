@@ -4,6 +4,7 @@ import { Container } from "@/shared/components/Container/Container";
 import { HeartIcon, CartIcon } from "@/shared/components/Icons";
 import { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
+import { LogoutButton } from "@/features/auth";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { BRAND_LOGO_URL } from "@/shared/constants";
@@ -17,7 +18,7 @@ import { SEARCH_CATEGORIES } from "@/features/product/constants";
 export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -30,12 +31,6 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
   const handleDropdownLeave = () => {
     closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setShowUserDropdown(false);
-    navigate("/");
   };
 
   const location = useLocation();
@@ -116,10 +111,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
                       </Link>
                     </div>
                     <div className="border-t border-gray-100">
-                      <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m-8.25 4H3m12-8.25a4.5 4.5 0 010 8.25H8.25a4.5 4.5 0 010-8.25H15" /></svg>
-                        Logout
-                      </button>
+                      <LogoutButton className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50" iconSize={16} />
                     </div>
                   </div>
                 )}

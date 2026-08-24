@@ -1,12 +1,14 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LOGOUT_REDIRECT_PATH, LOGOUT_REDIRECT_DELAY_MS } from "@/shared/constants";
 import type { User } from "@/features/auth/types";
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: User | null;
   login: (accessToken: string, refreshToken: string, userData: User) => void;
-  logout: () => void;
+  logout: () => Promise<boolean>;
+  isLoggingOut: boolean;
   isLoading: boolean;
 }
 
@@ -36,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isLoggingOutRef = useRef(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,16 +94,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }, []);
 
-  // Explicit logout (user clicks "Sign Out") — clears everything and redirects
-  const logout = useCallback(() => {
-    setUser(null);
-    setIsAuthenticated(false);
-    clearAllSessionStorage();
-    navigate("/?login=true", { replace: true });
+  // Explicit logout (user clicks "Sign Out"). Tokens are not tracked
+  // server-side, so this is purely client-side: reset auth state and wipe all
+  // session storage immediately, then keep the "Logging out..." state visible
+  // for LOGOUT_REDIRECT_DELAY_MS before redirecting to the homepage
+  // (?login=true opens the login modal there). Resolves `true` once the flow
+  // completes, `false` when a repeat click is ignored while in progress.
+  // Safe against unmounts: this provider lives at the app root, so all
+  // state updates after the delay happen on a mounted component.
+  const logout = useCallback(async (): Promise<boolean> => {
+    if (isLoggingOutRef.current) return false;
+    isLoggingOutRef.current = true;
+    setIsLoggingOut(true);
+    try {
+      setUser(null);
+      setIsAuthenticated(false);
+      clearAllSessionStorage();
+      await new Promise((resolve) => setTimeout(resolve, LOGOUT_REDIRECT_DELAY_MS));
+      navigate(LOGOUT_REDIRECT_PATH, { replace: true });
+      return true;
+    } finally {
+      isLoggingOutRef.current = false;
+      setIsLoggingOut(false);
+    }
   }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoggingOut, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

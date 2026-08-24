@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   HeartIcon,
   CartIcon,
@@ -10,6 +10,7 @@ import { SearchAutocomplete } from "@/features/product/components/SearchAutocomp
 import { BRAND_LOGO_URL, SUPPORT_PHONE } from "@/shared/constants";
 import { NAV_CATEGORIES } from "@/features/account/constants";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
+import { LogoutButton } from "@/features/auth";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import type { HeaderProps } from "@/shared/types";
@@ -92,9 +93,8 @@ export const HeaderHome2 = memo(function HeaderHome2({
 }: HeaderProps): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { itemCount: cartCount } = useCart();
-  const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -105,12 +105,6 @@ export const HeaderHome2 = memo(function HeaderHome2({
 
   const handleDropdownLeave = () => {
     closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setShowUserDropdown(false);
-    navigate("/");
   };
 
   const navLinks = useMemo(
@@ -231,10 +225,7 @@ export const HeaderHome2 = memo(function HeaderHome2({
                       </Link>
                     </div>
                     <div className="border-t border-gray-100">
-                      <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m-8.25 4H3m12-8.25a4.5 4.5 0 010 8.25H8.25a4.5 4.5 0 010-8.25H15" /></svg>
-                        Logout
-                      </button>
+                      <LogoutButton className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50" iconSize={16} />
                     </div>
                   </div>
                 )}

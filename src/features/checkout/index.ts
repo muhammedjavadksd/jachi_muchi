@@ -5,6 +5,7 @@ export { OrderFailurePage } from "./pages/OrderFailurePage/OrderFailurePage";
 export { PaymentSuccessPage } from "./pages/PaymentSuccessPage/PaymentSuccessPage";
 export { PaymentFailedPage } from "./pages/PaymentFailedPage/PaymentFailedPage";
 export { PaymentPendingPage } from "./pages/PaymentPendingPage/PaymentPendingPage";
+export { PaymentReturnPage } from "./pages/PaymentReturnPage/PaymentReturnPage";
 export { PaymentVerifyPage } from "./pages/PaymentVerifyPage/PaymentVerifyPage";
 
 // Components

@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
 import toast from "react-hot-toast";
+import { ORDER_CANCELLED_REFUND_NOTE } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
 import { formatPrice } from "@/shared/utils/format";
 import { generateInvoicePdf } from "@/shared/utils/invoice";
@@ -299,7 +300,9 @@ const OrderDrawer = memo(function OrderDrawer({
       setCancelLoading(true);
       const res = await cancelOrder(order._id!);
       if (!res.success) throw new Error("Cancel failed");
-      toast.success("Order cancelled successfully");
+      // No success toast — the order card's "Cancelled" badge updates
+      // immediately via onCancelSuccess, and cancelled online orders show
+      // the refund note inline in the card.
       if (onCancelSuccess && order._id) {
         onCancelSuccess(order._id);
       }
@@ -976,6 +979,17 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                   </div>
                 </div>
               ) : null}
+
+              {/* Cancelled online/SkipCash orders: refund note shown inline in
+                  the card (no toast). COD cancellations keep the existing
+                  card display only. */}
+              {order.status === "cancelled" && order.paymentMethod !== "COD" && order.paymentStatus === "paid" && (
+                <div className="px-3 sm:px-4 lg:px-5 pb-3 sm:pb-4">
+                  <div className="border-t border-gray-200 pt-3">
+                    <span className="text-xs font-medium text-gray-600">{ORDER_CANCELLED_REFUND_NOTE}</span>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

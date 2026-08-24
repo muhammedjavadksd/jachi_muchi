@@ -14,6 +14,7 @@ const OrderFailurePage = lazy(() => import("@/features/checkout").then(m => ({ d
 const PaymentSuccessPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentSuccessPage })));
 const PaymentFailedPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentFailedPage })));
 const PaymentPendingPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentPendingPage })));
+const PaymentReturnPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentReturnPage })));
 const AccountPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountPage })));
 // const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage }))); // [HIDDEN] My 3D Model — uncomment to restore
 const AccountInfoPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountInfoPage })));
@@ -66,6 +67,10 @@ export const routes: RouteObject[] = [
   { path: "/payment/success", element: <PaymentSuccessPage /> },
   { path: "/payment/failed", element: <PaymentFailedPage /> },
   { path: "/payment/pending", element: <PaymentPendingPage /> },
+  { path: "/payment-return", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
+  // SkipCash gateway return URL (/payment-success?ref=...) — same handler as
+  // /payment-return: resolves the order via ref, then shows OrderSuccessPage
+  { path: "/payment-success", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
   {
     element: <ProtectedRoute><AccountLayout /></ProtectedRoute>,
     children: [

@@ -4,6 +4,7 @@ import { HeartIcon, CartIcon, UserIcon } from "@/shared/components/Icons";
 import { SearchAutocomplete } from "@/features/product/components/SearchAutocomplete/SearchAutocomplete";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
+import { LogoutButton } from "@/features/auth";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import type { MainNavBarProps } from "@/shared/types";
@@ -15,7 +16,7 @@ import type { MainNavBarProps } from "@/shared/types";
 export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -38,12 +39,6 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
     backgroundColor: "#374151",
     color: "#ffffff",
   }), []);
-
-  const handleLogout = () => {
-    logout();
-    setShowUserDropdown(false);
-    navigate("/");
-  };
 
   return (
     <header className="relative w-full bg-[#0a1f44]">
@@ -101,10 +96,7 @@ export const MainNavBar = memo(function MainNavBar(_props: MainNavBarProps): JSX
                     </Link>
                   </div>
                   <div className="border-t border-gray-100">
-                    <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m-8.25 4H3m12-8.25a4.5 4.5 0 010 8.25H8.25a4.5 4.5 0 010-8.25H15" /></svg>
-                      <span>Logout</span>
-                    </button>
+                    <LogoutButton className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50" />
                   </div>
                 </div>
               )}

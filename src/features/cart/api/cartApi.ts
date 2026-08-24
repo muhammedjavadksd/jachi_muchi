@@ -49,6 +49,71 @@ export interface BackendCartResponse {
   totalSavings: number;
 }
 
+const BOGO_FREE_MAX_QTY = 1;
+
+/**
+ * Enforce the flat "Buy 1 Get 1" rule on backend cart responses:
+ * a cross-product free item (isFreeOfferItem) is a one-time addition tied to
+ * the presence of its paid trigger product — never to its quantity. The
+ * backend currently scales the free row 1:1 with the paid quantity, so this
+ * clamps it back to 1, drops orphans whose trigger was removed, and corrects
+ * the bill's offer savings / totals for the excess discount.
+ */
+function enforceFlatBogoFreeItems(cart: BackendCartResponse): BackendCartResponse {
+  if (!cart?.items?.length) return cart;
+
+  const paidGroups = new Set<string>();
+  for (const item of cart.items) {
+    if (!item.isFreeOfferItem && item.bogoGroupId) paidGroups.add(item.bogoGroupId);
+  }
+
+  let excessSavings = 0;
+  const items: BackendCartItem[] = [];
+  for (const item of cart.items) {
+    if (item.isFreeOfferItem && item.bogoGroupId && !paidGroups.has(item.bogoGroupId)) {
+      continue;
+    }
+    if (!item.isFreeOfferItem) {
+      items.push(item);
+      continue;
+    }
+    const qty = Math.max(1, Math.round(Number(item.quantity) || 1));
+    const clampedQty = Math.min(qty, BOGO_FREE_MAX_QTY);
+    const clampedSetCount =
+      item.setCount != null ? Math.min(item.setCount, BOGO_FREE_MAX_QTY) : undefined;
+    if (qty > clampedQty) {
+      const unitPrice = Number(item.discountedPrice ?? item.product?.price ?? 0) || 0;
+      excessSavings += unitPrice * (qty - clampedQty);
+    }
+    items.push({ ...item, quantity: clampedQty, setCount: clampedSetCount });
+  }
+
+  if (excessSavings <= 0) {
+    return items.length === cart.items.length ? cart : { ...cart, items };
+  }
+
+  const bill = cart.bill ? { ...cart.bill } : cart.bill;
+  const subtractFromBill = (key: string) => {
+    const value = Number(bill[key]);
+    if (Number.isFinite(value)) bill[key] = Math.max(0, value - excessSavings);
+  };
+  const addToBill = (key: string) => {
+    const value = Number(bill[key]);
+    if (Number.isFinite(value)) bill[key] = value + excessSavings;
+  };
+  if (bill && typeof bill === "object") {
+    subtractFromBill("offerSavings");
+    subtractFromBill("offer_discount");
+    addToBill("totalPayable");
+    addToBill("total");
+  }
+  const total = Number.isFinite(Number(cart.total))
+    ? Number(cart.total) + excessSavings
+    : cart.total;
+
+  return { ...cart, items, bill, total };
+}
+
 /** Map a backend cart item to the frontend CartItem shape */
 export function mapBackendItem(item: BackendCartItem) {
   return {
@@ -77,7 +142,7 @@ export function mapBackendItem(item: BackendCartItem) {
 
 export async function fetchCart(): Promise<BackendCartResponse> {
   const res = await api.get("/cart");
-  return res.data.data;
+  return enforceFlatBogoFreeItems(res.data.data);
 }
 
 export async function addToCartApi(payload: {
@@ -91,7 +156,7 @@ export async function addToCartApi(payload: {
   isFree?: boolean;
 }): Promise<BackendCartResponse> {
   const res = await api.post("/cart/add", payload);
-  return res.data.data;
+  return enforceFlatBogoFreeItems(res.data.data);
 }
 
 export async function updateCartItemQuantity(
@@ -99,12 +164,12 @@ export async function updateCartItemQuantity(
   action: "increment" | "decrement"
 ): Promise<BackendCartResponse> {
   const res = await api.patch(`/cart/items/${cartItemId}`, { action });
-  return res.data.data;
+  return enforceFlatBogoFreeItems(res.data.data);
 }
 
 export async function removeCartItemApi(cartItemId: string): Promise<BackendCartResponse> {
   const res = await api.delete(`/cart/item/${cartItemId}`);
-  return res.data.data;
+  return enforceFlatBogoFreeItems(res.data.data);
 }
 
 export async function clearCartApi(): Promise<void> {
