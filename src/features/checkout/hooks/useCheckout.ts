@@ -7,7 +7,8 @@ import { applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "@
 import { fetchCart, mapBackendItem, clearCartApi } from "@/features/cart/api/cartApi";
 import type { UserCoupon } from "@/features/coupon/types";
 import { createOrder } from "@/features/checkout/api/orderApi";
-import { createSkipCashPayment } from "@/features/checkout/api/paymentApi";
+import { initiateSkipCashPayment } from "@/features/checkout/api/paymentApi";
+import { PAYMENT_SESSION_REF_KEY } from "@/features/checkout/constants";
 import { getOffers, getComboCartSavings } from "@/shared/services/offerEngine";
 import type { Offer } from "@/features/offer/types";
 
@@ -109,6 +110,7 @@ export interface UseCheckoutReturn {
   isApplyingCoupon: boolean;
   copiedCoupon: string | null;
   orderLoading: boolean;
+  submitError: string;
   paymentMethod: string;
   subtotal: number;
   totalSellingPrice: number;
@@ -142,6 +144,7 @@ export function useCheckout(): UseCheckoutReturn {
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [orderLoading, setOrderLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponSavings, setCouponSavings] = useState(0);
@@ -311,11 +314,13 @@ export function useCheckout(): UseCheckoutReturn {
   }, []);
 
   const handlePlaceOrder = useCallback(async () => {
+    if (orderLoading) return;
     const selectedAddress = addresses.find(a => a.isSelected);
     if (!selectedAddress) { alert("Please select address"); return; }
     if (cart.length === 0) { alert("Your cart is empty"); return; }
     if (!normalizedBill) { alert("Bill is still loading. Please wait a moment and try again."); return; }
     setOrderLoading(true);
+    setSubmitError("");
 
     let latestCart = cart;
     let latestBill = normalizedBill;
@@ -334,8 +339,7 @@ export function useCheckout(): UseCheckoutReturn {
 
     if (!Number.isFinite(latestTotalPayable) || latestTotalPayable <= 0) {
       console.error("[Place Order] Aborting: totalAmount is not valid:", { latestTotalPayable, latestBill, latestComboSavings, couponSavings });
-      const t = await import("react-hot-toast");
-      t.toast.error("Unable to calculate order total. Please refresh and try again.");
+      setSubmitError("Unable to calculate the order total. Please refresh the page and try again.");
       setOrderLoading(false);
       return;
     }
@@ -363,57 +367,59 @@ export function useCheckout(): UseCheckoutReturn {
     };
     console.log("[Place Order] payload:", JSON.parse(JSON.stringify(orderPayload)));
     try {
-      const res = await createOrder(orderPayload);
-      if (!res.success) throw new Error("Order failed");
-      if (paymentMethod === "COD") {
-        const orderId = res.data?.orderId;
-        if (appliedCoupon && user?.id && orderId) {
-          markCouponAsUsed(appliedCoupon, user.id, orderId).catch(() => {});
-        }
-        await clearCartApi();
-        navigate(`/order-success/${orderId}`);
-      } else if (paymentMethod === "ONLINE") {
-        const orderId = res.data?.orderId;
-        const selectedAddr = addresses.find(a => a.isSelected);
+      if (paymentMethod === "ONLINE") {
         if (appliedCoupon) {
           localStorage.setItem("pendingCouponMark", appliedCoupon);
         }
         try {
-          const paymentRes = await createSkipCashPayment({
-            orderId,
-            amount: latestTotalPayable,
-            customerName: selectedAddr?.name || "Customer",
-            email: user?.email || "",
-            phone: selectedAddr?.phone || "",
-          });
-          if (paymentRes.success && paymentRes.data?.paymentUrl) {
-            await clearCartApi();
-            window.location.href = paymentRes.data.paymentUrl;
-          } else {
-            localStorage.removeItem("pendingCouponMark");
-            navigate(`/payment-failed`);
-          }
-        } catch {
+          const skipCashPayload = {
+            items: orderPayload.items,
+            addressId: orderPayload.addressId,
+            totalAmount: orderPayload.totalAmount,
+            couponCode: appliedCoupon || undefined,
+          };
+          console.log("[SkipCash] payload:", skipCashPayload);
+          const { paymentUrl, sessionRef } = await initiateSkipCashPayment(skipCashPayload);
+          try {
+            localStorage.setItem(PAYMENT_SESSION_REF_KEY, sessionRef);
+          } catch {}
+          window.location.href = paymentUrl;
+          return;
+        } catch (error: any) {
           localStorage.removeItem("pendingCouponMark");
-          navigate(`/payment-failed`);
+          throw error;
         }
       }
+
+      const res = await createOrder(orderPayload);
+      if (!res.success) throw new Error("Order failed");
+      const orderId = res.data?.orderId;
+      if (appliedCoupon && user?.id && orderId) {
+        markCouponAsUsed(appliedCoupon, user.id, orderId).catch(() => {});
+      }
+      await clearCartApi();
+      navigate(`/order-success/${orderId}`);
     } catch (error: any) {
       console.error(error);
       const errMsg = error.response?.data?.message || error.message || "";
+      localStorage.removeItem("pendingCouponMark");
       if (errMsg.toLowerCase().includes("coupon") || errMsg.toLowerCase().includes("already used")) {
         setAppliedCoupon("");
         setCouponSavings(0);
         const t = await import("react-hot-toast");
         t.toast.error("Coupon is no longer valid. Discount has been removed.");
+        setSubmitError("Your coupon is no longer valid. It has been removed — please review your bill and try again.");
+      } else if (paymentMethod === "ONLINE") {
+        setSubmitError(errMsg || "We couldn't start your online payment. Please try again.");
       } else {
         const t = await import("react-hot-toast");
-        t.toast.error("Failed to place order. Please try again.");
+        t.toast.error(errMsg || "Failed to place order. Please try again.");
+        setSubmitError(errMsg || "Failed to place order. Please try again.");
       }
     } finally {
       setOrderLoading(false);
     }
-  }, [cart, addresses, paymentMethod, normalizedBill, couponSavings, appliedCoupon, user, navigate, offers]);
+  }, [cart, addresses, paymentMethod, normalizedBill, couponSavings, appliedCoupon, user, navigate, offers, orderLoading]);
 
   useEffect(() => {
     fetchCart()
@@ -478,6 +484,7 @@ export function useCheckout(): UseCheckoutReturn {
     isApplyingCoupon,
     copiedCoupon,
     orderLoading,
+    submitError,
     paymentMethod,
     subtotal,
     totalSellingPrice,

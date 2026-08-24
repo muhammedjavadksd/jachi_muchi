@@ -184,7 +184,8 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
     try {
       const res = await cancelOrder(id);
       if (!res?.success) throw new Error("Cancel failed");
-      toast.success("Order cancelled successfully");
+      // No success toast — retry() refetches and the stepper renders the
+      // red "Order Cancelled" state immediately.
       setCancelModalOpen(false);
       retry();
     } catch (error) {
