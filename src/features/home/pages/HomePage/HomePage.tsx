@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { PromotionHeader, Footer, BottomNav } from "@/components";
+import { PromotionHeader, Footer, BottomNav, CenterFocusCarousel } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NavTab } from "@/app/layouts";
@@ -114,7 +114,7 @@ export function HomePage(): JSX.Element {
 
 
   return (
-    <div className="w-full flex flex-col bg-white min-h-screen font-sans">
+    <div className="w-full flex flex-col bg-white min-h-screen font-sans overflow-x-hidden">
       <PromotionHeader />
 
       <div style={spacerStyle} />
@@ -133,6 +133,8 @@ export function HomePage(): JSX.Element {
         <Suspense fallback={<LoadingSkeleton />}>
           <PremiumEyewear maxHomepageOrder={NEARBY_SERVICES_ORDER_SPLIT} />
         </Suspense>
+
+        <CenterFocusCarousel />
 
         <OfferCarousel />
 

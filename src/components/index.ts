@@ -70,6 +70,12 @@ export { ReviewModal } from "@/features/review/components/ReviewModal/ReviewModa
 // Promo Banner
 export { PromoBanner } from "@/features/home/components/PromoBanner/PromoBanner";
 
+// Brand Bento Grid
+export { BrandBentoGrid } from "@/features/home/components/BrandBentoGrid/BrandBentoGrid";
+
+// Center Focus Carousel
+export { CenterFocusCarousel } from "@/components/CenterFocusCarousel";
+
 // Account Components
 export { AccountSidebar } from "@/app/layouts";
 export { AccountLayout } from "@/app/layouts";
