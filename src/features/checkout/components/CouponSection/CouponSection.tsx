@@ -1,6 +1,7 @@
 import { memo, useState, useEffect, useCallback } from "react";
 import { fetchApplicableCoupons } from "@/features/coupon/api/couponApi";
 import type { ApplicableCoupon } from "@/features/coupon/types";
+import { Price } from "@/shared/components";
 
 export interface CouponSectionProps {
   cartValue: number;
@@ -91,7 +92,7 @@ export const CouponSection = memo(function CouponSection({
                   <p className="font-semibold text-gray-900">{appliedCoupon}</p>
                   <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wide">Applied</span>
                 </div>
-                <p className="text-green-600 text-sm font-medium">You saved ₹{couponSavings}</p>
+                <p className="text-green-600 text-sm font-medium">You saved <Price value={couponSavings} size="sm" className="text-green-600 font-medium" /></p>
               </div>
             </div>
             <button
@@ -197,14 +198,14 @@ export const CouponSection = memo(function CouponSection({
                               </div>
                               <p className="text-gray-600 text-xs mt-1 leading-relaxed">
                                 {coupon.description || (coupon.discountType === "percentage"
-                                  ? `${coupon.discountValue}% OFF${coupon.maxDiscount ? ` up to ₹${coupon.maxDiscount}` : ""}`
-                                  : `Flat ₹${coupon.discountValue} OFF`)}
+                                  ? <>{`${coupon.discountValue}% OFF`}{coupon.maxDiscount ? <> up to <Price value={coupon.maxDiscount} size="xs" /></> : ""}</>
+                                  : <><Price value={coupon.discountValue} size="xs" negated /> OFF</>)}
                               </p>
                               <p className="text-gray-400 text-[11px] mt-1">
-                                Min. purchase ₹{coupon.minPurchase}
+                                Min. purchase <Price value={coupon.minPurchase} size="xs" />
                                 {coupon.estimatedDiscount > 0 && (
                                   <span className="text-green-600 ml-2">
-                                    Save ₹{Math.round(coupon.estimatedDiscount)}
+                                    Save <Price value={Math.round(coupon.estimatedDiscount)} size="xs" className="text-green-600" />
                                   </span>
                                 )}
                               </p>

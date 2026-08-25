@@ -69,7 +69,7 @@ const TOP_SERVICE_PILLS = [
   },
   {
     label: "Free Shipping",
-    sub: "Above ₹499",
+    sub: "Above QAR 499",
     link: "/search",
     icon: ZapIcon,
     className: "bg-red-500 text-white hover:bg-red-600 border-0",

@@ -1,8 +1,7 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
-import { Container } from "@/shared/components/Container/Container";
-import { formatPrice } from "@/shared/utils/format";
+import { Container, Price } from "@/shared/components";
 import { getOrderById } from "@/features/checkout/api/orderApi";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -265,11 +264,11 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                         <div className="text-right ml-4 shrink-0">
                           {isFree ? (
                             <div>
-                              <p className="text-sm text-gray-400 line-through">₹{formatPrice(item.price ?? 0)}</p>
+                              <Price value={item.price ?? 0} size="sm" className="text-gray-400 line-through" />
                               <p className="font-bold text-green-600">FREE</p>
                             </div>
                           ) : (
-                            <p className="font-medium text-gray-900">₹{formatPrice(item.price ?? 0)}</p>
+                            <Price value={item.price ?? 0} size="md" />
                           )}
                         </div>
                       </div>
@@ -282,24 +281,24 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900">₹{formatPrice(subtotal)}</span>
+                    <Price value={subtotal} size="sm" />
                   </div>
                   {totalSaved > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Offer Savings</span>
-                      <span className="text-green-600 font-medium">-₹{formatPrice(totalSaved)}</span>
+                      <Price value={totalSaved} negated size="sm" className="text-green-600 font-medium" />
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Fitting Fee</span>
-                    <span className="text-gray-900">₹{fittingFee}</span>
+                    <Price value={fittingFee} size="sm" />
                   </div>
                   <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                     <span className="font-semibold text-lg text-gray-900">Total Paid</span>
-                    <span className="font-bold text-2xl text-gray-900">₹{formatPrice(total)}</span>
+                    <Price value={total} size="xl" />
                   </div>
                   {totalSaved > 0 && (
-                    <p className="text-sm text-green-600 font-medium">You saved ₹{formatPrice(totalSaved)} on this order</p>
+                    <p className="text-sm text-green-600 font-medium">You saved <Price value={totalSaved} size="sm" className="text-green-600 font-medium" /> on this order</p>
                   )}
                 </div>
               </div>

@@ -55,26 +55,26 @@ export const CAMPAIGN_CONFIG = {
 };
 
 export const TRENDING_PRODUCTS: ProductItem[] = [
-  { name: "Vincent Chase", price: "₹1,299", tag: "New" },
-  { name: "Jachi&Muchi Air", price: "₹2,499", tag: "Trending" },
-  { name: "John Jacobs", price: "₹3,499", tag: "Premium" },
-  { name: "Vincent Chase", price: "₹1,799", tag: "Bestseller" },
-  { name: "Jachi&Muchi Air Flex", price: "₹2,999", tag: "New" },
-  { name: "John Jacobs Titan", price: "₹4,299", tag: "Premium" },
+  { name: "Vincent Chase", price: "QAR 1,299", tag: "New" },
+  { name: "Jachi&Muchi Air", price: "QAR 2,499", tag: "Trending" },
+  { name: "John Jacobs", price: "QAR 3,499", tag: "Premium" },
+  { name: "Vincent Chase", price: "QAR 1,799", tag: "Bestseller" },
+  { name: "Jachi&Muchi Air Flex", price: "QAR 2,999", tag: "New" },
+  { name: "John Jacobs Titan", price: "QAR 4,299", tag: "Premium" },
 ];
 
 export const NEW_SUNGLASSES: ProductItem[] = [
-  { name: "Polarized Aviator", price: "₹1,999" },
-  { name: "Classic Wayfarer", price: "₹2,299" },
-  { name: "Sport Shield", price: "₹2,799" },
-  { name: "Retro Round", price: "₹1,799" },
+  { name: "Polarized Aviator", price: "QAR 1,999" },
+  { name: "Classic Wayfarer", price: "QAR 2,299" },
+  { name: "Sport Shield", price: "QAR 2,799" },
+  { name: "Retro Round", price: "QAR 1,799" },
 ];
 
 export const BESTSELLERS: ProductItem[] = [
-  { name: "Titanium Frame", price: "₹3,999" },
-  { name: "Air Flex Ultra", price: "₹2,499" },
-  { name: "Zero Power Blue", price: "₹1,299" },
-  { name: "Memory Metal", price: "₹2,999" },
+  { name: "Titanium Frame", price: "QAR 3,999" },
+  { name: "Air Flex Ultra", price: "QAR 2,499" },
+  { name: "Zero Power Blue", price: "QAR 1,299" },
+  { name: "Memory Metal", price: "QAR 2,999" },
 ];
 
 export const BRANDS: string[] = [

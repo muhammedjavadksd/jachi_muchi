@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import { SUPPORT_PHONE } from "@/shared/constants";
+import { CURRENCY_SYMBOL, SUPPORT_PHONE } from "@/shared/constants";
 
 const BRAND_NAME = "Jachi Muchi";
 const BRAND_LOGO = "/logo.png";
@@ -40,7 +40,7 @@ const M = {
 } as const;
 
 function rs(n: number): string {
-  return `Rs. ${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${CURRENCY_SYMBOL}${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function hLine(doc: jsPDF, y: number, color: [number, number, number], width = 0.2) {

@@ -2,8 +2,7 @@ import { memo, useMemo } from "react";
 import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews, StarRating } from "@/components";
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
 import { ProductImageViewer } from "@/features/product/components/ProductImageViewer/ProductImageViewer";
-import { Container } from "@/shared/components/Container/Container";
-import { formatPrice } from "@/shared/utils/format";
+import { Container, Price } from "@/shared/components";
 import { useProductDetail } from "@/features/product/hooks";
 
 const PROMOTION_HEADER_HEIGHT = 140;
@@ -75,13 +74,12 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
               <hr className="border-gray-200 mb-5" />
 
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">₹{formatPrice(safeProduct.price)}</span>
-                {safeProduct.originalPrice > safeProduct.price && (
-                  <span className="text-lg text-gray-400 line-through">₹{formatPrice(safeProduct.originalPrice)}</span>
-                )}
-                {safeProduct.discount > 0 && (
-                  <span className="text-green-600 text-sm font-bold">({safeProduct.discount}% OFF)</span>
-                )}
+                <Price
+                  value={safeProduct.price}
+                  originalValue={safeProduct.originalPrice > safeProduct.price ? safeProduct.originalPrice : undefined}
+                  discount={safeProduct.discount > 0 ? safeProduct.discount : undefined}
+                  size="3xl"
+                />
               </div>
 
               {dynamicColors.length > 0 && (
@@ -124,7 +122,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
                             <p className="text-sm font-semibold text-gray-900">{offer.offerName}</p>
                             <p className="text-xs text-gray-500 mt-0.5">
                               {getOfferLabel(offer)}
-                              {offerDiscount > 0 && <span className="text-teal-600 font-medium"> · Save ₹{formatPrice(offerDiscount)}</span>}
+                              {offerDiscount > 0 && <span className="text-teal-600 font-medium"> · Save <Price value={offerDiscount} size="xs" className="text-teal-600 font-medium" /></span>}
                             </p>
                             {offer.couponCode && <span className="inline-block mt-1 px-2 py-0.5 bg-teal-50 text-teal-700 text-[10px] font-bold rounded border border-teal-200">Use code: {offer.couponCode}</span>}
                           </div>

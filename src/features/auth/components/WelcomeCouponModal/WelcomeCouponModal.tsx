@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchWelcomeCoupon } from "@/features/coupon/api/couponApi";
 import type { WelcomeCoupon } from "@/features/coupon/types";
+import { Price } from "@/shared/components";
 
 interface WelcomeCouponModalProps {
   isOpen: boolean;
@@ -54,7 +55,7 @@ export function WelcomeCouponModal({
     if (welcomeData) {
       localStorage.setItem("welcomeCoupon", JSON.stringify({
         code: welcomeData.code,
-        discount: welcomeData.discountType === 'percentage' ? `${welcomeData.discountValue}%` : `₹${welcomeData.discountValue}`,
+        discount: welcomeData.discountType === 'percentage' ? `${welcomeData.discountValue}%` : `QAR ${welcomeData.discountValue}`,
         discountValue: welcomeData.discountValue,
         discountType: welcomeData.discountType,
         minOrder: welcomeData.minPurchase,
@@ -69,7 +70,7 @@ export function WelcomeCouponModal({
     if (welcomeData) {
       localStorage.setItem("welcomeCoupon", JSON.stringify({
         code: welcomeData.code,
-        discount: welcomeData.discountType === 'percentage' ? `${welcomeData.discountValue}%` : `₹${welcomeData.discountValue}`,
+        discount: welcomeData.discountType === 'percentage' ? `${welcomeData.discountValue}%` : `QAR ${welcomeData.discountValue}`,
         discountValue: welcomeData.discountValue,
         discountType: welcomeData.discountType,
         minOrder: welcomeData.minPurchase,
@@ -150,7 +151,7 @@ export function WelcomeCouponModal({
                     <p className="text-green-600 font-semibold mt-1">
                       {welcomeData.discountType === 'percentage'
                         ? `${welcomeData.discountValue}% OFF`
-                        : `₹${welcomeData.discountValue} OFF`}
+                        : <><Price value={welcomeData.discountValue} size="md" className="text-green-600" /> OFF</>}
                     </p>
                   </div>
 
@@ -191,7 +192,7 @@ export function WelcomeCouponModal({
                     <span className="font-semibold">
                       {welcomeData.discountType === 'percentage'
                         ? `${welcomeData.discountValue}% OFF`
-                        : `₹${welcomeData.discountValue} OFF`}
+                        : <><Price value={welcomeData.discountValue} size="md" className="text-green-600" /> OFF</>}
                     </span> on your first order
                   </p>
                 </div>
@@ -201,7 +202,7 @@ export function WelcomeCouponModal({
                     <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 16zm3.707-9.293a1 1 0 0 0-1.414-1.414L9 10.586 7.707 9.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <p className="text-sm text-gray-700">
-                    Minimum purchase of <span className="font-semibold">₹{welcomeData.minPurchase}</span>
+                    Minimum purchase of <span className="font-semibold"><Price value={welcomeData.minPurchase} size="md" /></span>
                   </p>
                 </div>
 

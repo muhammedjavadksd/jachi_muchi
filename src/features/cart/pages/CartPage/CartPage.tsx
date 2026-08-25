@@ -1,9 +1,8 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
-import { Container } from "@/shared/components/Container/Container";
+import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
-import { formatPrice } from "@/shared/utils/format";
 import { useCartPage } from "@/features/cart/hooks";
 import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
 
@@ -90,11 +89,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               <div className="text-right shrink-0">
                 {isFreeOffer ? (
                   <div className="flex flex-col items-end gap-0.5">
-                    {item.mrp && <span className="text-gray-400 line-through text-sm">₹{formatPrice(item.mrp)}</span>}
+                    {item.mrp && <Price value={item.mrp} size="sm" className="text-gray-400 line-through" />}
                     <span className="font-bold text-green-600 text-lg">FREE</span>
                   </div>
                 ) : item.mrp && item.mrp > item.productPrice && (
-                  <span className="text-gray-400 line-through text-sm">₹{formatPrice(item.mrp)}</span>
+                  <Price value={item.mrp} size="sm" className="text-gray-400 line-through" />
                 )}
               </div>
             </div>
@@ -117,7 +116,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
             {item.lens && (
               <div className="flex justify-between items-center my-3">
-                <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? ` (+₹${formatPrice(item.lens.price)})` : ''}</span>
+                <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? <> (+<Price value={item.lens.price} size="xs" />)</> : ''}</span>
               </div>
             )}
 
@@ -125,11 +124,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               <span className="text-gray-700 font-medium">Final Price</span>
               <div className="text-right">
                 {isFreeOffer ? (
-                  <span className="font-bold text-green-600 text-xl">₹0</span>
+                  <Price value={0} free size="xl" />
                 ) : isSameProductBogo ? (
-                  <span className="font-bold text-gray-900 text-xl">₹{formatPrice((item.setCount || 1) * item.productPrice + (item.lens?.price || 0))}</span>
+                  <Price value={(item.setCount || 1) * item.productPrice + (item.lens?.price || 0)} size="xl" />
                 ) : (
-                  <span className="font-bold text-gray-900 text-xl">₹{formatPrice(item.productPrice + (item.lens?.price || 0))}</span>
+                  <Price value={item.productPrice + (item.lens?.price || 0)} size="xl" />
                 )}
               </div>
             </div>
@@ -236,7 +235,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                     <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold shrink-0">C</div>
                     <div>
                       <p className="text-sm font-semibold text-amber-900">{c.offer.offerName}</p>
-                      <p className="text-xs text-amber-700">Combo active! Save ₹{formatPrice(displaySavings)} on this bundle</p>
+                      <p className="text-xs text-amber-700">Combo active! Save <Price value={displaySavings} size="xs" className="text-amber-700" /> on this bundle</p>
                     </div>
                   </div>
                   );
@@ -265,12 +264,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                       <>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Total item price</span>
-                          <span>₹{formatPrice(displayBill.totalItemPrice)}</span>
+                          <Price value={displayBill.totalItemPrice} size="sm" />
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Total discount</span>
                           {displayBill.totalDiscount > 0 ? (
-                            <span className="text-green-600">-₹{formatPrice(displayBill.totalDiscount)}</span>
+                            <Price value={displayBill.totalDiscount} negated size="sm" className="text-green-600" />
                           ) : (
                             <span className="text-gray-400">—</span>
                           )}
@@ -278,7 +277,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Offer savings</span>
                           {displayBill.offerSavings > 0 ? (
-                            <span className="text-green-600">-₹{formatPrice(displayBill.offerSavings)}</span>
+                            <Price value={displayBill.offerSavings} negated size="sm" className="text-green-600" />
                           ) : (
                             <span className="text-gray-400">—</span>
                           )}
@@ -286,16 +285,14 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Fitting Fee</span>
                           {displayBill.fittingFee > 0 ? (
-                            <span>₹{formatPrice(displayBill.fittingFee)}</span>
+                            <Price value={displayBill.fittingFee} size="sm" />
                           ) : (
                             <span className="text-gray-400">—</span>
                           )}
                         </div>
                         <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                           <span className="font-semibold text-lg">Total payable</span>
-                          <span className="font-bold text-2xl text-gray-900">
-                            ₹{formatPrice(displayBill.totalPayable)}
-                          </span>
+                          <Price value={displayBill.totalPayable} size="xl" />
                         </div>
                       </>
                     ) : (

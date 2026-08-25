@@ -28,7 +28,7 @@ export const serviceSections = [
   {
     id: "lens-replacement",
     title: "Lens Replacement",
-    highlight: "Replacement lenses from ₹999",
+    highlight: "Replacement lenses from QAR 999",
     description:
       "Need new lenses in your current frame? We offer lens replacement for most frames. Choose from a range of options and get your glasses updated quickly and affordably.",
     link: "/contact",

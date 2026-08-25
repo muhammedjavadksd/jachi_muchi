@@ -1,5 +1,7 @@
 export const BRAND_LOGO_URL = "/logo.png";
 
+export const CURRENCY_SYMBOL = "QAR ";
+
 export const SUPPORT_PHONE = "+91-7034-683-567";
 
 export const TOTAL_SLIDES = 5;

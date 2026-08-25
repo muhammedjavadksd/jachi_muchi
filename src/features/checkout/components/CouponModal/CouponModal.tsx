@@ -1,5 +1,6 @@
 import { memo, useState, useEffect, useCallback, useRef, useMemo } from "react";
 import type { UserCoupon } from "@/features/coupon/types";
+import { Price } from "@/shared/components";
 
 export function calculateCouponDiscount(coupon: UserCoupon, total: number): number {
   const value = Number(coupon.discountValue) || 0;
@@ -116,10 +117,9 @@ export const CouponModal = memo(function CouponModal({
   const getDiscountText = (coupon: UserCoupon) => {
     const value = Number(coupon.discountValue) || 0;
     if (coupon.discountType === "percentage") {
-      const cap = coupon.maxDiscount ? ` up to ₹${coupon.maxDiscount}` : "";
-      return `${value}% OFF${cap}`;
+      return `${value}% OFF${coupon.maxDiscount ? ` up to QAR ${coupon.maxDiscount}` : ""}`;
     }
-    return `Flat ₹${value} OFF`;
+    return `Flat QAR ${value} OFF`;
   };
 
   // Pick the single best coupon (highest discount) from eligible ones — re-runs when cartTotal changes
@@ -154,7 +154,7 @@ export const CouponModal = memo(function CouponModal({
                 <svg className="w-5 h-5 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 <div>
                   <span className="font-semibold text-teal-700">{appliedCoupon}</span>
-                  <span className="text-sm text-teal-600 ml-2">−₹{couponSavings}</span>
+                  <span className="text-sm text-teal-600 ml-2">−<Price value={couponSavings} size="sm" className="text-teal-600" /></span>
                 </div>
               </div>
               <button onClick={onRemoveCoupon} className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-all shrink-0">
@@ -222,7 +222,7 @@ export const CouponModal = memo(function CouponModal({
                           <div className="flex items-center gap-2 flex-wrap mb-1">
                             <span className="font-mono font-bold text-sm text-gray-900">{bestCoupon.code}</span>
                             <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-[10px] font-semibold rounded-full">
-                              Save ₹{Math.round(discountAmount).toLocaleString("en-IN")}
+                              Save <Price value={discountAmount} size="xs" className="text-teal-700" />
                             </span>
                           </div>
                           <p className="text-[11px] text-gray-500">{getDiscountText(bestCoupon)}</p>
@@ -276,7 +276,7 @@ export const CouponModal = memo(function CouponModal({
                             </span>
                           </div>
                           <p className="text-[11px] text-amber-600 font-medium">
-                            Add ₹{shortfall.toLocaleString("en-IN")} more to unlock this offer
+                            Add <Price value={shortfall} size="xs" className="text-amber-600" /> more to unlock this offer
                           </p>
                         </div>
                         <button

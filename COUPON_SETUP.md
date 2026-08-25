@@ -37,11 +37,11 @@ node seedCoupons.js
 This creates these sample coupons:
 | Code | Type | Value | Min Order | Max Discount | Expires |
 |------|------|-------|-----------|--------------|---------|
-| WELCOME100 | Fixed | ₹100 | ₹500 | - | Dec 31, 2026 |
-| GET60 | Fixed | ₹2340 | ₹5000 | - | Dec 31, 2026 |
-| SAVE20 | Percentage | 20% | ₹1000 | ₹500 | Dec 31, 2026 |
-| FIRST50 | Percentage | 50% | ₹800 | ₹300 | Dec 31, 2026 |
-| SUMMER25 | Percentage | 25% | ₹1500 | ₹750 | Aug 31, 2026 |
+| WELCOME100 | Fixed | QAR 100 | QAR 500 | - | Dec 31, 2026 |
+| GET60 | Fixed | QAR 2340 | QAR 5000 | - | Dec 31, 2026 |
+| SAVE20 | Percentage | 20% | QAR 1000 | QAR 500 | Dec 31, 2026 |
+| FIRST50 | Percentage | 50% | QAR 800 | QAR 300 | Dec 31, 2026 |
+| SUMMER25 | Percentage | 25% | QAR 1500 | QAR 750 | Aug 31, 2026 |
 
 ## Frontend Integration
 
@@ -136,8 +136,8 @@ This creates these sample coupons:
 3. **Add items to cart** and proceed to checkout
 
 4. **Apply a coupon**:
-   - Enter `WELCOME100` (gives ₹100 off on orders above ₹500)
-   - Enter `GET60` (gives ₹2340 off on orders above ₹5000)
+   - Enter `WELCOME100` (gives QAR 100 off on orders above QAR 500)
+   - Enter `GET60` (gives QAR 2340 off on orders above QAR 5000)
    - Try invalid code to see error handling
 
 5. **Verify**:

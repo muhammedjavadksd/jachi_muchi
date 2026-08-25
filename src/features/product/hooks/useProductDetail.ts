@@ -14,7 +14,7 @@ const COLOR_MAP: Record<string, string> = {
 
 const OFFER_LABEL: Record<string, (o: Offer) => string> = {
   percentage: (o) => `${o.discountValue}% off`,
-  flat: (o) => `₹${o.discountValue} off`,
+  flat: (o) => `QAR ${o.discountValue} off`,
   bogo: (o) => `Buy ${o.buyQuantity || 1} Get ${o.getQuantity || 1}`,
 };
 

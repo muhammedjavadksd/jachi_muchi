@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getLenses } from "@/features/lens/api/lensApi";
 import type { LensItem } from "@/features/lens/types";
 import { getOffers } from "@/shared/services/offerEngine";
+import { Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
 import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
@@ -378,8 +379,8 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
               </div>
               {lens.features && <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>}
               <div className="flex items-center gap-2">
-                {lens.originalPrice && <span className="text-sm text-gray-400 line-through">₹{lens.originalPrice}</span>}
-                <span className="font-semibold text-gray-900">₹{lens.price}</span>
+                {lens.originalPrice && <Price value={lens.originalPrice} size="sm" className="text-gray-400 line-through" />}
+                <Price value={lens.price} size="md" />
                 {lens.discount && <span className="text-xs text-green-600 font-medium">{lens.discount}% OFF</span>}
               </div>
               {lens.warranty && <p className="text-xs text-gray-400 mt-1">{lens.warranty} warranty</p>}
@@ -578,15 +579,15 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
             <div className="w-16 h-16 shrink-0 rounded-lg bg-gray-100 flex items-center justify-center p-1">
               <img src={getImageUrl(productImage)} alt={productName} className="w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x300?text=No+Image"; }} />
             </div>
-            <div className="min-w-0"><p className="font-medium text-gray-900 truncate">{productName}</p><p className="text-sm text-gray-500">₹{productPrice}</p></div>
+            <div className="min-w-0"><p className="font-medium text-gray-900 truncate">{productName}</p><Price value={productPrice} size="sm" className="text-gray-500" /></div>
           </div>
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
-            {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+₹{selectedLens.price})</span></div>}
-            <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t border-gray-200"><span>Total</span><span>₹{totalPrice}</span></div>
+            {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+<Price value={selectedLens.price} size="xs" />)</span></div>}
+            <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t border-gray-200"><span>Total</span><Price value={totalPrice} size="md" /></div>
           </div>
         </div>
-        <button onClick={handleAddToCart} className="w-full py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors">Add to Cart - ₹{totalPrice}</button>
+        <button onClick={handleAddToCart} className="w-full py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors">Add to Cart - <Price value={totalPrice} size="md" className="text-white" /></button>
       </div>
     );
   };
