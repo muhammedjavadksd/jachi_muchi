@@ -150,7 +150,7 @@ export function HomePage2(): JSX.Element {
         <Container>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {[
-              { title: "Free shipping", sub: "On orders above ₹499" },
+              { title: "Free shipping", sub: "On orders above QAR 499" },
               { title: "1-year warranty", sub: "On all frames" },
               { title: "14-day returns", sub: "Hassle-free exchange" },
               { title: "Expert support", sub: "Call or chat anytime" },

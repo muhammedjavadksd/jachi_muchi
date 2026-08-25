@@ -27,19 +27,19 @@ function mapOfferToSlide(offer: Offer): CarouselSlide {
       subtitle = `Get ${offer.discountValue}% OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
       break;
     case "flat":
-      subtitle = `Flat ₹${offer.discountValue} OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+      subtitle = `Flat QAR ${offer.discountValue} OFF${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
       break;
     case "bogo":
       subtitle = `Buy ${offer.buyQuantity || 1} Get ${offer.getQuantity || 1} Free`;
       break;
     case "combo":
-      subtitle = `Special Combo at ₹${offer.comboPrice}`;
+      subtitle = `Special Combo at QAR ${offer.comboPrice}`;
       break;
     case "seasonal":
       if (offer.discountType === "percentage") {
         subtitle = `${offer.discountValue}% OFF on selected items${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
       } else {
-        subtitle = `₹${offer.discountValue} OFF on selected items${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
+        subtitle = `QAR ${offer.discountValue} OFF on selected items${offer.couponCode ? ` | Use code: ${offer.couponCode}` : ""}`;
       }
       break;
     default:

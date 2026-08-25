@@ -1,7 +1,6 @@
 import { memo, useRef, useState, useCallback, useEffect } from "react";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
-import { Container } from "@/shared/components/Container/Container";
-import { formatPrice } from "@/shared/utils/format";
+import { Container, Price } from "@/shared/components";
 import { useCheckout } from "@/features/checkout/hooks";
 import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
 
@@ -530,26 +529,26 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                   <svg className="w-6 h-6 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-green-700 font-medium">You're saving ₹{formatPrice(discount + offerSavings)} on this order</span>
+                  <span className="text-green-700 font-medium">You're saving <Price value={discount + offerSavings} size="sm" className="text-green-700 font-medium" /> on this order</span>
                 </div>
 
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Total MRP</span><span className="font-medium">₹{formatPrice(subtotal)}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Discount</span><span className="text-green-600 font-medium">-₹{formatPrice(discount)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-600">Total MRP</span><Price value={subtotal} size="sm" /></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-600">Discount</span><Price value={discount} negated size="sm" className="text-green-600 font-medium" /></div>
                     {offerSavings > 0 && (
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">Offer savings</span><span className="text-green-600 font-medium">-₹{formatPrice(offerSavings)}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Offer savings</span><Price value={offerSavings} negated size="sm" className="text-green-600 font-medium" /></div>
                     )}
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Fitting Fee</span><span>₹{formatPrice(fittingFee)}</span></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-600">Fitting Fee</span><Price value={fittingFee} size="sm" /></div>
                     {appliedCoupon && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Coupon ({appliedCoupon})</span>
-                        <span className="text-green-600">-₹{formatPrice(couponSavings)}</span>
+                        <Price value={couponSavings} negated size="sm" className="text-green-600" />
                       </div>
                     )}
                     <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                       <span className="font-semibold text-lg">Total Payable</span>
-                      <span className="font-bold text-2xl text-gray-900">₹{formatPrice(totalPayable)}</span>
+                      <Price value={totalPayable} size="xl" />
                     </div>
                   </div>
                 </div>
@@ -566,7 +565,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                             <p className="font-semibold text-gray-900">{appliedCoupon}</p>
                             <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wide">Applied</span>
                           </div>
-                          <p className="text-green-600 text-sm font-medium">You saved ₹{formatPrice(couponSavings)}</p>
+                           <p className="text-green-600 text-sm font-medium">You saved <Price value={couponSavings} size="sm" className="text-green-600 font-medium" /></p>
                         </div>
                       </div>
                       <button onClick={handleRemoveCoupon} className="px-4 py-2 text-red-600 font-medium text-sm hover:bg-red-50 rounded-xl transition-colors">REMOVE</button>
@@ -611,7 +610,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                     </label>
                     {!isCodAllowed && (
                       <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 ml-7">
-                        Cash on Delivery is available only for orders above ₹{COD_MINIMUM.toLocaleString("en-IN")}. Please add more items or choose an online payment method.
+                        Cash on Delivery is available only for orders above <Price value={COD_MINIMUM} size="xs" />. Please add more items or choose an online payment method.
                       </p>
                     )}
                     <label className="flex items-center gap-3 cursor-pointer">

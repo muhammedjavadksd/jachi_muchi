@@ -1,7 +1,7 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { getImageUrl } from "@/shared/utils/image";
-import { formatPrice } from "@/shared/utils/format";
+import { Price } from "@/shared/components";
 import type { ProductCardProps } from "@/features/product/types";
 
 const FALLBACK_IMAGE = "https://placehold.co/400x300?text=Eyewear";
@@ -119,14 +119,8 @@ export const ProductCard = memo(function ProductCard({
         {description && (
           <p className="text-xs text-gray-500 mt-1 line-clamp-2 min-h-[32px]">{description}</p>
         )}
-        <div className="flex items-center gap-2 mt-3">
-          <span className="text-lg font-bold text-black">₹{formatPrice(price)}</span>
-          {discount != null && discount > 0 && originalPrice && originalPrice > price && (
-            <span className="text-sm text-gray-400 line-through">₹{formatPrice(originalPrice)}</span>
-          )}
-          {discount != null && discount > 0 && (
-            <span className="text-green-600 text-xs font-semibold">({discount}% OFF)</span>
-          )}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3">
+          <Price value={price} originalValue={originalPrice && originalPrice > price ? originalPrice : undefined} discount={discount} size="lg" />
         </div>
         {colors && colors.length > 0 && (
           <div className="flex items-center gap-1.5 mt-3">

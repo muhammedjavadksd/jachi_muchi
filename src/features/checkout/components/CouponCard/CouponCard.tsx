@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { Price } from "@/shared/components";
 
 interface CouponCardProps {
   code: string;
@@ -96,7 +97,7 @@ export const CouponCard = memo(function CouponCard({
               {dVal > 0
                 ? discountType === "percentage"
                   ? `${dVal}% OFF`
-                  : `₹${dVal} OFF`
+                  : <><Price value={dVal} size="lg" /> OFF</>
                 : "—"}
             </p>
             {description && (
@@ -109,7 +110,7 @@ export const CouponCard = memo(function CouponCard({
               {discountType === "percentage" ? (
                 <span>{dVal}%<br />OFF</span>
               ) : (
-                <span>₹{dVal}<br />OFF</span>
+                <span><Price value={dVal} size="xs" className="text-white" /><br />OFF</span>
               )}
             </div>
           )}
@@ -138,7 +139,7 @@ export const CouponCard = memo(function CouponCard({
               <svg className="w-4 h-4 text-teal-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Min. <span className="font-semibold text-gray-800">₹{minPur}</span></span>
+              <span>Min. <span className="font-semibold text-gray-800"><Price value={minPur} size="xs" /></span></span>
             </div>
           )}
 
@@ -147,7 +148,7 @@ export const CouponCard = memo(function CouponCard({
               <svg className="w-4 h-4 text-teal-500 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M12 21a9 9 0 110-18 9 9 0 010 18z" />
               </svg>
-              <span>Max discount <span className="font-semibold text-gray-800">₹{maxDisc}</span></span>
+              <span>Max discount <span className="font-semibold text-gray-800"><Price value={maxDisc} size="xs" /></span></span>
             </div>
           )}
 

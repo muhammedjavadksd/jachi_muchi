@@ -28,7 +28,7 @@ GET /available-coupons
     "discountValue": 2340,
     "minimumPurchase": 5000,
     "maxDiscount": null,
-    "description": "Flat ₹2340 OFF",
+    "description": "Flat QAR 2340 OFF",
     "expiresAt": "2026-10-31T23:59:59.999Z",
     "isNewUserOnly": false
   }
@@ -51,7 +51,7 @@ GET /welcome-coupon
   "minPurchase": 999,
   "maxDiscount": null,
   "validDays": 7,
-  "description": "₹100 OFF on your first order"
+  "description": "QAR 100 OFF on your first order"
 }
 ```
 

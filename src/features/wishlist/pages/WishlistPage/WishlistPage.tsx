@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
-import { Container } from "@/shared/components/Container/Container";
+import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useWishlist } from "@/features/wishlist/hooks";
 
@@ -55,7 +55,7 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
                     />
                   </Link>
                   <p className="font-medium text-gray-900 text-sm truncate mb-1">{item.name}</p>
-                  <p className="text-gray-700 font-semibold mb-4">₹{item.price}</p>
+                  <Price value={item.price} size="md" className="mb-4" />
                   <div className="flex gap-2 mt-auto">
                     <Link
                       to={item.link}

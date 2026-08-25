@@ -1,6 +1,7 @@
 import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useWishlist } from "@/features/wishlist/hooks";
+import { Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import type { WishlistItem as WishlistItemType } from "@/features/wishlist/types";
 
@@ -103,7 +104,7 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>
           <p className="font-medium text-gray-900 text-sm truncate">{item.name}</p>
-          <p className="text-gray-700 font-semibold mt-0.5">₹{item.price}</p>
+          <Price value={item.price} size="sm" />
         </div>
         <div className="flex gap-2 mt-2">
           <button

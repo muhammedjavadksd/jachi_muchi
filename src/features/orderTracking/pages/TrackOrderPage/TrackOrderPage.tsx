@@ -2,6 +2,7 @@ import { memo, useCallback, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Price } from "@/shared/components";
 import {
   Banknote,
   Calendar,
@@ -388,10 +389,10 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold text-gray-100">
-                          {item.price === 0 ? <span className="text-green-400">FREE</span> : `₹${item.price ?? 0}`}
+                          {item.price === 0 ? <span className="text-green-400">FREE</span> : <Price value={item.price ?? 0} size="sm" className="text-gray-100" />}
                         </p>
                         {(item.quantity || 1) > 1 && item.price ? (
-                          <p className="text-xs text-gray-500 mt-0.5">₹{item.price} each</p>
+                          <p className="text-xs text-gray-500 mt-0.5"><Price value={item.price} size="xs" className="text-gray-500" /> each</p>
                         ) : null}
                       </div>
                     </li>

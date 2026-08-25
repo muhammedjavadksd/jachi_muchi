@@ -2,7 +2,7 @@ import { memo, useState, useEffect, useRef, useMemo } from "react";
 import toast from "react-hot-toast";
 import { ORDER_CANCELLED_REFUND_NOTE } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
-import { formatPrice } from "@/shared/utils/format";
+import { Price } from "@/shared/components";
 import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { useOrders } from "@/features/account/hooks";
@@ -500,7 +500,7 @@ const OrderDrawer = memo(function OrderDrawer({
                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.name || "Unnamed Product"}</p>
                     <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
-                      {item.price === 0 ? <span className="text-teal-600">FREE</span> : `₹${formatPrice(item.price ?? 0)}`}
+                      {item.price === 0 ? <span className="text-teal-600">FREE</span> : <Price value={item.price ?? 0} size="sm" />}
                     </p>
                     {displayStatus === "delivered" && getItemProductId(item) && (
                       <div className="mt-2.5">
@@ -521,21 +521,21 @@ const OrderDrawer = memo(function OrderDrawer({
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex justify-between py-2">
                 <span className="text-gray-600 text-sm">Subtotal</span>
-                <span className="text-gray-900 text-sm">₹{formatPrice(subtotal)}</span>
+                <Price value={subtotal} size="sm" />
               </div>
               {(order.discount ?? 0) > 0 && (
                 <div className="flex justify-between py-2">
                   <span className="text-gray-600 text-sm">Discount</span>
-                  <span className="text-green-600 text-sm">-₹{formatPrice(order.discount ?? 0)}</span>
+                  <Price value={order.discount ?? 0} negated size="sm" className="text-green-600" />
                 </div>
               )}
               <div className="flex justify-between py-2">
                 <span className="text-gray-600 text-sm">Shipping</span>
-                <span className="text-gray-900 text-sm">{safeShipping === 0 ? "FREE" : `₹${formatPrice(safeShipping)}`}</span>
+                {safeShipping === 0 ? "FREE" : <Price value={safeShipping} size="sm" />}
               </div>
               <div className="flex justify-between py-2 border-t border-gray-200 mt-2">
                 <span className="text-gray-900 font-semibold">Total</span>
-                <span className="text-gray-900 font-bold">₹{formatPrice(order.total || order.totalAmount || 0)}</span>
+                <Price value={order.total || order.totalAmount || 0} size="md" />
               </div>
               <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
                 <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -895,7 +895,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
                     </div>
                     <div>
                       <p className="text-xs text-gray-500">Total</p>
-                      <p className="font-semibold text-gray-900 text-xs sm:text-sm lg:text-base">₹{formatPrice(order.total)}</p>
+                      <Price value={order.total} size="sm" />
                     </div>
                   </div>
                   <span className={`px-2.5 sm:px-3 lg:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${colors.badge} ${colors.text}`}>

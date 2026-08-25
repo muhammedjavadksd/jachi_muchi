@@ -1,5 +1,6 @@
 import { memo, useState, useEffect } from "react";
 import type { Offer, OfferProduct } from "@/features/offer/types";
+import { Price } from "@/shared/components";
 
 function isOfferProduct(p: OfferProduct | string): p is OfferProduct {
   return typeof p === "object" && p !== null;
@@ -131,7 +132,7 @@ function getOfferDescription(offer: Offer): string {
     return `Get ${offer.discountValue}% off on ${buyName}`;
   }
   if (offer.offerType === "flat" && offer.discountValue && buyName) {
-    return `Flat ₹${offer.discountValue} off on ${buyName}`;
+    return `Flat QAR ${offer.discountValue} off on ${buyName}`;
   }
   return offer.offerName;
 }
@@ -177,7 +178,7 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
                 : offer.offerType === "percentage"
                   ? `${offer.discountValue}% OFF`
                   : offer.offerType === "flat"
-                    ? `FLAT ₹${offer.discountValue}`
+                    ? `FLAT QAR ${offer.discountValue}`
                     : "OFFER"}
           </span>
           {offer.offerType === "bogo" && offer.getQuantity && (
@@ -217,15 +218,15 @@ export const OfferCard = memo(function OfferCard({ offer }: OfferCardProps) {
         </div>
 
         {/* Price info */}
-        <div className="flex items-center gap-4 mb-3 text-sm">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3 text-sm">
           {offer.applicableProducts?.[0] && isOfferProduct(offer.applicableProducts[0]) && offer.applicableProducts[0].price && (
-            <span className="text-gray-500">
-              MRP: <span className="line-through">₹{offer.applicableProducts[0].price}</span>
+            <span className="text-gray-500 whitespace-nowrap">
+              MRP: <Price value={offer.applicableProducts[0].price} size="sm" className="text-gray-500 line-through" />
             </span>
           )}
           {offer.freeProduct?.price && (
-            <span className="text-teal-600 font-medium">
-              Free worth ₹{offer.freeProduct.price}
+            <span className="text-teal-600 font-medium whitespace-nowrap">
+              Free worth <Price value={offer.freeProduct.price} size="sm" className="text-teal-600 font-medium" />
             </span>
           )}
         </div>
