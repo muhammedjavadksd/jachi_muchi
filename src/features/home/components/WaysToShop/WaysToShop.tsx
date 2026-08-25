@@ -44,159 +44,141 @@ const CARDS: ShopCard[] = [
 
 export const WaysToShop = memo(function WaysToShop(): JSX.Element {
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20">
-      {/* Organic blob background */}
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 1440 800"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <path
-          d="M80,60 C280,-20 520,30 720,10 C920,-10 1160,40 1380,70 C1440,80 1460,140 1440,240 C1420,380 1460,500 1440,620 C1420,720 1380,770 1260,790 C1060,820 820,760 620,780 C420,800 200,770 80,730 C10,710 -10,660 10,560 C30,420 -10,300 10,200 C20,120 20,80 80,60 Z"
-          fill="#F6F1E8"
-        />
-      </svg>
+    <section className="py-16 sm:py-20">
+      <Container>
+        {/* Eyebrow */}
+        <p
+          className="text-xs font-semibold tracking-[0.2em] uppercase mb-3"
+          style={{ color: "#C1652F" }}
+        >
+          Ways to shop with us
+        </p>
 
-      {/* Content layer */}
-      <div className="relative z-10 px-6 sm:px-10 lg:px-16 py-8 sm:py-12 lg:py-16">
-        <Container>
-          {/* Eyebrow */}
-          <p
-            className="text-xs font-semibold tracking-[0.2em] uppercase mb-3"
-            style={{ color: "#C1652F" }}
-          >
-            Ways to shop with us
-          </p>
+        {/* Heading */}
+        <h2
+          className="text-3xl sm:text-4xl font-semibold mb-10 leading-tight"
+          style={{ color: "#1C2B2A", fontFamily: "'Fraunces', serif" }}
+        >
+          Visit, try on, or just say hi
+        </h2>
 
-          {/* Heading */}
-          <h2
-            className="text-3xl sm:text-4xl font-semibold mb-10 leading-tight"
-            style={{ color: "#1C2B2A", fontFamily: "'Fraunces', serif" }}
-          >
-            Visit, try on, or just say hi
-          </h2>
+        {/* Cards grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {CARDS.map((card) => {
+            const Icon = card.icon;
+            const isDark = card.dark;
 
-          {/* Cards grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {CARDS.map((card) => {
-              const Icon = card.icon;
-              const isDark = card.dark;
-
-              return (
-                <a
-                  key={card.title}
-                  href={card.link}
-                  {...(card.linkExternal
-                    ? { target: "_blank", rel: "noopener noreferrer" }
-                    : {})}
-                  aria-label={card.title}
-                  className="group relative flex flex-col justify-between p-5 sm:p-6 transition-all duration-300 hover:shadow-xl hover:border-[#0E4A3E]"
+            return (
+              <a
+                key={card.title}
+                href={card.link}
+                {...(card.linkExternal
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+                aria-label={card.title}
+                className="group relative flex flex-col justify-between p-5 sm:p-6 transition-all duration-300 hover:shadow-xl hover:border-[#0E4A3E] h-[320px] sm:h-[380px]"
+                style={{
+                  backgroundColor: isDark ? "#0E4A3E" : "#FBF8F2",
+                  border: `1px solid ${isDark ? "#0E4A3E" : "#E2D9C6"}`,
+                  borderRadius: isDark ? "28px 6px 28px 28px" : "28px 28px 28px 6px",
+                  transform: "translateY(0) rotate(0deg)",
+                  transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-6px) rotate(-0.3deg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0) rotate(0deg)";
+                }}
+              >
+                {/* Decorative lens circle */}
+                <div
+                  className="absolute pointer-events-none opacity-[0.06]"
                   style={{
-                    backgroundColor: isDark ? "#0E4A3E" : "#FBF8F2",
-                    border: `1px solid ${isDark ? "#0E4A3E" : "#E2D9C6"}`,
-                    borderRadius: isDark ? "28px 6px 28px 28px" : "28px 28px 28px 6px",
-                    height: isDark ? "380px" : "300px",
-                    transform: "translateY(0) rotate(0deg)",
-                    transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+                    width: isDark ? "160px" : "110px",
+                    height: isDark ? "160px" : "110px",
+                    borderRadius: "50%",
+                    border: `2px solid ${isDark ? "#fff" : "#1C2B2A"}`,
+                    top: isDark ? "-30px" : "-20px",
+                    right: isDark ? "-30px" : "-20px",
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-6px) rotate(-0.3deg)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0) rotate(0deg)";
-                  }}
-                >
-                  {/* Decorative lens circle */}
-                  <div
-                    className="absolute pointer-events-none opacity-[0.06]"
+                />
+
+                {/* Badge (top-right) */}
+                {card.badge && (
+                  <span
+                    className="absolute top-4 right-4 text-[11px] font-semibold px-2.5 py-1"
                     style={{
-                      width: isDark ? "160px" : "110px",
-                      height: isDark ? "160px" : "110px",
-                      borderRadius: "50%",
-                      border: `2px solid ${isDark ? "#fff" : "#1C2B2A"}`,
-                      top: isDark ? "-30px" : "-20px",
-                      right: isDark ? "-30px" : "-20px",
+                      borderRadius: "14px 14px 14px 4px",
+                      backgroundColor: isDark
+                        ? "rgba(255,255,255,0.15)"
+                        : "#C1652F",
+                      color: "#fff",
                     }}
-                  />
+                  >
+                    {card.badge}
+                  </span>
+                )}
 
-                  {/* Badge (top-right) */}
-                  {card.badge && (
-                    <span
-                      className="absolute top-4 right-4 text-[11px] font-semibold px-2.5 py-1"
-                      style={{
-                        borderRadius: "14px 14px 14px 4px",
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.15)"
-                          : "#C1652F",
-                        color: "#fff",
-                      }}
-                    >
-                      {card.badge}
-                    </span>
-                  )}
-
-                  <div>
-                    {/* Icon circle */}
-                    <div
-                      className="w-11 h-11 flex items-center justify-center mb-4 transition-all duration-300 group-hover:!rounded-full"
-                      style={{
-                        borderRadius: "16px 16px 16px 4px",
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.15)"
-                          : "#F6F1E8",
-                      }}
-                    >
-                      <Icon
-                        className="w-5 h-5"
-                        style={{ color: isDark ? "#fff" : "#0E4A3E" }}
-                      />
-                    </div>
-
-                    {/* Title */}
-                    <h3
-                      className="text-lg font-semibold mb-1.5"
-                      style={{
-                        color: isDark ? "#fff" : "#1C2B2A",
-                        fontFamily: "'Fraunces', serif",
-                      }}
-                    >
-                      {card.title}
-                    </h3>
-
-                    {/* Subtext */}
-                    <p
-                      className="text-[13px] leading-relaxed"
-                      style={{ color: isDark ? "rgba(255,255,255,0.7)" : "#5B655F" }}
-                    >
-                      {card.subtext}
-                    </p>
+                <div>
+                  {/* Icon circle */}
+                  <div
+                    className="w-11 h-11 flex items-center justify-center mb-4 transition-all duration-300 group-hover:!rounded-full"
+                    style={{
+                      borderRadius: "16px 16px 16px 4px",
+                      backgroundColor: isDark
+                        ? "rgba(255,255,255,0.15)"
+                        : "#F6F1E8",
+                    }}
+                  >
+                    <Icon
+                      className="w-5 h-5"
+                      style={{ color: isDark ? "#fff" : "#0E4A3E" }}
+                    />
                   </div>
 
-                  {/* Arrow button (bottom-right) */}
-                  <div className="flex justify-end mt-6">
-                    <span
-                      className="w-[34px] h-[34px] flex items-center justify-center transition-all duration-300 group-hover:bg-[#0E4A3E] group-hover:!rounded-full"
-                      style={{
-                        borderRadius: "14px 14px 14px 4px",
-                        backgroundColor: isDark
-                          ? "rgba(255,255,255,0.15)"
-                          : "#E2D9C6",
-                      }}
-                    >
-                      <ArrowRight
-                        className="w-4 h-4 transition-colors duration-300 group-hover:text-white"
-                        style={{ color: isDark ? "#fff" : "#1C2B2A" }}
-                      />
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </Container>
-      </div>
+                  {/* Title */}
+                  <h3
+                    className="text-lg font-semibold mb-1.5"
+                    style={{
+                      color: isDark ? "#fff" : "#1C2B2A",
+                      fontFamily: "'Fraunces', serif",
+                    }}
+                  >
+                    {card.title}
+                  </h3>
+
+                  {/* Subtext */}
+                  <p
+                    className="text-[13px] leading-relaxed"
+                    style={{ color: isDark ? "rgba(255,255,255,0.7)" : "#5B655F" }}
+                  >
+                    {card.subtext}
+                  </p>
+                </div>
+
+                {/* Arrow button (bottom-right) */}
+                <div className="flex justify-end mt-6">
+                  <span
+                    className="w-[34px] h-[34px] flex items-center justify-center transition-all duration-300 group-hover:bg-[#0E4A3E] group-hover:!rounded-full"
+                    style={{
+                      borderRadius: "14px 14px 14px 4px",
+                      backgroundColor: isDark
+                        ? "rgba(255,255,255,0.15)"
+                        : "#E2D9C6",
+                    }}
+                  >
+                    <ArrowRight
+                      className="w-4 h-4 transition-colors duration-300 group-hover:text-white"
+                      style={{ color: isDark ? "#fff" : "#1C2B2A" }}
+                    />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </Container>
     </section>
   );
 });
