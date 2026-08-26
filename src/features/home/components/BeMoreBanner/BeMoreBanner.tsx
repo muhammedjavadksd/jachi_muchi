@@ -9,12 +9,12 @@ export const BeMoreBanner = memo(function BeMoreBanner(): JSX.Element {
       style={{ paddingTop: "48px", paddingBottom: "16px" }}
     >
       <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5">
-        <img
+        {/* <img
           src={BE_MORE_BANNER.image}
           alt={BE_MORE_BANNER.alt}
           className="block w-full h-auto"
           loading="lazy"
-        />
+        /> */}
       </div>
 
       <Container>
