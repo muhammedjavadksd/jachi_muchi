@@ -1,4 +1,4 @@
-import { memo, useState, useRef } from "react";
+import { memo } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
 import { HeartIcon, CartIcon } from "@/shared/components/Icons";
@@ -7,6 +7,7 @@ import { useAuth, useLoginModal } from "@/features/auth/hooks";
 import { LogoutButton } from "@/features/auth";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
+import { useUserDropdown } from "@/shared/hooks";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { SEARCH_CATEGORIES } from "@/features/product/constants";
 
@@ -21,17 +22,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   const { isAuthenticated, user } = useAuth();
   const { itemCount: cartCount } = useCart();
   const navigate = useNavigate();
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleDropdownEnter = () => {
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    setShowUserDropdown(true);
-  };
-
-  const handleDropdownLeave = () => {
-    closeTimerRef.current = setTimeout(() => setShowUserDropdown(false), 150);
-  };
+  const { isOpen: showUserDropdown, toggle: toggleUserDropdown, close: closeUserDropdown, containerRef: userDropdownRef } = useUserDropdown();
 
   const categoryLinks = SEARCH_CATEGORIES.map((category) => (
     <NavLink
@@ -50,7 +41,7 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
   ));
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 z-50">
       {/* Main Navigation Bar */}
       <div className="w-full bg-white border-b border-gray-200">
         <Container className="flex items-center justify-between h-12 sm:h-16 py-2 sm:py-0">
@@ -80,12 +71,27 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
 
             {/* Sign In / Profile */}
             {isAuthenticated && user ? (
-              <div className="relative" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
-                <button className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-teal-600 rounded-full text-sm font-medium text-white hover:bg-teal-700">
+              <div className="relative" ref={userDropdownRef}>
+                <button
+                  type="button"
+                  onClick={toggleUserDropdown}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-teal-600 rounded-full text-sm font-medium text-white hover:bg-teal-700"
+                  aria-expanded={showUserDropdown}
+                  aria-haspopup="true"
+                >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${showUserDropdown ? "rotate-180" : ""}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </button>
                 {showUserDropdown && (
                   <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
@@ -94,11 +100,11 @@ export const PromotionHeader = memo(function PromotionHeader(): JSX.Element {
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                     </div>
                     <div className="py-1">
-                      <Link to="/account" onClick={() => setShowUserDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <Link to="/account" onClick={closeUserDropdown} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         Profile
                       </Link>
-                      <Link to="/account/orders" onClick={() => setShowUserDropdown(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <Link to="/account/orders" onClick={closeUserDropdown} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                         Orders
                       </Link>

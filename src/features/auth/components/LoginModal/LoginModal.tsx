@@ -83,7 +83,24 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
           setLoginError(response.message || "Invalid email or password");
         }
       } catch (error: any) {
-        setLoginError(error.response?.data?.message || "Something went wrong");
+        const data = error.response?.data;
+        const serverMessage = data?.error || data?.message;
+
+        if (serverMessage) {
+          let displayMessage = serverMessage;
+          if (typeof data.retryAfter === "number" && data.retryAfter > 0) {
+            const totalSeconds = Math.ceil(data.retryAfter / 1000);
+            if (totalSeconds >= 60) {
+              const minutes = Math.ceil(totalSeconds / 60);
+              displayMessage += ` Try again in ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+            } else {
+              displayMessage += ` Try again in ${totalSeconds} second${totalSeconds > 1 ? "s" : ""}.`;
+            }
+          }
+          setLoginError(displayMessage);
+        } else {
+          setLoginError("Something went wrong. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
