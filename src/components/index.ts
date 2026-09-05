@@ -79,3 +79,8 @@ export { CenterFocusCarousel } from "@/components/CenterFocusCarousel";
 // Account Components
 export { AccountSidebar } from "@/app/layouts";
 export { AccountLayout } from "@/app/layouts";
+
+// Returns Components
+export { ReturnButton } from "@/features/returns/components/ReturnButton/ReturnButton";
+export { ReturnFormModal } from "@/features/returns/components/ReturnFormModal/ReturnFormModal";
+export { ReturnStatusTracker } from "@/features/returns/components/ReturnStatusTracker/ReturnStatusTracker";

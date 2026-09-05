@@ -10,6 +10,7 @@ import { submitContactMessage } from "@/features/account/api/contactApi";
 import { useAuth } from "@/features/auth/hooks";
 import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
 import { OrderItemReviewAction } from "@/features/review/components/OrderItemReviewAction/OrderItemReviewAction";
+import { ReturnButton } from "@/features/returns/components/ReturnButton/ReturnButton";
 
 interface CountryEntry {
   name: string;
@@ -510,6 +511,16 @@ const OrderDrawer = memo(function OrderDrawer({
                         />
                       </div>
                     )}
+                    {displayStatus === "delivered" && order._id && getItemProductId(item) && (
+                      <div className="mt-2.5">
+                        <ReturnButton
+                          orderId={order._id}
+                          orderItemId={getItemProductId(item) || ""}
+                          productName={item.name}
+                          productImage={item.image}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -947,6 +958,12 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
           <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg pl-2.5 pr-1 py-1">
             <span className="text-xs text-gray-600 truncate max-w-[120px] sm:max-w-[180px]">{item.name}</span>
             <OrderItemReviewAction productId={reviewProductId} productName={item.name} />
+            <ReturnButton
+              orderId={order._id || order.id || ""}
+              orderItemId={reviewProductId}
+              productName={item.name}
+              productImage={item.image}
+            />
           </div>
         );
       })}

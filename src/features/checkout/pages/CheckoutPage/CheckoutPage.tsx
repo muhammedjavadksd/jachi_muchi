@@ -434,7 +434,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const editingAddress = addresses.find(a => a.id === editingAddressId) ?? null;
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
 
-  const COD_MINIMUM = 2000;
+  const COD_MINIMUM = 500;
   const isCodAllowed = totalPayable >= COD_MINIMUM;
 
   // Auto-deselect COD when total drops below minimum
