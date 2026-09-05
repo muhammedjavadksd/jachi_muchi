@@ -49,6 +49,7 @@ const BrightnessSetupPage = lazy(() => import("@/features/eyetest/pages/Brightne
 const DeviceCheckPage = lazy(() => import("@/features/eyetest/pages/DeviceCheckPage/DeviceCheckPage").then(m => ({ default: m.DeviceCheckPage })));
 const EyeTestApp = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestApp/EyeTestApp").then(m => ({ default: m.EyeTestApp })));
 const TrackOrderPage = lazy(() => import("@/features/orderTracking/pages/TrackOrderPage/TrackOrderPage").then(m => ({ default: m.TrackOrderPage })));
+const MyReturnsPage = lazy(() => import("@/features/returns/pages/MyReturnsPage/MyReturnsPage").then(m => ({ default: m.MyReturnsPage })));
 
 export const routes: RouteObject[] = [
   { path: "/", element: <App /> },
@@ -64,6 +65,7 @@ export const routes: RouteObject[] = [
   { path: "/order-failure", element: <OrderFailurePage /> },
   { path: "/track", element: <TrackOrderPage /> },
   { path: "/track/:orderId", element: <TrackOrderPage /> },
+  { path: "/my-returns", element: <ProtectedRoute><MyReturnsPage /></ProtectedRoute> },
   { path: "/payment/success", element: <PaymentSuccessPage /> },
   { path: "/payment/failed", element: <PaymentFailedPage /> },
   { path: "/payment/pending", element: <PaymentPendingPage /> },

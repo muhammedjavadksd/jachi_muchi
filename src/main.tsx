@@ -7,6 +7,7 @@ import { WishlistCanvas } from "@/features/wishlist/components/WishlistCanvas/Wi
 import { LoginModal } from "@/features/auth/components/LoginModal/LoginModal";
 import { SignupModal } from "@/features/auth/components/SignupModal/SignupModal";
 import { ForgotPasswordModal } from "@/features/auth/components/ForgotPasswordModal/ForgotPasswordModal";
+import { ReturnFormModal } from "@/features/returns/components/ReturnFormModal/ReturnFormModal";
 import { ScrollToTop } from "@/shared/components/ScrollToTop/ScrollToTop";
 import { LoadingScreen } from "@/shared/components/LoadingScreen/LoadingScreen";
 import { Toaster } from "react-hot-toast";
@@ -39,6 +40,7 @@ createRoot(rootElement).render(
                 <LoginModal />
                 <SignupModal />
                 <ForgotPasswordModal />
+                <ReturnFormModal />
                 <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
               </WishlistProvider>
             </ForgotPasswordModalProvider>
