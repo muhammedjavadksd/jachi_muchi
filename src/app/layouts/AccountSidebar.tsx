@@ -8,6 +8,7 @@ import {
   MapPin,
   FileText,
   Home,
+  RotateCcw,
   ChevronDown,
   Menu,
   X,
@@ -22,6 +23,7 @@ const SHOW_NOTIFICATIONS = import.meta.env.VITE_FEATURE_MANAGE_NOTIFICATIONS ===
 
 const ALL_MENU_ITEMS = [
   { id: "orders", label: "My Orders", icon: Package, link: "/account/orders" },
+  { id: "returns", label: "My Returns", icon: RotateCcw, link: "/account/returns" },
   // { id: "3d-model", label: "My 3D Model", icon: Box, link: "/account/3d-model" }, // [HIDDEN] My 3D Model — uncomment to restore
   { id: "account-info", label: "Account Information", icon: User, link: "/account/info" },
   { id: "notifications", label: "Manage Notifications", icon: Bell, link: "/account/notifications", feature: "notifications" },

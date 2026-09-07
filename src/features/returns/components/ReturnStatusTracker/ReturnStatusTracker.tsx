@@ -1,6 +1,12 @@
 import { memo } from "react";
 import { Banknote, Check, Clock, Package, XCircle } from "lucide-react";
-import { RETURN_STATUS_META } from "@/features/returns/constants";
+import {
+  RETURN_DISCONTINUED_LABEL,
+  RETURN_FINAL_REJECTION_MESSAGE,
+  RETURN_REJECTED_FALLBACK_MESSAGE,
+  RETURN_REJECTION_NOTE_LABEL,
+  RETURN_STATUS_META,
+} from "@/features/returns/constants";
 import type { ReturnStatusKey } from "@/features/returns/types";
 import type { ReturnTimelineStep } from "@/features/returns/hooks/useMyReturns";
 
@@ -8,6 +14,10 @@ interface ReturnStatusTrackerProps {
   statusKey: ReturnStatusKey;
   steps: ReturnTimelineStep[];
   rejectionReason?: string;
+  /** Optional customer-safe note from support, shown under the reason. */
+  rejectionNote?: string;
+  /** True when the customer used up their second (final) return attempt. */
+  isFinalRejection?: boolean;
 }
 
 const STEP_ICONS: Record<ReturnStatusKey, typeof Clock> = {
@@ -22,27 +32,50 @@ const STEP_ICONS: Record<ReturnStatusKey, typeof Clock> = {
  * Vertical return-status tracker (Requested -> Accepted -> Collected ->
  * Refunded). Completed steps show a check + timestamp, the current step is
  * highlighted, future steps are greyed out. A rejected return replaces the
- * stepper with a distinct red rejected state showing the rejection reason.
+ * stepper with a distinct red rejected state that surfaces the real admin
+ * rejection reason, an optional customer-safe "additional note from support"
+ * (when the backend provides one), or the final-attempt message after the
+ * second rejection.
  */
 export const ReturnStatusTracker = memo(function ReturnStatusTracker({
   statusKey,
   steps,
   rejectionReason,
+  rejectionNote,
+  isFinalRejection,
 }: ReturnStatusTrackerProps): JSX.Element | null {
   if (statusKey === "rejected") {
+    const message = isFinalRejection
+      ? RETURN_FINAL_REJECTION_MESSAGE
+      : rejectionReason
+        ? `Reason: ${rejectionReason}`
+        : RETURN_REJECTED_FALLBACK_MESSAGE;
+
+    // Only surface the note when it differs from the reason itself (some
+    // legacy backend shapes report the primary reason under message/note).
+    const showNote = Boolean(
+      rejectionNote && rejectionNote !== rejectionReason
+    );
+
     return (
-      <div className="rounded-xl border border-red-400/30 bg-red-400/10 p-5">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-5">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-red-400/15 flex items-center justify-center shrink-0">
-            <XCircle className="w-5 h-5 text-red-400" />
+          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+            <XCircle className="w-5 h-5 text-red-600" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-red-300">Return Rejected</p>
-            <p className="text-xs text-red-300/70 mt-1">
-              {rejectionReason
-                ? `Reason: ${rejectionReason}`
-                : "This return request was not approved. Please contact support for more details."}
+            <p className="text-sm font-semibold text-red-700">
+              {isFinalRejection ? RETURN_DISCONTINUED_LABEL : "Return Rejected"}
             </p>
+            <p className="text-xs text-red-600 mt-1">{message}</p>
+            {isFinalRejection && rejectionReason && (
+              <p className="text-xs text-red-600/80 mt-1">Reason: {rejectionReason}</p>
+            )}
+            {showNote && (
+              <p className="text-xs text-red-600/80 mt-1">
+                {RETURN_REJECTION_NOTE_LABEL} {rejectionNote}
+              </p>
+            )}
           </div>
         </div>
       </div>

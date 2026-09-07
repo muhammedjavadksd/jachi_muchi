@@ -3,7 +3,14 @@ import { getReturnEligibility } from "@/features/returns/api/returnApi";
 
 type EligibilityState =
   | { phase: "loading" }
-  | { phase: "ready"; eligible: boolean; reason?: string; deadline?: string; daysLeft?: number }
+  | {
+      phase: "ready";
+      eligible: boolean;
+      reason?: string;
+      deadline?: string;
+      daysLeft?: number;
+      maxAttemptsReached?: boolean;
+    }
   | { phase: "error" };
 
 /**
@@ -24,17 +31,17 @@ export function computeDaysLeft(deadline?: string): number | undefined {
  * failure (networks hiccup / backend partially unavailable) so the order list
  * never breaks even if eligibility can't be loaded.
  */
-export function useReturnEligibility(orderId: string): EligibilityState {
+export function useReturnEligibility(orderId: string, orderItemId: string): EligibilityState {
   const [state, setState] = useState<EligibilityState>({ phase: "loading" });
 
   const fetchEligibility = useCallback(async (id: string) => {
-    if (!id) {
+    if (!id || !orderItemId) {
       setState({ phase: "ready", eligible: false });
       return;
     }
     setState({ phase: "loading" });
     try {
-      const data = await getReturnEligibility(id);
+      const data = await getReturnEligibility(id, orderItemId);
       const eligible = Boolean(data.eligible);
       setState({
         phase: "ready",
@@ -42,12 +49,13 @@ export function useReturnEligibility(orderId: string): EligibilityState {
         reason: data.reason,
         deadline: data.deadline,
         daysLeft: computeDaysLeft(data.deadline),
+        maxAttemptsReached: data.maxAttemptsReached,
       });
     } catch {
       // Opt for safety: if we can't confirm eligibility, don't offer returns.
       setState({ phase: "error" });
     }
-  }, []);
+  }, [orderItemId]);
 
   useEffect(() => {
     fetchEligibility(orderId);

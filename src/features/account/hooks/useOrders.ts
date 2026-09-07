@@ -23,6 +23,7 @@ interface OrderItem {
   bogoGroupId?: string;
   triggerProductName?: string;
   mrp?: number;
+  returnStatus?: string;
 }
 
 interface Order {

@@ -84,3 +84,4 @@ export { AccountLayout } from "@/app/layouts";
 export { ReturnButton } from "@/features/returns/components/ReturnButton/ReturnButton";
 export { ReturnFormModal } from "@/features/returns/components/ReturnFormModal/ReturnFormModal";
 export { ReturnStatusTracker } from "@/features/returns/components/ReturnStatusTracker/ReturnStatusTracker";
+export { ReturnStatusBadge } from "@/features/returns/components/ReturnStatusBadge/ReturnStatusBadge";

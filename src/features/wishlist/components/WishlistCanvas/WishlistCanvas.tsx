@@ -1,7 +1,8 @@
 import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Heart } from "lucide-react";
 import { useWishlist } from "@/features/wishlist/hooks";
-import { Price } from "@/shared/components";
+import { EmptyState, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import type { WishlistItem as WishlistItemType } from "@/features/wishlist/types";
 
@@ -14,6 +15,11 @@ export const WishlistCanvas = memo(function WishlistCanvas(): JSX.Element | null
   const handleView = (link: string) => {
     close();
     navigate(link);
+  };
+
+  const handleStartShopping = () => {
+    close();
+    navigate("/");
   };
 
   return (
@@ -44,7 +50,20 @@ export const WishlistCanvas = memo(function WishlistCanvas(): JSX.Element | null
         </div>
         <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
           {items.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">Your wishlist is empty.</p>
+            <EmptyState
+              icon={Heart}
+              title="Your wishlist is empty"
+              description="Save the eyewear you love and it will appear here for quick checkout."
+              action={
+                <button
+                  type="button"
+                  onClick={handleStartShopping}
+                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+                >
+                  Start Shopping
+                </button>
+              }
+            />
           ) : (
             <ul className="space-y-4">
               {items.map((item) => (

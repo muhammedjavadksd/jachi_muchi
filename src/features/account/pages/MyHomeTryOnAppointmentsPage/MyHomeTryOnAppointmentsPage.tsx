@@ -1,6 +1,8 @@
 import { memo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { CalendarDays } from "lucide-react";
 import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/components";
+import { EmptyState } from "@/shared/components";
 const HEADER_SPACER_HEIGHT = 110;
 import { api } from "@/shared/lib/axios";
 
@@ -92,22 +94,20 @@ export const MyHomeTryOnAppointmentsPage = memo(function MyHomeTryOnAppointments
                 ))}
               </div>
             ) : appointments.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">No Home Try-On appointments found.</h2>
-                <p className="text-gray-500 mb-6">Schedule a home try-on appointment for a convenient eyewear experience at your doorstep.</p>
-                <button
-                  type="button"
-                  onClick={handleBookAppointment}
-                  className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
-                >
-                  Book Appointment
-                </button>
-              </div>
+              <EmptyState
+                icon={CalendarDays}
+                title="No Home Try-On appointments found"
+                description="Schedule a home try-on appointment for a convenient eyewear experience at your doorstep."
+                action={
+                  <button
+                    type="button"
+                    onClick={handleBookAppointment}
+                    className="px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors"
+                  >
+                    Book Appointment
+                  </button>
+                }
+              />
             ) : (
               <div className="space-y-4">
                 {appointments.map((apt) => (

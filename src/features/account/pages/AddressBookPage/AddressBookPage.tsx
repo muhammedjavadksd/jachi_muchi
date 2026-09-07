@@ -1,6 +1,8 @@
 import { memo, useMemo, useState, useCallback, useEffect, useRef } from "react";
+import { MapPin } from "lucide-react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuth } from "@/features/auth/hooks";
+import { EmptyState } from "@/shared/components";
 import type { AddressData, SaveAddressRequest } from "@/features/auth/types";
 
 interface CountryEntry {
@@ -380,27 +382,22 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
           {addressCards}
         </div>
       ) : (
-        <div className="text-center py-20 bg-gray-50 rounded-2xl border border-gray-200">
-          <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Addresses Saved</h3>
-          <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            Add your first address to make checkout faster and easier.
-          </p>
-          <button
-            onClick={handleAddNew}
-            className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Add Your First Address
-          </button>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title="No Addresses Saved"
+          description="Add your first address to make checkout faster and easier."
+          action={
+            <button
+              onClick={handleAddNew}
+              className="px-8 py-3.5 bg-teal-600 text-white font-medium rounded-2xl hover:bg-teal-700 transition-colors inline-flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Your First Address
+            </button>
+          }
+        />
       )}
 
       {/* Add/Edit Address Modal */}

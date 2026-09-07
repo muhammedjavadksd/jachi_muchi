@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { RotateCcw, Clock } from "lucide-react";
+import { MapPin, RotateCcw, Clock } from "lucide-react";
 import { useReturnEligibility } from "@/features/returns/hooks";
 
 interface ReturnButtonProps {
@@ -13,6 +13,9 @@ interface ReturnButtonProps {
  * Eligibility-driven "Return" entry point for a single delivered order item.
  * Requests GET /api/orders/:orderId/return-eligibility.
  *  - Only renders a "Return" button when eligible is true.
+ *  - When the two-attempt return limit is exhausted (maxAttemptsReached),
+ *    renders a final notice directing the customer to the nearest branch
+ *    instead of offering another return option.
  *  - When not eligible, hides the button entirely (with a small "X days left
  *    to return" notice only if the window is about to expire, i.e. <= 1 day).
  *  - While eligibility loads, a compact skeleton is shown.
@@ -23,7 +26,7 @@ export const ReturnButton = memo(function ReturnButton({
   productName,
   productImage,
 }: ReturnButtonProps): JSX.Element | null {
-  const eligibility = useReturnEligibility(orderId);
+  const eligibility = useReturnEligibility(orderId, orderItemId);
 
   if (eligibility.phase === "loading") {
     return (
@@ -40,7 +43,7 @@ export const ReturnButton = memo(function ReturnButton({
 
   if (eligibility.phase === "error") return null;
 
-  const { eligible, daysLeft } = eligibility;
+  const { eligible, daysLeft, maxAttemptsReached } = eligibility;
 
   if (eligible) {
     return (
@@ -58,6 +61,16 @@ export const ReturnButton = memo(function ReturnButton({
         <RotateCcw className="w-3.5 h-3.5" />
         Return
       </button>
+    );
+  }
+
+  // Both return attempts rejected: the item can no longer be returned online.
+  if (maxAttemptsReached) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+        <MapPin className="w-3.5 h-3.5 shrink-0 text-teal-600" />
+        Return attempts exhausted — please visit your nearest branch for assistance.
+      </span>
     );
   }
 

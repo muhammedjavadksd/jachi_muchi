@@ -106,7 +106,7 @@ export const OrderItemReviewAction = memo(function OrderItemReviewAction({
           type="button"
           onClick={handleOpenModal}
           title={`Edit your review${productName ? ` of ${productName}` : ""}`}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-teal-600 text-teal-700 hover:bg-teal-50 transition-colors active:scale-[0.985]"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white transition-colors active:scale-[0.985]"
         >
           <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
           {ORDER_REVIEW_EDIT_LABEL}

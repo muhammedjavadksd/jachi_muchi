@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { type RouteObject } from "react-router-dom";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute/ProtectedRoute";
 import { AccountLayout } from "@/app/layouts";
 
@@ -16,6 +16,7 @@ const PaymentFailedPage = lazy(() => import("@/features/checkout").then(m => ({ 
 const PaymentPendingPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentPendingPage })));
 const PaymentReturnPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.PaymentReturnPage })));
 const AccountPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountPage })));
+const AccountMyReturnsPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountMyReturnsPage })));
 // const My3DModelPage = lazy(() => import("@/features/account").then(m => ({ default: m.My3DModelPage }))); // [HIDDEN] My 3D Model — uncomment to restore
 const AccountInfoPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountInfoPage })));
 const ManageNotificationsPage = lazy(() => import("@/features/account").then(m => ({ default: m.ManageNotificationsPage })));
@@ -49,7 +50,6 @@ const BrightnessSetupPage = lazy(() => import("@/features/eyetest/pages/Brightne
 const DeviceCheckPage = lazy(() => import("@/features/eyetest/pages/DeviceCheckPage/DeviceCheckPage").then(m => ({ default: m.DeviceCheckPage })));
 const EyeTestApp = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestApp/EyeTestApp").then(m => ({ default: m.EyeTestApp })));
 const TrackOrderPage = lazy(() => import("@/features/orderTracking/pages/TrackOrderPage/TrackOrderPage").then(m => ({ default: m.TrackOrderPage })));
-const MyReturnsPage = lazy(() => import("@/features/returns/pages/MyReturnsPage/MyReturnsPage").then(m => ({ default: m.MyReturnsPage })));
 
 export const routes: RouteObject[] = [
   { path: "/", element: <App /> },
@@ -65,7 +65,9 @@ export const routes: RouteObject[] = [
   { path: "/order-failure", element: <OrderFailurePage /> },
   { path: "/track", element: <TrackOrderPage /> },
   { path: "/track/:orderId", element: <TrackOrderPage /> },
-  { path: "/my-returns", element: <ProtectedRoute><MyReturnsPage /></ProtectedRoute> },
+  // My Returns moved into the account layout (/account/returns) — keep the old
+  // standalone URL working via a redirect.
+  { path: "/my-returns", element: <ProtectedRoute><Navigate to="/account/returns" replace /></ProtectedRoute> },
   { path: "/payment/success", element: <PaymentSuccessPage /> },
   { path: "/payment/failed", element: <PaymentFailedPage /> },
   { path: "/payment/pending", element: <PaymentPendingPage /> },
@@ -78,6 +80,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: "/account", element: <AccountPage /> },
       { path: "/account/orders", element: <AccountPage /> },
+      { path: "/account/returns", element: <AccountMyReturnsPage /> },
       // { path: "/account/3d-model", element: <My3DModelPage /> }, // [HIDDEN] My 3D Model — uncomment to restore
       { path: "/account/info", element: <AccountInfoPage /> },
       { path: "/account/notifications", element: <ManageNotificationsPage /> },

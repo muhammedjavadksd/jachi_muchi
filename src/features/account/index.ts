@@ -3,6 +3,7 @@ export { AccountLayout } from "./components/AccountLayout/AccountLayout";
 
 // Account Pages
 export { AccountPage } from "./pages/AccountPage/AccountPage";
+export { AccountMyReturnsPage } from "./pages/AccountMyReturnsPage/AccountMyReturnsPage";
 export { AccountInfoPage } from "./pages/AccountInfoPage/AccountInfoPage";
 export { AddressBookPage } from "./pages/AddressBookPage/AddressBookPage";
 export { AccountHomeTryOnAppointmentsPage } from "./pages/AccountHomeTryOnAppointmentsPage/AccountHomeTryOnAppointmentsPage";
