@@ -1,12 +1,12 @@
 import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { PromotionHeader, Footer, BottomNav, CenterFocusCarousel } from "@/components";
+import { Footer, BottomNav, CenterFocusCarousel } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NavTab } from "@/app/layouts";
 import { FREE_CHECKUP, NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
 
-const HEADER_SPACER_HEIGHT = 110;
+const HEADER_SPACER_HEIGHT = 144;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
 import { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCarousel";
 import { api } from "@/shared/lib/axios";
@@ -116,9 +116,7 @@ export function HomePage(): JSX.Element {
 
   return (
     <div className="w-full flex flex-col bg-white min-h-screen font-sans overflow-x-hidden">
-      <PromotionHeader />
-
-      <div style={spacerStyle} />
+      <div className="bg-white" style={spacerStyle} />
 
       <main className="flex-1 pb-20 md:pb-0">
 

@@ -1,10 +1,10 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { getCollections } from "@/features/collections/api/collectionApi";
 import { getImageUrl } from "@/shared/utils/image";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 const PLACEHOLDER_IMAGE = "/category/image.png";
 
 export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
@@ -21,7 +21,6 @@ export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 sm:py-8 lg:py-12">

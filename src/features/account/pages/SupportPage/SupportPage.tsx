@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 /** WhatsApp support number – same as floating WhatsApp button */
 const SUPPORT_WHATSAPP_URL = "https://wa.me/918447821891";
@@ -25,7 +25,6 @@ export const SupportPage = memo(function SupportPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 sm:py-12 lg:py-16">

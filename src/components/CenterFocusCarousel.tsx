@@ -251,11 +251,7 @@ export function CenterFocusCarousel(): JSX.Element {
                       <div
                         className="w-full rounded-full"
                       />
-                      {/* EXPLORE button */}
-                      <button className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 mt-4 px-8 py-3 bg-white text-gray-900 text-xs sm:text-sm font-semibold uppercase tracking-widest rounded-full hover:bg-gray-100 transition-colors">
-                        Explore
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
+
                     </div>
                   )}
                 </a>

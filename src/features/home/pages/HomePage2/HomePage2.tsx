@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
-import { HeaderHome2, HEADER_HOME2_SPACER_HEIGHT } from "@/app/layouts";
-import { useScroll } from "@/shared/hooks";
 import {
   TOP_CATEGORIES,
   EYEGLASS_SHAPES,
@@ -16,16 +14,13 @@ import {
  * Home 2 – Modern Editorial Layout (Fully Responsive)
  */
 export function HomePage2(): JSX.Element {
-  const isScrolled = useScroll();
-
   const spacerStyle = useMemo(
-    () => ({ height: `${HEADER_HOME2_SPACER_HEIGHT}px` }),
+    () => ({ height: `144px` }),
     []
   );
 
   return (
     <div className="w-full flex flex-col min-h-screen bg-stone-50">
-      <HeaderHome2 isScrolled={isScrolled} />
       <div style={spacerStyle} />
 
       {/* 1. Editorial Hero */}

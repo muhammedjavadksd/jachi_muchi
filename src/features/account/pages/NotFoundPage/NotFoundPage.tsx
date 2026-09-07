@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 /**
  * 404 Not Found page – shown when the user navigates to a route that doesn't exist
@@ -12,7 +12,6 @@ export const NotFoundPage = memo(function NotFoundPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
       <main className="flex-1 flex items-center justify-center py-16 px-4">
         <Container className="max-w-lg text-center">

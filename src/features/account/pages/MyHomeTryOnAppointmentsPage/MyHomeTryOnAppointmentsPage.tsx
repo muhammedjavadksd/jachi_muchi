@@ -1,9 +1,9 @@
 import { memo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/components";
+import { Footer, WhatsAppButton, Container } from "@/components";
 import { EmptyState } from "@/shared/components";
-const HEADER_SPACER_HEIGHT = 110;
+const HEADER_SPACER_HEIGHT = 144;
 import { api } from "@/shared/lib/axios";
 
 interface Appointment {
@@ -70,7 +70,6 @@ export const MyHomeTryOnAppointmentsPage = memo(function MyHomeTryOnAppointments
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1">

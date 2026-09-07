@@ -1,12 +1,12 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useCartPage } from "@/features/cart/hooks";
 import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 export const CartPage = memo(function CartPage(): JSX.Element {
   const {
@@ -45,7 +45,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   }, [pendingRemoval, handleRemoveItem]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`,
+    height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
   const cartItemsList = useMemo(() =>
@@ -206,7 +206,6 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 md:py-10">

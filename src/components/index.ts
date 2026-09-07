@@ -9,11 +9,7 @@ export { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkel
 export { LoadingScreen } from "@/shared/components/LoadingScreen/LoadingScreen";
 
 // Header Components
-export { Header } from "@/app/layouts";
-export { HeaderHome2, HEADER_HOME2_SPACER_HEIGHT } from "@/app/layouts";
-export { TopUtilityHeader } from "@/app/layouts";
-export { MainNavBar } from "@/app/layouts";
-export { PromotionHeader } from "@/app/layouts";
+export { SiteHeader } from "@/components/SiteHeader";
 
 // Section Components
 export { HeroSlider } from "@/features/home/components/HeroSlider/HeroSlider";

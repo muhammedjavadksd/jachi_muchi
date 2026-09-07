@@ -1,9 +1,9 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { serviceSections } from "@/features/account/constants/servicesData";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const PLACEHOLDER_IMAGE = "/category/image.png";
 
@@ -17,7 +17,6 @@ export const ServicesPage = memo(function ServicesPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-x-hidden">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">

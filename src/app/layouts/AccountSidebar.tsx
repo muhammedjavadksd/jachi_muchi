@@ -39,7 +39,7 @@ const MENU_ITEMS = ALL_MENU_ITEMS.filter(
 );
 
 const SIDEBAR_WIDTH = 280;
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 function getInitials(name: string): string {
   return name
@@ -192,7 +192,7 @@ export const AccountSidebar = memo(function AccountSidebar() {
       <div
         className="hidden lg:block lg:sticky self-start"
         style={{
-          top: `${PROMOTION_HEADER_HEIGHT + 24}px`,
+          top: `${HEADER_SPACER_HEIGHT + 24}px`,
           width: `${SIDEBAR_WIDTH}px`,
           minWidth: `${SIDEBAR_WIDTH}px`,
           maxWidth: `${SIDEBAR_WIDTH}px`,

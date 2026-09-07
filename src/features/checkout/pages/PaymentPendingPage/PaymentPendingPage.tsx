@@ -1,10 +1,10 @@
 import { memo, useMemo, useState, useEffect, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { verifySkipCashPayment } from "@/features/checkout/api/paymentApi";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 const POLL_INTERVAL = 5000;
 
 export const PaymentPendingPage = memo(function PaymentPendingPage(): JSX.Element {
@@ -14,7 +14,7 @@ export const PaymentPendingPage = memo(function PaymentPendingPage(): JSX.Elemen
   const [resolved, setResolved] = useState(false);
 
   const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`,
+    height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
   const checkStatus = useCallback(async () => {
@@ -42,7 +42,6 @@ export const PaymentPendingPage = memo(function PaymentPendingPage(): JSX.Elemen
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">

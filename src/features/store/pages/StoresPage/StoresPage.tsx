@@ -1,7 +1,8 @@
 import { memo, useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { PromotionHeader, Footer, WhatsAppButton } from "@/components";
+import { MapPin, Phone, X } from "lucide-react";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { getStores, findNearestStore } from "@/features/store/api/storeApi";
@@ -10,11 +11,78 @@ import { getImageUrl } from "@/shared/utils/image";
 
 const ALL = "All";
 
+const DEFAULT_STORE_HOURS = "10:00 AM – 9:00 PM";
+
 const PLACEHOLDER_IMG = "https://placehold.co/600x400/f6f6f6/999999?text=Store";
 
 function storeImg(images?: string[]): string {
   return getImageUrl(images?.[0] ?? null, PLACEHOLDER_IMG);
 }
+
+function storeAddress(store: Store): string {
+  return [store.address, store.city, store.state, store.pincode].filter(Boolean).join(", ");
+}
+
+function mapsUrl(store: Store): string {
+  return `https://www.google.com/maps?q=${store.lat},${store.lng}`;
+}
+
+const StoreRow = memo(function StoreRow({ store, index }: { store: Store; index: number }): JSX.Element {
+  const photoOnRight = index % 2 === 1;
+  const hours = store.timings || store.timing || DEFAULT_STORE_HOURS;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] md:gap-10 py-8 md:py-10 border-b border-[#e7e7e7] last:border-b-0">
+      <div className={photoOnRight ? "md:order-2" : "md:order-1"}>
+        <img
+          src={storeImg(store.images)}
+          alt={store.name}
+          loading="lazy"
+          className="w-full h-52 md:w-[260px] md:h-[180px] rounded-2xl object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
+        />
+      </div>
+
+      <div className={`mt-6 md:mt-0 ${photoOnRight ? "md:order-1" : "md:order-2"}`}>
+        <span className="inline-block rounded-full bg-[#e0a638] px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+          {store.city}
+        </span>
+        <h3 className="mt-4 font-serif text-2xl font-bold text-[#1a2733]">{store.name}</h3>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 text-sm">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7683]">Address</p>
+            <p className="mt-1.5 leading-relaxed text-[#1a2733]">{storeAddress(store)}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7683]">Hours</p>
+            <p className="mt-1.5 leading-relaxed text-[#1a2733]">{hours}</p>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <a
+            href={mapsUrl(store)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#137266] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0f5f55]"
+          >
+            <MapPin className="w-4 h-4" />
+            Get Directions
+          </a>
+          {store.phone && (
+            <span className="flex items-center gap-2 text-sm text-[#6b7683]">
+              <Phone className="w-4 h-4 text-[#137266]" />
+              {store.phone}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+StoreRow.displayName = "StoreRow";
 
 export const StoresPage = memo(function StoresPage(): JSX.Element {
   const [searchParams] = useSearchParams();
@@ -65,10 +133,6 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
           setNearestStore(result.store);
           setNearestDistance(result.distance);
           if (result.store.city) setSelectedCity(result.store.city);
-          setTimeout(() => {
-            const el = document.getElementById(`store-${result.store._id}`);
-            el?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }, 200);
         } else {
           toast.error("Could not find nearest store. Try again.");
         }
@@ -106,133 +170,103 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
 
   return (
     <div className="w-full flex flex-col min-h-screen">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">
         <Container>
-          <div className="py-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Our Stores</h1>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleFindNearest}
-                  disabled={locating}
-                  className="px-6 py-3 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-all disabled:opacity-60 whitespace-nowrap"
-                >
-                  {buttonLabel}
-                </button>
-                {nearestStore && (
-                  <button
-                    onClick={handleClearNearest}
-                    className="w-10 h-10 flex items-center justify-center bg-gray-200 text-gray-600 rounded-xl hover:bg-gray-300 transition-all font-bold text-lg"
-                    title="Clear nearest store"
-                  >
-                    ✕
-                  </button>
-                )}
+          <div className="py-10 md:py-14">
+            {/* Page header */}
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
+              <div>
+                <h1 className="font-serif text-4xl md:text-5xl font-bold tracking-tight text-[#1a2733]">
+                  Our Stores
+                </h1>
+                <p className="mt-3 text-base md:text-lg text-[#6b7683]">
+                  Find a Jachi Muchi store near you for eye checkups, fittings and repairs.
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={handleFindNearest}
+                disabled={locating}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#137266] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#0f5f55] disabled:opacity-60"
+              >
+                <MapPin className="w-5 h-5" />
+                {buttonLabel}
+              </button>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              {cities.map(city => (
-                <button
-                  key={city}
-                  onClick={() => setSelectedCity(city)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCity === city ? "bg-teal-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {city === ALL ? "All Cities" : city}
-                </button>
-              ))}
-            </div>
-
-            {nearestStore && (
-              <div className="mb-6 bg-teal-50 border border-teal-300 rounded-2xl overflow-hidden shadow-sm">
-                <div className="flex flex-col sm:flex-row">
-                  <div className="sm:w-48 h-40 shrink-0">
-                    <img
-                    src={storeImg(nearestStore.images)}
-                      alt={nearestStore.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
-                    />
-                  </div>
-                  <div className="flex-1 p-5">
-                    <span className="inline-block bg-teal-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
-                      Nearest Store
-                    </span>
-                    <h3 className="font-semibold text-gray-900 text-lg">{nearestStore.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{nearestStore.address}</p>
-                    <p className="text-sm text-gray-600">{nearestStore.phone}</p>
-                    <p className="text-teal-700 font-semibold text-sm mt-2">
-                      {nearestDistance.toFixed(1)} km away from you
-                    </p>
-                    <a
-                      href={`https://www.google.com/maps?q=${nearestStore.lat},${nearestStore.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-3 px-5 py-2 bg-teal-600 text-white text-sm font-semibold rounded-xl hover:bg-teal-700 transition-all"
+            {/* City chips + result count */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 overflow-x-auto">
+                <div className="flex items-center gap-2 min-w-max">
+                  {cities.map((city) => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => setSelectedCity(city)}
+                      className={`shrink-0 rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${
+                        selectedCity === city
+                          ? "bg-[#137266] border-[#137266] text-white"
+                          : "bg-white border-[#e7e7e7] text-[#1a2733] hover:border-[#137266] hover:text-[#137266]"
+                      }`}
                     >
-                      Get Directions
-                    </a>
+                      {city === ALL ? "All Cities" : city}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="shrink-0 text-sm font-medium text-[#6b7683]">
+                {filteredStores.length} {filteredStores.length === 1 ? "store" : "stores"}
+              </p>
+            </div>
+
+            {/* Nearest store callout */}
+            {nearestStore && (
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#137266]/30 bg-[#137266]/[0.05] px-5 py-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 mt-0.5 shrink-0 text-[#137266]" />
+                  <div>
+                    <p className="font-semibold text-[#1a2733]">{nearestStore.name}</p>
+                    <p className="text-sm text-[#6b7683]">
+                      Your nearest store &middot; {nearestDistance.toFixed(1)} km away
+                    </p>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={mapsUrl(nearestStore)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#137266] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0f5f55]"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    Get Directions
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleClearNearest}
+                    aria-label="Clear nearest store"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-[#6b7683] transition-colors hover:bg-white hover:text-[#1a2733]"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             )}
 
-            {loading ? (
-              <div className="text-center py-12 text-gray-500">Loading stores...</div>
-            ) : filteredStores.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">No stores found in this city.</div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredStores.map((store) => {
-                  const isNearest = nearestStore?._id === store._id;
-                  return (
-                    <div
-                      id={`store-${store._id}`}
-                      key={store._id}
-                      className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition-all ${
-                        isNearest ? "border-teal-500 ring-2 ring-teal-200" : "border-gray-200"
-                      }`}
-                    >
-                      <div className="relative">
-                        <img
-                          src={storeImg(store.images)}
-                          alt={store.name}
-                          className="w-full h-48 object-cover"
-                          loading="lazy"
-                          onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_IMG; }}
-                        />
-                        {isNearest && (
-                          <div className="absolute top-3 left-3 bg-teal-600 text-white text-xs font-bold px-3 py-1.5 rounded-full">
-                            Nearest Store  {nearestDistance.toFixed(1)} km away
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-5">
-                        <h3 className="font-semibold text-gray-900 text-lg mb-2">{store.name}</h3>
-                        <p className="text-sm text-gray-600 mb-1">{store.address}</p>
-                        <p className="text-sm text-gray-600 mb-1">
-                          {store.city}{store.state ? `, ${store.state}` : ""}{store.pincode ? ` - ${store.pincode}` : ""}
-                        </p>
-                        <p className="text-sm text-gray-700 font-medium mt-2">{store.phone}</p>
-                        <a
-                          href={`https://www.google.com/maps?q=${store.lat},${store.lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block mt-4 w-full py-2.5 bg-teal-600 text-white text-sm font-semibold rounded-xl text-center hover:bg-teal-700 transition-all"
-                        >
-                          Get Directions
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* Store list */}
+            <div className="mt-4">
+              {loading ? (
+                <p className="py-20 text-center text-[#6b7683]">Loading stores...</p>
+              ) : filteredStores.length === 0 ? (
+                <p className="py-20 text-center text-[#6b7683]">No stores found in this city.</p>
+              ) : (
+                filteredStores.map((store, index) => (
+                  <StoreRow key={store._id ?? store.id ?? `${store.name}-${index}`} store={store} index={index} />
+                ))
+              )}
+            </div>
           </div>
         </Container>
       </main>

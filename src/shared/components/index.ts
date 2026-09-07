@@ -14,5 +14,4 @@ export { Table } from "@/shared/components/Table";
 export { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 export { Price } from "@/shared/components/Price/Price";
 export { Footer } from "@/shared/components/Footer/Footer";
-export { PromotionHeader } from "@/shared/components/PromotionHeader/PromotionHeader";
 export { PhoneIcon, SearchIcon, HeartIcon, CartIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon } from "@/shared/components/Icons";

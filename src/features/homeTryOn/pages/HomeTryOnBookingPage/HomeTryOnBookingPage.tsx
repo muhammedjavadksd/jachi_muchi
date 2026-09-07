@@ -1,6 +1,6 @@
 import { memo, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/components";
+import { Footer, WhatsAppButton, Container } from "@/components";
 import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { PREFERRED_FRAME_TYPES } from "@/features/product/constants";
 import { api } from "@/shared/lib/axios";
@@ -155,7 +155,6 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
   if (submitted) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <PromotionHeader />
         <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
         <main className="flex-1 flex items-center justify-center">
           <Container>
@@ -213,7 +212,6 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1">

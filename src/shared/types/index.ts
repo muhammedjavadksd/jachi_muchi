@@ -5,16 +5,6 @@ export interface ContainerProps {
   className?: string;
 }
 
-export interface HeaderProps {
-  className?: string;
-  isScrolled?: boolean;
-}
-
-export interface MainNavBarProps {
-  className?: string;
-  isScrolled?: boolean;
-}
-
 export interface GridProps {
   children: ReactNode;
   className?: string;
