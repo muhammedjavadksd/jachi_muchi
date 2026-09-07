@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { getSkipCashSessionStatus } from "@/features/checkout/api/paymentApi";
 import { clearCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
@@ -12,7 +12,7 @@ import {
   SKIPCASH_POLL_TIMEOUT_MS,
 } from "@/features/checkout/constants";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 const MAX_CONSECUTIVE_ERRORS = 3;
 
 type ReturnView = "confirming" | "success" | "failed";
@@ -129,14 +129,13 @@ export const PaymentReturnPage = memo(function PaymentReturnPage(): JSX.Element 
   }, [sessionRef, finalizeSuccess]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`,
+    height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
   const failureCopy = FAILURE_COPY[view === "failed" ? failureKind : "error"];
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">

@@ -1,11 +1,11 @@
 import { memo, useMemo } from "react";
-import { Footer, WhatsAppButton, PromotionHeader, LensSelectionPanel, ProductReviews, StarRating } from "@/components";
+import { Footer, WhatsAppButton, LensSelectionPanel, ProductReviews, StarRating } from "@/components";
 import { SimilarProducts } from "@/features/product/components/SimilarProducts/SimilarProducts";
 import { ProductImageViewer } from "@/features/product/components/ProductImageViewer/ProductImageViewer";
 import { Container, Price } from "@/shared/components";
 import { useProductDetail } from "@/features/product/hooks";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const {
@@ -32,14 +32,13 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
     getOfferLabel,
   } = useProductDetail();
 
-  const spacerStyle = useMemo(() => ({ height: PROMOTION_HEADER_HEIGHT }), []);
+  const spacerStyle = useMemo(() => ({ height: HEADER_SPACER_HEIGHT }), []);
 
   if (loading) return <div className="p-10 text-center">Loading product...</div>;
   if (!product) return <div className="p-10 text-center">Product not found</div>;
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={spacerStyle} />
       <main className="flex-1">
         <Container className="py-6 md:py-10">

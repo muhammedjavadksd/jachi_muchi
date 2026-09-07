@@ -1,14 +1,13 @@
 import { memo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  PromotionHeader,
   Footer,
   WhatsAppButton,
   Container,
 } from "@/components";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const SIX_SIGNS = [
   {
@@ -107,7 +106,6 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">

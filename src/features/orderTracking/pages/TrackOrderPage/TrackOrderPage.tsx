@@ -1,6 +1,6 @@
 import { memo, useCallback, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Price } from "@/shared/components";
 import {
@@ -19,7 +19,6 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { BRAND_LOGO_URL } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
 import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
@@ -209,15 +208,7 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
 
   return (
     <div className="min-h-screen w-full bg-[#0c1018] text-gray-100">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0c1018]/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={BRAND_LOGO_URL} alt="Jachi Muchi" className="h-9 w-auto object-contain" />
-            <span className="text-lg font-bold tracking-tight text-gray-100">Jachi Muchi</span>
-          </Link>
-          <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Track Order</span>
-        </div>
-      </header>
+      <div className="bg-white" style={{ height: "144px" }} />
 
       <main className="mx-auto max-w-2xl px-4 sm:px-6 py-6 space-y-5">
         {state.phase === "idle" && (

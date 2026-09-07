@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Campaign } from "@/features/home/components/Campaign/Campaign";
 import { Container } from "@/shared/components/Container/Container";
 import { Grid } from "@/shared/components/Grid/Grid";
@@ -10,7 +10,7 @@ import { mapProductToCardProps } from "@/features/product/utils/mapProductToCard
 import { useProductSearch } from "@/features/product/hooks";
 import type { OfferBadge } from "@/features/offer/types";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const ProductGrid = memo(function ProductGrid({
   products,
@@ -135,12 +135,11 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   } = useProductSearch();
 
   const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`,
+    height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">

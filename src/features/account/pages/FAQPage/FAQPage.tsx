@@ -1,9 +1,9 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { sizeChartRows, faceSizes, faqData } from "@/features/account/constants/faqData";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 
 
@@ -23,7 +23,6 @@ export const FAQPage = memo(function FAQPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
       <main className="flex-1 py-6 sm:py-8 lg:py-12 pb-16">
         <Container className="max-w-4xl px-4 sm:px-6 lg:px-8">

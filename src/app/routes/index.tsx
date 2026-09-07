@@ -1,7 +1,7 @@
 import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute/ProtectedRoute";
-import { AccountLayout } from "@/app/layouts";
+import { AccountLayout, RootLayout } from "@/app/layouts";
 
 // Lazy-loaded pages from feature locations (NOT old @/pages/)
 const App = lazy(() => import("@/App").then(m => ({ default: m.default })));
@@ -52,67 +52,74 @@ const EyeTestApp = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestApp/
 const TrackOrderPage = lazy(() => import("@/features/orderTracking/pages/TrackOrderPage/TrackOrderPage").then(m => ({ default: m.TrackOrderPage })));
 
 export const routes: RouteObject[] = [
-  { path: "/", element: <App /> },
-  { path: "/home-2", element: <HomePage2 /> },
-  { path: "/search", element: <SearchPage /> },
-  { path: "/search/:category", element: <SearchPage /> },
-  { path: "/category/:category", element: <SearchPage /> },
-  { path: "/product/:id", element: <ProductDetailPage /> },
-  { path: "/wishlist", element: <ProtectedRoute><WishlistPage /></ProtectedRoute> },
-  { path: "/cart", element: <ProtectedRoute><CartPage /></ProtectedRoute> },
-  { path: "/checkout", element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
-  { path: "/order-success/:id", element: <ProtectedRoute><OrderSuccessPage /></ProtectedRoute> },
-  { path: "/order-failure", element: <OrderFailurePage /> },
-  { path: "/track", element: <TrackOrderPage /> },
-  { path: "/track/:orderId", element: <TrackOrderPage /> },
-  // My Returns moved into the account layout (/account/returns) — keep the old
-  // standalone URL working via a redirect.
-  { path: "/my-returns", element: <ProtectedRoute><Navigate to="/account/returns" replace /></ProtectedRoute> },
-  { path: "/payment/success", element: <PaymentSuccessPage /> },
-  { path: "/payment/failed", element: <PaymentFailedPage /> },
-  { path: "/payment/pending", element: <PaymentPendingPage /> },
-  { path: "/payment-return", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
-  // SkipCash gateway return URL (/payment-success?ref=...) — same handler as
-  // /payment-return: resolves the order via ref, then shows OrderSuccessPage
-  { path: "/payment-success", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
   {
-    element: <ProtectedRoute><AccountLayout /></ProtectedRoute>,
+    element: <RootLayout />,
     children: [
-      { path: "/account", element: <AccountPage /> },
-      { path: "/account/orders", element: <AccountPage /> },
-      { path: "/account/returns", element: <AccountMyReturnsPage /> },
-      // { path: "/account/3d-model", element: <My3DModelPage /> }, // [HIDDEN] My 3D Model — uncomment to restore
-      { path: "/account/info", element: <AccountInfoPage /> },
-      { path: "/account/notifications", element: <ManageNotificationsPage /> },
-      { path: "/account/address", element: <AddressBookPage /> },
-      { path: "/account/home-try-on-appointments", element: <AccountHomeTryOnAppointmentsPage /> },
+      { path: "/", element: <App /> },
+      { path: "/home-2", element: <HomePage2 /> },
+      { path: "/search", element: <SearchPage /> },
+      { path: "/search/:category", element: <SearchPage /> },
+      { path: "/category/:category", element: <SearchPage /> },
+      { path: "/product/:id", element: <ProductDetailPage /> },
+      { path: "/wishlist", element: <ProtectedRoute><WishlistPage /></ProtectedRoute> },
+      { path: "/cart", element: <ProtectedRoute><CartPage /></ProtectedRoute> },
+      { path: "/checkout", element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
+      { path: "/order-success/:id", element: <ProtectedRoute><OrderSuccessPage /></ProtectedRoute> },
+      { path: "/order-failure", element: <OrderFailurePage /> },
+      { path: "/track", element: <TrackOrderPage /> },
+      { path: "/track/:orderId", element: <TrackOrderPage /> },
+      // My Returns moved into the account layout (/account/returns) — keep the old
+      // standalone URL working via a redirect.
+      { path: "/my-returns", element: <ProtectedRoute><Navigate to="/account/returns" replace /></ProtectedRoute> },
+      { path: "/payment/success", element: <PaymentSuccessPage /> },
+      { path: "/payment/failed", element: <PaymentFailedPage /> },
+      { path: "/payment/pending", element: <PaymentPendingPage /> },
+      { path: "/payment-return", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
+      // SkipCash gateway return URL (/payment-success?ref=...) — same handler as
+      // /payment-return: resolves the order via ref, then shows OrderSuccessPage
+      { path: "/payment-success", element: <ProtectedRoute><PaymentReturnPage /></ProtectedRoute> },
+      {
+        element: <ProtectedRoute><AccountLayout /></ProtectedRoute>,
+        children: [
+          { path: "/account", element: <AccountPage /> },
+          { path: "/account/orders", element: <AccountPage /> },
+          { path: "/account/returns", element: <AccountMyReturnsPage /> },
+          // { path: "/account/3d-model", element: <My3DModelPage /> }, // [HIDDEN] My 3D Model — uncomment to restore
+          { path: "/account/info", element: <AccountInfoPage /> },
+          { path: "/account/notifications", element: <ManageNotificationsPage /> },
+          { path: "/account/address", element: <AddressBookPage /> },
+          { path: "/account/home-try-on-appointments", element: <AccountHomeTryOnAppointmentsPage /> },
 
+        ],
+      },
+      { path: "/terms", element: <TermsPage /> },
+      { path: "/privacy", element: <PrivacyPage /> },
+      { path: "/refund-policy", element: <RefundPolicyPage /> },
+      { path: "/shipping-policy", element: <ShippingPolicyPage /> },
+      { path: "/faq", element: <FAQPage /> },
+      { path: "/contact", element: <ContactPage /> },
+      { path: "/about", element: <AboutPage /> },
+      { path: "/support", element: <SupportPage /> },
+      { path: "/try-at-home", element: <TryAtHomePage /> },
+      { path: "/home-try-on", element: <HomeTryOnPage /> },
+      { path: "/home-try-on/book", element: <ProtectedRoute><HomeTryOnBookingPage /></ProtectedRoute> },
+      { path: "/my-home-try-on", element: <ProtectedRoute><MyHomeTryOnPage /></ProtectedRoute> },
+      { path: "/my-home-try-on-appointments", element: <ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute> },
+      { path: "/find-nearest-store", element: <FindNearestStorePage /> },
+      { path: "/stores", element: <StoresPage /> },
+      { path: "/warranty", element: <WarrantyPage /> },
+      { path: "/collections", element: <CollectionsPage /> },
+      { path: "/brands", element: <CollectionsPage /> },
+      { path: "/services", element: <ServicesPage /> },
+      { path: "/500", element: <ServerErrorPage /> },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
-  { path: "/terms", element: <TermsPage /> },
-  { path: "/privacy", element: <PrivacyPage /> },
-  { path: "/refund-policy", element: <RefundPolicyPage /> },
-  { path: "/shipping-policy", element: <ShippingPolicyPage /> },
-  { path: "/faq", element: <FAQPage /> },
-  { path: "/contact", element: <ContactPage /> },
-  { path: "/about", element: <AboutPage /> },
-  { path: "/support", element: <SupportPage /> },
-  { path: "/try-at-home", element: <TryAtHomePage /> },
-  { path: "/home-try-on", element: <HomeTryOnPage /> },
-  { path: "/home-try-on/book", element: <ProtectedRoute><HomeTryOnBookingPage /></ProtectedRoute> },
-  { path: "/my-home-try-on", element: <ProtectedRoute><MyHomeTryOnPage /></ProtectedRoute> },
-  { path: "/my-home-try-on-appointments", element: <ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute> },
-  { path: "/find-nearest-store", element: <FindNearestStorePage /> },
-  { path: "/stores", element: <StoresPage /> },
-  { path: "/warranty", element: <WarrantyPage /> },
+  // Immersive online eye-test flow — self-contained screen with its own
+  // branded chrome (back/close navigation), intentionally outside the header.
   { path: "/online-eye-test/screening", element: <VisionScreeningDisclaimerPage /> },
   { path: "/online-eye-test/instructions", element: <BrightnessSetupPage /> },
   { path: "/online-eye-test/device-check", element: <DeviceCheckPage /> },
   { path: "/online-eye-test/app", element: <EyeTestApp /> },
   { path: "/online-eye-test", element: <OnlineEyeTestPage /> },
-  { path: "/collections", element: <CollectionsPage /> },
-  { path: "/brands", element: <CollectionsPage /> },
-  { path: "/services", element: <ServicesPage /> },
-  { path: "/500", element: <ServerErrorPage /> },
-  { path: "*", element: <NotFoundPage /> },
 ];

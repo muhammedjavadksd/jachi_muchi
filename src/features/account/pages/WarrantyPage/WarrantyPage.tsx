@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const FRAME_WARRANTY_ROWS: { issue: string; covered: string; period: string }[] = [
   { issue: "Peeling paint and faded frame", covered: "Yes", period: "1 Year / 6 Months / 15 Days / 10 Days" },
@@ -26,7 +26,6 @@ export const WarrantyPage = memo(function WarrantyPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
       <main className="flex-1 py-8 sm:py-12 lg:py-16">
         <Container className="max-w-3xl px-4 sm:px-6 lg:px-8">

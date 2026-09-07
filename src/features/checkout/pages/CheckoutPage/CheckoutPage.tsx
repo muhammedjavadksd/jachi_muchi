@@ -1,10 +1,10 @@
 import { memo, useRef, useState, useCallback, useEffect } from "react";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { useCheckout } from "@/features/checkout/hooks";
 import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const CHECKOUT_STEPS = [
   { id: "login", label: "Login/Signup" },
@@ -454,8 +454,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
-      <div style={{ height: `${PROMOTION_HEADER_HEIGHT}px` }} />
+      <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1 py-6 md:py-10">
         <Container>

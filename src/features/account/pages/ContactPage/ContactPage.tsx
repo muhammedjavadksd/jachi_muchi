@@ -1,8 +1,8 @@
 import { memo, useMemo, useState } from "react";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { supportCards, serviceLinks, contactInfo } from "@/features/account/constants/contactData";
 import { submitContactMessage } from "@/features/account/api/contactApi";
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 
 
@@ -56,7 +56,6 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 sm:py-12 lg:py-16">

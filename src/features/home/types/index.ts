@@ -63,14 +63,6 @@ export interface HeroSliderProps {
   images: string[];
 }
 
-export interface HeaderProps {
-  isScrolled: boolean;
-}
-
-export interface MainNavBarProps {
-  isScrolled?: boolean;
-}
-
 export interface TopCategoriesProps {
   categories: CategoryItem[];
 }

@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/components";
+import { Footer, WhatsAppButton, Container } from "@/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 const INSTRUCTIONS =
   "Face a light source, align your face, take off your glasses, and tuck your hair behind your ears.";
@@ -111,7 +111,6 @@ export const TryAtHomePage = memo(function TryAtHomePage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 sm:py-10 lg:py-12">

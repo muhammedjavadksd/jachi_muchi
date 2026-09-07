@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 /**
  * Terms of Service page
@@ -11,7 +11,6 @@ export const TermsPage = memo(function TermsPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">
-      <PromotionHeader />
       <div style={spacerStyle} />
       <main className="flex-1 py-6 md:py-10 lg:py-12">
         <Container className="max-w-2xl lg:max-w-3xl">

@@ -18,6 +18,13 @@
   --color-teal-700: #0a4a4a;
   --color-teal-800: #083d3d;
   --color-dark: #0c1018;
+  --color-teal: #0e4b44;
+  --color-teal-deep: #0a3a34;
+  --color-bone: #f7f4ee;
+  --color-ink: #1a1a1a;
+  --color-amber: #d98a2b;
+  --color-teal-tint: #dce7e4;
+  --color-line: rgba(14, 75, 68, 0.12);
 }
 
 @layer base {

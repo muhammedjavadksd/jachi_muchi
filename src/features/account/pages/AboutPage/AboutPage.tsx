@@ -1,8 +1,8 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { PromotionHeader, Footer, WhatsAppButton, Container } from "@/shared/components";
+import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 /**
  * About page – company story, quality, variety, value, contact summary, and trust
@@ -12,7 +12,6 @@ export const AboutPage = memo(function AboutPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">

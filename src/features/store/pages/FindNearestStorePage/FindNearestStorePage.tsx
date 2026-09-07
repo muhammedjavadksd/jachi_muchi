@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, useCallback } from "react";
-import { PromotionHeader, Footer, WhatsAppButton } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { getStores, findNearestStore } from "@/features/store/api/storeApi";
@@ -76,7 +76,6 @@ export const FindNearestStorePage = memo(function FindNearestStorePage(): JSX.El
 
   return (
     <div className="w-full flex flex-col min-h-screen">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1">

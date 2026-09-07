@@ -1,5 +1,4 @@
 // Account Components
-export { AccountLayout } from "./components/AccountLayout/AccountLayout";
 
 // Account Pages
 export { AccountPage } from "./pages/AccountPage/AccountPage";

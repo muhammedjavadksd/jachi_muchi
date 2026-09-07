@@ -1,10 +1,10 @@
 import { memo, useMemo, useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
+import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getOrderById } from "@/features/checkout/api/orderApi";
 
-const PROMOTION_HEADER_HEIGHT = 140;
+const HEADER_SPACER_HEIGHT = 144;
 
 interface OrderItem {
   id?: string;
@@ -106,7 +106,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   }, [id]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${PROMOTION_HEADER_HEIGHT}px`,
+    height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
   const safeItems = useMemo(() => order?.items || [], [order]);
@@ -154,7 +154,6 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   if (loading) {
     return (
       <div className="w-full min-h-screen flex flex-col bg-gray-50">
-        <PromotionHeader />
         <div style={spacerStyle} />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-gray-500 text-lg">Loading order...</p>
@@ -168,7 +167,6 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   if (!order) {
     return (
       <div className="w-full min-h-screen flex flex-col bg-gray-50">
-        <PromotionHeader />
         <div style={spacerStyle} />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-gray-500 text-lg">Order not found</p>
@@ -181,7 +179,6 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <PromotionHeader />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">
