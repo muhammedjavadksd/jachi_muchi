@@ -36,6 +36,8 @@ export const ReturnFormModal = memo(function ReturnFormModal(): JSX.Element | nu
   const [attempted, setAttempted] = useState(false);
   const billInputRef = useRef<HTMLInputElement>(null);
   const productInputRef = useRef<HTMLInputElement>(null);
+  const billSeqRef = useRef(0);
+  const productSeqRef = useRef(0);
   const { state, submit, reset } = useSubmitReturn();
 
   const open = Boolean(payload);
@@ -74,19 +76,37 @@ export const ReturnFormModal = memo(function ReturnFormModal(): JSX.Element | nu
 
   const handleBillChange = useCallback((file: File | null) => {
     setBillFile(file);
-    if (file) setBillError(validateReturnImage(file));
+    if (!file) {
+      setBillError("");
+      billSeqRef.current += 1;
+      return;
+    }
+    const seq = ++billSeqRef.current;
+    void validateReturnImage(file).then((err) => {
+      if (seq === billSeqRef.current) setBillError(err);
+    });
   }, []);
 
   const handleProductChange = useCallback((file: File | null) => {
     setProductFile(file);
-    if (file) setProductError(validateReturnImage(file));
+    if (!file) {
+      setProductError("");
+      productSeqRef.current += 1;
+      return;
+    }
+    const seq = ++productSeqRef.current;
+    void validateReturnImage(file).then((err) => {
+      if (seq === productSeqRef.current) setProductError(err);
+    });
   }, []);
 
   const handleSubmit = async () => {
     if (!payload) return;
     setAttempted(true);
-    const billErr = validateReturnImage(billFile);
-    const productErr = validateReturnImage(productFile);
+    const [billErr, productErr] = await Promise.all([
+      validateReturnImage(billFile),
+      validateReturnImage(productFile),
+    ]);
     setBillError(billErr);
     setProductError(productErr);
     if (billErr || productErr || !reason) return;
@@ -100,12 +120,13 @@ export const ReturnFormModal = memo(function ReturnFormModal(): JSX.Element | nu
     });
   };
 
-  // On success, confirm then close the form and go to the returns list.
+  // On success, confirm then close the form and return to "My Orders" — the
+  // return's progress is tracked under the "My Returns" sidebar section.
   useEffect(() => {
     if (state.phase !== "success") return;
     toast.success(RETURN_SUCCESS_MESSAGE);
     setPayload(null);
-    navigate("/my-returns");
+    navigate("/account/orders");
   }, [state.phase, navigate]);
 
   if (!open) return null;

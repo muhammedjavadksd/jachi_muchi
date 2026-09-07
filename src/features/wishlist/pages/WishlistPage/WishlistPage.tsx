@@ -1,7 +1,8 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
 import { Footer, WhatsAppButton, PromotionHeader } from "@/components";
-import { Container, Price } from "@/shared/components";
+import { Container, EmptyState, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useWishlist } from "@/features/wishlist/hooks";
 
@@ -28,15 +29,19 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
           {loading ? (
             <div className="text-center py-20 text-gray-500">Loading wishlist...</div>
           ) : items.length === 0 ? (
-            <div className="text-center py-20 text-gray-500">
-              <p>Your wishlist is empty</p>
-              <Link
-                to="/"
-                className="mt-4 inline-block px-6 py-3 bg-teal-700 text-white font-semibold rounded-2xl hover:bg-teal-800 transition-all"
-              >
-                Start Shopping
-              </Link>
-            </div>
+            <EmptyState
+              icon={Heart}
+              title="Your wishlist is empty"
+              description="Save the eyewear you love and it will show up here, ready when you are."
+              action={
+                <Link
+                  to="/"
+                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+                >
+                  Start Shopping
+                </Link>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {items.map((item) => (

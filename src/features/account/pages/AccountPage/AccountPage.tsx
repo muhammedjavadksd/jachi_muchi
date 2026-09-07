@@ -1,8 +1,10 @@
 import { memo, useState, useEffect, useRef, useMemo } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Package } from "lucide-react";
 import { ORDER_CANCELLED_REFUND_NOTE } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
-import { Price } from "@/shared/components";
+import { EmptyState, Price } from "@/shared/components";
 import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { useOrders } from "@/features/account/hooks";
@@ -11,6 +13,13 @@ import { useAuth } from "@/features/auth/hooks";
 import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
 import { OrderItemReviewAction } from "@/features/review/components/OrderItemReviewAction/OrderItemReviewAction";
 import { ReturnButton } from "@/features/returns/components/ReturnButton/ReturnButton";
+import { ReturnStatusBadge } from "@/features/returns/components/ReturnStatusBadge/ReturnStatusBadge";
+import { ReturnAgainButton } from "@/features/returns/components/ReturnAgainButton/ReturnAgainButton";
+import {
+  RETURN_STATUS_KEY_BY_VALUE,
+} from "@/features/returns/constants";
+import type { OrderItemReturnInfo } from "@/features/returns/hooks/useOrderReturnStatus";
+import { useOrderReturnStatus } from "@/features/returns/hooks";
 
 interface CountryEntry {
   name: string;
@@ -134,6 +143,7 @@ interface OrderItem {
   bogoGroupId?: string;
   triggerProductName?: string;
   mrp?: number;
+  returnStatus?: string;
 }
 
 interface Order {
@@ -161,6 +171,124 @@ interface Order {
 const getItemProductId = (item: OrderItem): string | undefined =>
   item.productId || item._id || undefined;
 
+interface ReturnResolution {
+  /** Normalized return status ready for the badge, if a return exists. */
+  status?: string;
+  /** Admin's actual rejection reason. */
+  rejectionReason?: string;
+  /** True when the item was rejected but still has one retry attempt left. */
+  canRetry?: boolean;
+  /** True when the backend/snapshot says both return attempts are used up. */
+  isFinalRejection?: boolean;
+}
+
+type ItemReturnLookup = (orderId: string, orderItemId: string) => OrderItemReturnInfo | undefined;
+
+const NO_RETURN: ReturnResolution = {};
+
+/**
+ * Resolve the true return state of an order item by cross-referencing the
+ * fetched /returns/my data (keyed by order + item) with the order API's
+ * `returnStatus` snapshot. The live returns lookup takes precedence so a
+ * rejected/adjusted state is reflected even if the order snapshot is stale.
+ * A return exists whenever the returned status is set — regardless of whether
+ * it is in progress, completed or rejected.
+ */
+const resolveItemReturn = (
+  order: Order,
+  item: OrderItem,
+  getItemReturn: ItemReturnLookup,
+  isOrderFinalRejected: (orderId: string) => boolean
+): ReturnResolution => {
+  const orderId = order._id || order.id || "";
+  const itemId = getItemProductId(item) || "";
+  const fetched = orderId && itemId ? getItemReturn(orderId, itemId) : undefined;
+
+  const status = fetched ? fetched.statusKey : item.returnStatus;
+
+  // Fetched status is already a normalized ReturnStatusKey; the order snapshot
+  // status is normalized via RETURN_STATUS_KEY_BY_VALUE.
+  const normalized = status ? RETURN_STATUS_KEY_BY_VALUE[status] || status : undefined;
+  if (!normalized) return NO_RETURN;
+
+  if (fetched) {
+    return {
+      status: normalized,
+      rejectionReason: fetched.rejectionReason,
+      canRetry: fetched.canRetry,
+      isFinalRejection: fetched.isFinalRejection,
+    };
+  }
+
+  // Snapshot-only fallback: check the backend's maxAttemptsReached/
+  // finalRejection flag at the order level (any record for this order that
+  // explicitly marks a final rejection). If set, the item is final — no retry,
+  // mirroring the "Return Discontinued" state on "My Returns".
+  const final = normalized === "rejected" && isOrderFinalRejected(orderId);
+  return {
+    status: normalized,
+    canRetry: normalized === "rejected" && !final,
+    isFinalRejection: final,
+  };
+};
+
+/**
+ * Render the correct per-item return control based on the item's true return
+ * status:
+ *  - No prior return        -> eligibility-driven "Return" button.
+ *  - In progress/completed  -> read-only status badge (no action offered).
+ *  - First rejection        -> status badge + a one-chance "Return Again"
+ *    button that reopens the return-request flow.
+ *  - Final (2nd) rejection  -> status badge + the final rejection message and
+ *    NO further return action for the item.
+ */
+const renderReturnAction = (
+  order: Order,
+  item: OrderItem,
+  getItemReturn: ItemReturnLookup,
+  isOrderFinalRejected: (orderId: string) => boolean
+): JSX.Element => {
+  const resolved = resolveItemReturn(order, item, getItemReturn, isOrderFinalRejected);
+
+  if (!resolved.status) {
+    return (
+      <ReturnButton
+        orderId={order._id || order.id || ""}
+        orderItemId={getItemProductId(item) || ""}
+        productName={item.name}
+        productImage={item.image}
+      />
+    );
+  }
+
+  if (resolved.status === "rejected") {
+    return (
+      <span className="inline-flex flex-wrap items-center gap-2">
+        <ReturnStatusBadge
+          status={resolved.status}
+          rejectionReason={resolved.rejectionReason}
+          finalRejection={resolved.isFinalRejection}
+        />
+        {resolved.canRetry && (
+          <ReturnAgainButton
+            orderId={order._id || order.id || ""}
+            orderItemId={getItemProductId(item) || ""}
+            productName={item.name}
+            productImage={item.image}
+          />
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <ReturnStatusBadge
+      status={resolved.status}
+      rejectionReason={resolved.rejectionReason}
+    />
+  );
+};
+
 const OrderDrawer = memo(function OrderDrawer({
   order,
   isOpen,
@@ -168,6 +296,8 @@ const OrderDrawer = memo(function OrderDrawer({
   onCancelSuccess,
   onPayNow,
   isProcessingPayment,
+  getItemReturn,
+  isOrderFinalRejected,
 }: {
   order: Order | null;
   isOpen: boolean;
@@ -175,6 +305,8 @@ const OrderDrawer = memo(function OrderDrawer({
   onCancelSuccess?: (orderId: string) => void;
   onPayNow?: (order: Order) => void;
   isProcessingPayment?: boolean;
+  getItemReturn: ItemReturnLookup;
+  isOrderFinalRejected: (orderId: string) => boolean;
 }): JSX.Element | null {
 
   const { user } = useAuth();
@@ -374,6 +506,24 @@ const OrderDrawer = memo(function OrderDrawer({
     }
   };
 
+  const handleReturnOrder = () => {
+    if (!order?._id) return;
+    const returnableItem = order.items?.find(
+      (item) => getItemProductId(item) && !resolveItemReturn(order, item, getItemReturn, isOrderFinalRejected).status
+    );
+    if (!returnableItem) return;
+    window.dispatchEvent(
+      new CustomEvent("return:open-form", {
+        detail: {
+          orderId: order._id,
+          orderItemId: getItemProductId(returnableItem) || "",
+          productName: returnableItem.name,
+          productImage: returnableItem.image,
+        },
+      })
+    );
+  };
+
   const getTrackingSteps = () => {
     const timeline = order.statusTimeline || [];
 
@@ -513,12 +663,7 @@ const OrderDrawer = memo(function OrderDrawer({
                     )}
                     {displayStatus === "delivered" && order._id && getItemProductId(item) && (
                       <div className="mt-2.5">
-                        <ReturnButton
-                          orderId={order._id}
-                          orderItemId={getItemProductId(item) || ""}
-                          productName={item.name}
-                          productImage={item.image}
-                        />
+                        {renderReturnAction(order, item, getItemReturn, isOrderFinalRejected)}
                       </div>
                     )}
                   </div>
@@ -641,6 +786,12 @@ const OrderDrawer = memo(function OrderDrawer({
             {displayStatus === "delivered" && (
               <button onClick={handleReorder} disabled={reorderLoading} className="w-full py-3 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {reorderLoading ? "Adding to cart..." : "Reorder"}
+              </button>
+            )}
+
+            {displayStatus === "delivered" && order.items?.some((item) => getItemProductId(item) && !resolveItemReturn(order, item, getItemReturn, isOrderFinalRejected).status) && (
+              <button onClick={handleReturnOrder} className="w-full py-3 bg-white text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors border border-red-200 flex items-center justify-center gap-2">
+                Return Order
               </button>
             )}
           </div>
@@ -843,6 +994,8 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
     getStatusColors,
   } = useOrders();
 
+  const { getItemReturn, isOrderFinalRejected } = useOrderReturnStatus();
+
   const [ordersPerPage, setOrdersPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersTopRef = useRef<HTMLDivElement>(null);
@@ -885,7 +1038,19 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         )}
 
         {!loading && mappedOrders.length === 0 && (
-          <div className="text-center py-20 text-gray-500">No orders found</div>
+          <EmptyState
+            icon={Package}
+            title="No orders yet"
+            description="When you place an order, it will show up here so you can track its status."
+            action={
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+              >
+                Start Shopping
+              </Link>
+            }
+          />
         )}
 
         {!loading && pagedOrders.map((order) => {
@@ -958,12 +1123,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
           <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg pl-2.5 pr-1 py-1">
             <span className="text-xs text-gray-600 truncate max-w-[120px] sm:max-w-[180px]">{item.name}</span>
             <OrderItemReviewAction productId={reviewProductId} productName={item.name} />
-            <ReturnButton
-              orderId={order._id || order.id || ""}
-              orderItemId={reviewProductId}
-              productName={item.name}
-              productImage={item.image}
-            />
+            {renderReturnAction(order, item, getItemReturn, isOrderFinalRejected)}
           </div>
         );
       })}
@@ -1072,6 +1232,8 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         onCancelSuccess={handleOrderCancel}
         onPayNow={handlePayNow}
         isProcessingPayment={payNowLoading === (selectedOrder?._id || selectedOrder?.id)}
+        getItemReturn={getItemReturn}
+        isOrderFinalRejected={isOrderFinalRejected}
       />
     </>
   );

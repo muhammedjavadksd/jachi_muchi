@@ -5,6 +5,13 @@ import {
   RETURN_TRACKING_STEPS,
 } from "@/features/returns/constants";
 import type { MyReturnItem, ReturnStatusKey } from "@/features/returns/types";
+import { dedupeReturns } from "@/features/returns/helpers/dedupeReturns";
+import {
+  countAttemptedRejections,
+  extractRejectionNote,
+  extractRejectionReason,
+  isFinalRejection,
+} from "@/features/returns/helpers/returnResolution";
 
 type MyReturnsState =
   | { phase: "loading" }
@@ -21,6 +28,7 @@ export interface ReturnTimelineStep {
 export interface NormalizedReturn {
   id: string;
   orderId: string;
+  orderItemId: string;
   statusKey: ReturnStatusKey;
   statusLabel: string;
   reason: string;
@@ -30,6 +38,10 @@ export interface NormalizedReturn {
   productImageSrc?: string;
   billImageSrc?: string;
   rejectionReason?: string;
+  /** Optional customer-safe note attached to the rejection (if any). */
+  rejectionNote?: string;
+  isFinalRejection: boolean;
+  canRetry: boolean;
   steps: ReturnTimelineStep[];
 }
 
@@ -111,12 +123,23 @@ export function useMyReturns() {
   /** Re-fetch the list (e.g. after the user submits a new return). */
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
+  const rawReturns = state.phase === "ready" ? state.returns : [];
+
   const returns: NormalizedReturn[] = state.phase === "ready"
-    ? state.returns.map((item, index) => {
+    ? dedupeReturns(state.returns).map((item, index) => {
         const statusKey = RETURN_STATUS_KEY_BY_VALUE[normalize(item.status)] || "requested";
+        const rejectionReason = extractRejectionReason(item);
+        const rejectedCount = countAttemptedRejections(
+          rawReturns,
+          item.orderId,
+          item.orderItemId
+        );
+        const finalRejection =
+          statusKey === "rejected" && isFinalRejection(item, rejectedCount);
         return {
           id: item._id || item.returnId || `return-${index}`,
           orderId: item.orderId || item.returnId || item._id || "N/A",
+          orderItemId: item.orderItemId || "",
           statusKey,
           statusLabel: RETURN_TRACKING_STEPS.find((s) => s.key === statusKey)?.label || "Requested",
           reason: item.reason || "",
@@ -124,11 +147,14 @@ export function useMyReturns() {
           productImage: item.product?.image,
           productImageSrc: item.productImage,
           billImageSrc: item.billImage,
-          rejectionReason: item.rejectionReason,
+          rejectionReason,
+          rejectionNote: extractRejectionNote(item),
+          isFinalRejection: finalRejection,
+          canRetry: statusKey === "rejected" && !finalRejection,
           steps: buildSteps(item),
         };
       })
     : [];
 
-  return { state, returns, refetch };
+  return { state, rawReturns, returns, refetch };
 }

@@ -1,6 +1,7 @@
 export { Button } from "@/shared/components/Button";
 export { AutoScrollCarousel } from "@/shared/components/AutoScrollCarousel/AutoScrollCarousel";
 export { Container } from "@/shared/components/Container/Container";
+export { EmptyState } from "@/shared/components/EmptyState/EmptyState";
 export { Grid } from "@/shared/components/Grid/Grid";
 export { ImageCard } from "@/shared/components/ImageCard/ImageCard";
 export { Input } from "@/shared/components/Input";

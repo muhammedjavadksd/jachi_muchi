@@ -13,6 +13,23 @@ export const RETURN_REASONS: ReturnReason[] = [
 export const RETURN_SUCCESS_MESSAGE =
   "Return order processing, shortly you will get a confirmation message.";
 
+/** Label for the one-chance retry action shown after a first rejection. */
+export const RETURN_AGAIN_LABEL = "Return Again";
+
+/** Label shown when the customer used up their second (final) return attempt. */
+export const RETURN_DISCONTINUED_LABEL = "Return Discontinued";
+
+/** Shown when a return was rejected but no reason was provided by admin. */
+export const RETURN_REJECTED_FALLBACK_MESSAGE =
+  "This return request was not approved. Please contact support for more details.";
+
+/** Label prefix for the optional customer-safe note attached to a rejection. */
+export const RETURN_REJECTION_NOTE_LABEL = "Additional note from support:";
+
+/** Shown when the customer used up their second (final) return attempt. */
+export const RETURN_FINAL_REJECTION_MESSAGE =
+  "This return request was not approved a second time. Please visit your nearest branch for further assistance.";
+
 export const RETURN_IMAGE_MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 export const RETURN_IMAGE_ACCEPTED_TYPES = [
@@ -46,6 +63,20 @@ export const RETURN_STATUS_KEY_BY_VALUE: Record<string, ReturnStatusKey> = {
   rejected: "rejected",
   declined: "rejected",
   cancelled: "rejected",
+};
+
+/**
+ * Progress rank per ReturnStatusKey. When the API reports multiple records for
+ * the same order item (e.g. a re-request history where one was rejected and a
+ * later one refunded), the most-advanced status wins so the UI shows a single
+ * accurate card.
+ */
+export const RETURN_STATUS_RANK: Record<ReturnStatusKey, number> = {
+  requested: 0,
+  rejected: 1,
+  accepted: 2,
+  collected: 3,
+  refunded: 4,
 };
 
 export const RETURN_STATUS_META: Record<

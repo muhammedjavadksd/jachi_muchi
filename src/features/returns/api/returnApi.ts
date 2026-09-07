@@ -8,12 +8,34 @@ import type {
 
 /**
  * Fetch return eligibility for a single delivered order item.
- * GET /api/orders/:orderId/return-eligibility
+ * GET /api/returns/eligibility?orderId=...&orderItemId=...
  * Returns { eligible, reason?, deadline? }.
  */
-export const getReturnEligibility = async (orderId: string): Promise<ReturnEligibility> => {
-  const res = await api.get(`/orders/${encodeURIComponent(orderId)}/return-eligibility`);
-  return res.data;
+export const getReturnEligibility = async (orderId: string, orderItemId: string): Promise<ReturnEligibility> => {
+  const res = await api.get<{
+    success: boolean;
+    data?: {
+      eligible?: boolean;
+      message?: string;
+      daysRemaining?: number | null;
+      maxAttemptsReached?: boolean;
+      rejectionReason?: string;
+    };
+  }>(
+    "/returns/eligibility",
+    { params: { orderId, orderItemId } }
+  );
+  const data = res.data?.data;
+  return {
+    eligible: Boolean(data?.eligible),
+    reason: data?.message,
+    maxAttemptsReached: Boolean(data?.maxAttemptsReached),
+    rejectionReason: data?.rejectionReason,
+    deadline:
+      data?.daysRemaining != null
+        ? new Date(Date.now() + data.daysRemaining * 24 * 60 * 60 * 1000).toISOString()
+        : undefined,
+  };
 };
 
 /**
