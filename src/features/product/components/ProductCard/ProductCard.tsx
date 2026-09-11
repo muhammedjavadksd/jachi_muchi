@@ -2,6 +2,7 @@ import { memo, useMemo, useState, useCallback } from "react";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { getImageUrl } from "@/shared/utils/image";
 import { Price } from "@/shared/components";
+import { StarRating } from "@/features/review/components/StarRating/StarRating";
 import type { ProductCardProps } from "@/features/product/types";
 
 const FALLBACK_IMAGE = "https://placehold.co/400x300?text=Eyewear";
@@ -105,19 +106,20 @@ export const ProductCard = memo(function ProductCard({
         </button>
       </div>
       <div className="p-4 flex-1 flex flex-col">
-        {!!rating && (
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-teal-700 text-white text-xs px-2 py-1 rounded-md font-semibold">
-              {rating}
-            </span>
-            {!!reviews && (
-              <span className="text-gray-500 text-xs">{reviews.toLocaleString()}</span>
-            )}
-          </div>
-        )}
         <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{name}</h3>
         {description && (
           <p className="text-xs text-gray-500 mt-1 line-clamp-2 min-h-[32px]">{description}</p>
+        )}
+        {!!rating && (
+          <div className="flex items-center mt-2">
+            <span className="inline-flex items-center gap-1 rounded-md bg-gray-50 border border-gray-200 px-1.5 py-0.5">
+              <StarRating value={rating} readOnly size="sm" maxRating={1} />
+              <span className="text-xs font-semibold text-gray-800 leading-none">{rating.toFixed(1)}</span>
+            </span>
+            {!!reviews && (
+              <span className="text-xs text-gray-500 leading-none ml-1.5">({reviews.toLocaleString()})</span>
+            )}
+          </div>
         )}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3">
           <Price value={price} originalValue={originalPrice && originalPrice > price ? originalPrice : undefined} discount={discount} size="lg" />

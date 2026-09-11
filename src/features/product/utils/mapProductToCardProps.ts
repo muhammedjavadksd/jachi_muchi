@@ -26,6 +26,16 @@ export type ProductCardViewModel = ProductCardProps & {
 
 type OfferBadgeResolver = (productId: string, price: number) => OfferBadge | null;
 
+/**
+ * Resolve the first valid, positive numeric value among candidate rating/count
+ * fields. The product payload can carry stale zeroed placeholders (rating: 0,
+ * reviewCount: 0) alongside the live aggregates (ratingAverage, ratingCount),
+ * so zero/empty values must be skipped — the card should only display a rating
+ * when real data exists.
+ */
+const resolvePositiveNumber = (...values: unknown[]): number | undefined =>
+  values.find((v): v is number => typeof v === "number" && Number.isFinite(v) && v > 0);
+
 export function mapProductToCardProps(
   product: Record<string, any>,
   getOfferBadge: OfferBadgeResolver
@@ -61,8 +71,8 @@ export function mapProductToCardProps(
     price: product.price,
     originalPrice: product.mrp > product.price ? product.mrp : undefined,
     discount,
-    rating: product.rating ?? product.ratingAverage ?? undefined,
-    reviews: product.reviewCount ?? product.ratingCount ?? undefined,
+    rating: resolvePositiveNumber(product.ratingAverage, product.rating, product.averageRating),
+    reviews: resolvePositiveNumber(product.ratingCount, product.reviewCount, product.totalReviews),
     colors: colors.length > 0 ? colors : undefined,
     link: `/product/${product._id}`,
     offerLabel: offerBadge?.label,
