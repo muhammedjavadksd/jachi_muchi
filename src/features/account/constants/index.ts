@@ -21,8 +21,9 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
     ],
   },
   {
-    title: "About Us",
+    title: "Company",
     links: [
+      { label: "About Us", href: "/about" },
       { label: "Who We Are", href: "/about" },
       { label: "We Are Hiring", href: "/careers" },
       { label: "Refer And Earn", href: "/refer" },
@@ -33,9 +34,20 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
     title: "Help",
     links: [
       { label: "Support", href: "/support" },
-      { label: "FAQ's", href: "/faq" },
+      { label: "FAQs", href: "/faq" },
+      { label: "Contact Us", href: "/contact" },
       { label: "Grievance Redressal", href: "/grievance" },
-      { label: "Cardemi", href: "/cardemi" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Disclaimer", href: "/disclaimer" },
+      { label: "Return Policy", href: "/refund-policy" },
+      { label: "Shipping Policy", href: "/shipping-policy" },
+      { label: "Cookies Settings", href: "/cookies" },
     ],
   },
 ];
