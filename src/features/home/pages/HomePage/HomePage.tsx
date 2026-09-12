@@ -1,10 +1,9 @@
-import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Footer, BottomNav, CenterFocusCarousel } from "@/components";
+import { Footer, CenterFocusCarousel } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
-import { NavTab } from "@/app/layouts";
-import { FREE_CHECKUP, NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
+import { NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
 
 const HEADER_SPACER_HEIGHT = 144;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
@@ -17,7 +16,6 @@ import { getBrands } from "@/features/product/api/brandApi";
 import type { BrandItem } from "@/features/product/types";
 import { BrandsSection } from "@/features/home/components/BrandsSection/BrandsSection";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
-import { useWishlist } from "@/features/wishlist/hooks";
 
 const HeroSlider = lazy(() => import("@/features/home/components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const Campaign = lazy(() => import("@/features/home/components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
@@ -30,8 +28,6 @@ const BeMoreBanner = lazy(() => import("@/features/home/components/BeMoreBanner/
 const WaysToShop = lazy(() => import("@/features/home/components/WaysToShop/WaysToShop").then(m => ({ default: m.WaysToShop })));
 
 export function HomePage(): JSX.Element {
-  const [activeTab, setActiveTab] = useState<NavTab>("home");
-  const [orderCount] = useState(2);
   const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -41,7 +37,6 @@ export function HomePage(): JSX.Element {
   const [collections, setCollections] = useState<any[]>([]);
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const { isAuthenticated } = useAuth();
-  const { open: openWishlist } = useWishlist();
   const { open: openLogin } = useLoginModal();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -62,18 +57,6 @@ export function HomePage(): JSX.Element {
       }
     }
   }, [isAuthenticated, navigate]);
-
-  const handleTabChange = useCallback((tab: NavTab) => {
-    if (tab === "wishlist") {
-      if (isAuthenticated) {
-        openWishlist();
-      } else {
-        navigate("/wishlist");
-      }
-      return;
-    }
-    setActiveTab(tab);
-  }, [openWishlist, isAuthenticated, navigate]);
 
   useEffect(() => {
     api.get("/categories")
@@ -118,7 +101,7 @@ export function HomePage(): JSX.Element {
     <div className="w-full flex flex-col bg-white min-h-screen font-sans overflow-x-hidden">
       <div className="bg-white" style={spacerStyle} />
 
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className="flex-1">
 
         <Suspense fallback={<LoadingSkeleton />}>
           {!bannersLoaded ? (
@@ -262,12 +245,6 @@ export function HomePage(): JSX.Element {
       <Footer />
 
       <WhatsAppButton />
-
-      <BottomNav
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        orderCount={orderCount}
-      />
     </div>
   );
 }
