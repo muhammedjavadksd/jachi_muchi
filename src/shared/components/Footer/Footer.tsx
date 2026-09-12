@@ -6,7 +6,7 @@ import type { FooterLink } from "@/shared/types";
 
 const FOOTER_BACKGROUND = "#0c1018";
 const COPYRIGHT_TEXT = "© 2026 Jachi & Muchi";
-const FOOTER_LINK_CLASSES = "text-gray-400 text-sm hover:text-white transition-colors";
+const FOOTER_LINK_CLASSES = "text-gray-300 text-sm hover:text-white transition-colors";
 const FACEBOOK_URL = "https://facebook.com";
 const INSTAGRAM_URL = "https://instagram.com";
 
@@ -15,7 +15,6 @@ const FOOTER_BOTTOM_LINKS: FooterLink[] = [
   { label: "Terms & Conditions", href: "/terms" },
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Disclaimer", href: "/disclaimer" },
-  { label: "Cookies Settings", href: "/cookies" },
 ];
 
 /**
@@ -89,7 +88,7 @@ export const Footer = memo(function Footer(): JSX.Element {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-6 py-4 sm:py-5">
             {/* Copyright and Legal Links */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
-              <p className="text-gray-400 text-sm">{COPYRIGHT_TEXT}</p>
+              <p className="text-gray-300 text-sm">{COPYRIGHT_TEXT}</p>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5">
                 {bottomBarLinks}
               </div>
@@ -102,7 +101,7 @@ export const Footer = memo(function Footer(): JSX.Element {
                 href={FACEBOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-300 hover:text-white transition-colors"
                 aria-label="Facebook"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -115,7 +114,7 @@ export const Footer = memo(function Footer(): JSX.Element {
                 href={INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-300 hover:text-white transition-colors"
                 aria-label="Instagram"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

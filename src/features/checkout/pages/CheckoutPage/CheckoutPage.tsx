@@ -3,6 +3,7 @@ import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { useCheckout } from "@/features/checkout/hooks";
 import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
+import { ConfirmModal } from "@/shared/components/ConfirmModal/ConfirmModal";
 
 const HEADER_SPACER_HEIGHT = 144;
 
@@ -414,6 +415,8 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     totalPayable,
     fittingFee,
     isModalOpen,
+    setAddressConfirmOpen,
+    addressConfirmOpen,
     editingAddressId,
     setEditingAddressId,
     handleSelectAddress,
@@ -682,6 +685,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
         onRemoveCoupon={handleRemoveCoupon}
         onCouponInputChange={handleCouponInputChange}
         onCopyCoupon={handleCopyCoupon}
+      />
+      <ConfirmModal
+        isOpen={addressConfirmOpen}
+        title="Select a Delivery Address"
+        message="Please select a delivery address before placing your order."
+        onConfirm={() => setAddressConfirmOpen(false)}
+        onClose={() => setAddressConfirmOpen(false)}
       />
     </div>
   );

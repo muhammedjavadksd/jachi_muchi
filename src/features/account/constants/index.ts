@@ -25,9 +25,6 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Who We Are", href: "/about" },
-      { label: "We Are Hiring", href: "/careers" },
-      { label: "Refer And Earn", href: "/refer" },
-      { label: "Coupons", href: "/coupons" },
     ],
   },
   {
@@ -36,7 +33,6 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
       { label: "Support", href: "/support" },
       { label: "FAQs", href: "/faq" },
       { label: "Contact Us", href: "/contact" },
-      { label: "Grievance Redressal", href: "/grievance" },
     ],
   },
   {
@@ -47,7 +43,6 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
       { label: "Disclaimer", href: "/disclaimer" },
       { label: "Return Policy", href: "/refund-policy" },
       { label: "Shipping Policy", href: "/shipping-policy" },
-      { label: "Cookies Settings", href: "/cookies" },
     ],
   },
 ];
