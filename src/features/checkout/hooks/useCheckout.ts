@@ -119,6 +119,8 @@ export interface UseCheckoutReturn {
   totalPayable: number;
   fittingFee: number;
   isModalOpen: boolean;
+  setAddressConfirmOpen: (open: boolean) => void;
+  addressConfirmOpen: boolean;
   editingAddressId: string | null;
   setEditingAddressId: (id: string | null) => void;
   handleSelectAddress: (id: string) => void;
@@ -141,6 +143,7 @@ export function useCheckout(): UseCheckoutReturn {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressLoading, setAddressLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [addressConfirmOpen, setAddressConfirmOpen] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState("COD");
   const [orderLoading, setOrderLoading] = useState(false);
@@ -316,7 +319,7 @@ export function useCheckout(): UseCheckoutReturn {
   const handlePlaceOrder = useCallback(async () => {
     if (orderLoading) return;
     const selectedAddress = addresses.find(a => a.isSelected);
-    if (!selectedAddress) { alert("Please select address"); return; }
+    if (!selectedAddress) { setAddressConfirmOpen(true); return; }
     if (cart.length === 0) { alert("Your cart is empty"); return; }
     if (!normalizedBill) { alert("Bill is still loading. Please wait a moment and try again."); return; }
     setOrderLoading(true);
@@ -493,6 +496,8 @@ export function useCheckout(): UseCheckoutReturn {
     totalPayable,
     fittingFee,
     isModalOpen,
+    setAddressConfirmOpen,
+    addressConfirmOpen,
     handleSelectAddress,
     handleDeleteAddress,
     handleAddAddress,

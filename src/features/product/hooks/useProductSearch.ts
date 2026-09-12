@@ -118,8 +118,8 @@ export function useProductSearch() {
       });
   }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId]);
 
-  const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortBy(e.target.value);
+  const handleSortChange = useCallback((value: string) => {
+    setSortBy(value);
   }, []);
 
   const handleFilterChange = useCallback((newFilters: Record<string, string[]>) => {

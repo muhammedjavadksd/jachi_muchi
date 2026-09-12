@@ -162,7 +162,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0 w-full max-w-full">
         {[1, 2, 3].map(i => (
           <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-1/4 mb-4" />
@@ -178,11 +178,11 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0 w-full max-w-full">
 
         {/* Profile Header Card */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <div className="w-14 h-14 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
               <span className="text-white text-lg font-bold">{initials}</span>
             </div>
@@ -194,7 +194,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
             {!isEditing && (
               <button
                 onClick={handleEditClick}
-                className="shrink-0 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-xl flex items-center gap-1.5 transition-colors"
+                className="w-full sm:w-auto shrink-0 flex justify-center sm:justify-start items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-xl transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -207,7 +207,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
         {/* Personal Information Card */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+          <div className="px-5 py-3.5 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-semibold text-gray-900 text-sm">Personal Information</h2>
             {isEditing && (
               <div className="flex gap-2">
@@ -308,14 +308,14 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
           <div className="px-5 py-3.5 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900 text-sm">Security</h2>
           </div>
-          <div className="px-5 py-4 flex items-center justify-between gap-4">
+          <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-gray-900">Password</p>
               <p className="text-xs text-gray-400 mt-0.5">••••••••••</p>
             </div>
             <button
               onClick={handleOpenPasswordModal}
-              className="shrink-0 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              className="w-full sm:w-auto shrink-0 flex justify-center sm:justify-start items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
             >
               Change Password
             </button>

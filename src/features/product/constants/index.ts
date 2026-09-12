@@ -6,6 +6,13 @@ export const PREFERRED_FRAME_TYPES: string[] = [
   "Computer Glasses",
 ];
 
+export const PRODUCT_SORT_OPTIONS: readonly { value: string; label: string }[] = [
+  { value: "best-sellers", label: "Best Sellers" },
+  { value: "price-low", label: "Price: Low to High" },
+  { value: "price-high", label: "Price: High to Low" },
+  { value: "newest", label: "Newest First" },
+];
+
 export const SEARCH_CATEGORIES: CategoryNavItem[] = [
   { id: "eyeglasses", label: "EYEGLASSES", link: "/search/eyeglasses" },
   { id: "screen-glasses", label: "SCREEN GLASSES", link: "/search/screen-glasses" },

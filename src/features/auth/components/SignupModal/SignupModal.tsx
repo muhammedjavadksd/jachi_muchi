@@ -10,8 +10,37 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 }
 
-function isValidPassword(value: string): boolean {
-  return value.length >= 6;
+function getFirstNameError(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "Please enter your first name";
+  if (!/^[A-Za-z]+$/.test(trimmed)) return "First name can only contain letters";
+  return "";
+}
+
+function getLastNameError(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (!/^[A-Za-z]+$/.test(trimmed)) return "Last name can only contain letters";
+  return "";
+}
+
+function getMobileError(value: string): string {
+  if (!value.trim()) return "Please enter your mobile number";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 10) return "Please enter a valid 10-digit mobile number";
+  return "";
+}
+
+function getEmailError(value: string): string {
+  if (!value.trim()) return "Please enter your email address";
+  if (!isValidEmail(value)) return "Please enter a valid email address";
+  return "";
+}
+
+function getPasswordError(value: string): string {
+  if (value.length < 8) return "Password must be at least 8 characters";
+  if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) return "Password must contain a mix of letters and numbers";
+  return "";
 }
 
 export const SignupModal = memo(function SignupModal(): JSX.Element | null {
@@ -25,7 +54,6 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [whatsappUpdates, setWhatsappUpdates] = useState(true);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -41,13 +69,13 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   });
   const [showWelcomeCoupon, setShowWelcomeCoupon] = useState(false);
 
-  const mobileDigits = mobile.replace(/\D/g, "");
-  const mobileValid = mobileDigits.length === 10 && /^[6-9]/.test(mobileDigits);
-  const emailValid = isValidEmail(email);
-  const passwordValid = isValidPassword(password);
-  const firstNameValid = firstName.trim().length > 0;
+  const firstNameError = getFirstNameError(firstName);
+  const lastNameError = getLastNameError(lastName);
+  const mobileError = getMobileError(mobile);
+  const emailError = getEmailError(email);
+  const passwordError = getPasswordError(password);
 
-  const formValid = firstNameValid && mobileValid && emailValid && passwordValid;
+  const formValid = !firstNameError && !lastNameError && !mobileError && !emailError && !passwordError;
 
   const showError = (field: string) => touched[field] ?? false;
 
@@ -81,7 +109,7 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ firstName: true, mobile: true, email: true, password: true });
+    setTouched({ firstName: true, lastName: true, mobile: true, email: true, password: true });
     if (!formValid) return;
 
     setLoading(true);
@@ -207,7 +235,7 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
         aria-hidden
       />
       <div
-        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-xl z-[101]"
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md max-h-[90vh] overflow-y-auto scrollbar-hide bg-white rounded-2xl shadow-xl z-[101]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="signup-modal-title"
@@ -296,14 +324,14 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               onBlur={() => setTouched((t) => ({ ...t, firstName: true }))}
               placeholder="First Name*"
               className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
-                showError("firstName") && !firstNameValid
+                showError("firstName") && firstNameError
                   ? "border-red-500"
                   : "border-gray-300 focus:border-teal-600"
               }`}
               autoComplete="given-name"
             />
-            {showError("firstName") && !firstNameValid && (
-              <p className="mt-1 text-sm text-red-500">Please enter your first name</p>
+            {showError("firstName") && firstNameError && (
+              <p className="mt-1 text-sm text-red-500">{firstNameError}</p>
             )}
           </div>
 
@@ -312,10 +340,18 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              onBlur={() => setTouched((t) => ({ ...t, lastName: true }))}
               placeholder="Last Name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 outline-none focus:border-teal-600 transition-colors"
+              className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
+                showError("lastName") && lastNameError
+                  ? "border-red-500"
+                  : "border-gray-300 focus:border-teal-600"
+              }`}
               autoComplete="family-name"
             />
+            {showError("lastName") && lastNameError && (
+              <p className="mt-1 text-sm text-red-500">{lastNameError}</p>
+            )}
           </div>
 
           <div>
@@ -326,14 +362,14 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               onBlur={() => setTouched((t) => ({ ...t, mobile: true }))}
               placeholder="+91 Mobile*"
               className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
-                showError("mobile") && !mobileValid
+                showError("mobile") && mobileError
                   ? "border-red-500"
                   : "border-gray-300 focus:border-teal-600"
               }`}
               autoComplete="tel"
             />
-            {showError("mobile") && !mobileValid && mobile.length > 0 && (
-              <p className="mt-1 text-sm text-red-500">Please enter a valid 10-digit mobile number</p>
+            {showError("mobile") && mobileError && (
+              <p className="mt-1 text-sm text-red-500">{mobileError}</p>
             )}
           </div>
 
@@ -345,14 +381,14 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               onBlur={() => setTouched((t) => ({ ...t, email: true }))}
               placeholder="Email*"
               className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
-                showError("email") && !emailValid
+                showError("email") && emailError
                   ? "border-red-500"
                   : "border-gray-300 focus:border-teal-600"
               }`}
               autoComplete="email"
             />
-            {showError("email") && !emailValid && email.length > 0 && (
-              <p className="mt-1 text-sm text-red-500">Please enter a valid email</p>
+            {showError("email") && emailError && (
+              <p className="mt-1 text-sm text-red-500">{emailError}</p>
             )}
           </div>
 
@@ -364,40 +400,20 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
               onBlur={() => setTouched((t) => ({ ...t, password: true }))}
               placeholder="Password*"
               className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
-                showError("password") && !passwordValid
+                showError("password") && passwordError
                   ? "border-red-500"
                   : "border-gray-300 focus:border-teal-600"
               }`}
               autoComplete="new-password"
             />
-            {showError("password") && !passwordValid && password.length > 0 && (
-              <p className="mt-1 text-sm text-red-500">Password must be at least 6 characters</p>
+            {showError("password") && passwordError && (
+              <p className="mt-1 text-sm text-red-500">{passwordError}</p>
             )}
           </div>
 
           {apiError && (
             <p className="text-sm text-red-500">{apiError}</p>
           )}
-
-          <button
-            type="button"
-            className="text-sm text-gray-600 hover:text-teal-600 hover:underline"
-          >
-            Got a Referral Code? (Optional)
-          </button>
-
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={whatsappUpdates}
-              onChange={(e) => setWhatsappUpdates(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-            />
-            <span className="text-sm text-gray-700">Get updates on Whatsapp</span>
-            <svg className="w-5 h-5 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.865 9.865 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-            </svg>
-          </label>
 
           <p className="text-xs text-gray-500">
             By creating this account, you agree to our{" "}

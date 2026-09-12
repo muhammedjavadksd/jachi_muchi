@@ -1,16 +1,100 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Footer, WhatsAppButton } from "@/components";
 import { Campaign } from "@/features/home/components/Campaign/Campaign";
 import { Container } from "@/shared/components/Container/Container";
 import { Grid } from "@/shared/components/Grid/Grid";
 import { FilterSidebar } from "@/features/product/components/FilterSidebar/FilterSidebar";
 import { ProductCard } from "@/features/product/components/ProductCard/ProductCard";
-import { X, SlidersHorizontal } from "lucide-react";
+import { PRODUCT_SORT_OPTIONS } from "@/features/product/constants";
+import { ChevronDown, Inbox, SlidersHorizontal, X } from "lucide-react";
 import { mapProductToCardProps } from "@/features/product/utils/mapProductToCardProps";
 import { useProductSearch } from "@/features/product/hooks";
 import type { OfferBadge } from "@/features/offer/types";
 
 const HEADER_SPACER_HEIGHT = 144;
+
+const SortControl = memo(function SortControl({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedLabel = useMemo(
+    () => PRODUCT_SORT_OPTIONS.find((option) => option.value === value)?.label ?? PRODUCT_SORT_OPTIONS[0].label,
+    [value]
+  );
+
+  const handleSelect = useCallback(
+    (nextValue: string) => {
+      setOpen(false);
+      onChange(nextValue);
+    },
+    [onChange]
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (e: PointerEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex h-9 items-center gap-2 rounded-xl border border-gray-700 bg-gray-800 px-3 text-sm text-white hover:border-gray-600 transition-colors"
+      >
+        {selectedLabel}
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          aria-hidden
+        />
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="Sort products"
+          className="absolute right-0 top-full z-50 mt-2 min-w-full whitespace-nowrap rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
+        >
+          {PRODUCT_SORT_OPTIONS.map((option) => (
+            <li key={option.value} role="option" aria-selected={option.value === value}>
+              <button
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                  option.value === value
+                    ? "bg-teal-tint font-medium text-teal-700"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {option.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+});
+
+SortControl.displayName = "SortControl";
 
 const ProductGrid = memo(function ProductGrid({
   products,
@@ -25,7 +109,7 @@ const ProductGrid = memo(function ProductGrid({
   loading: boolean;
   fetching: boolean;
   sortBy: string;
-  onSortChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onSortChange: (value: string) => void;
   onToggleFilters: (v: boolean) => void;
   getOfferBadge: (productId: string, price: number) => OfferBadge | null;
 }): JSX.Element {
@@ -81,27 +165,34 @@ const ProductGrid = memo(function ProductGrid({
           <div className="h-full bg-teal-500 rounded-full animate-pulse" style={{ width: "60%" }} />
         </div>
       )}
-      <div className="shrink-0 bg-gray-900 text-white rounded-t-2xl overflow-hidden">
-        <div className="px-4 py-4 lg:px-6 lg:py-5 flex justify-between items-center">
-          <button onClick={() => onToggleFilters(true)} className="lg:hidden flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-xl text-sm">
+      <div className="shrink-0 bg-gray-900 text-white rounded-t-2xl">
+        <div className="px-4 py-4 lg:px-6 lg:py-5 flex justify-between items-center gap-3">
+          <button onClick={() => onToggleFilters(true)} className="lg:hidden h-9 shrink-0 flex items-center gap-2 px-4 bg-gray-800 rounded-xl text-sm hover:bg-gray-700 transition-colors">
             <SlidersHorizontal size={18} />
             Filters
           </button>
           <div className="flex items-center gap-2">
             <span className="text-gray-400 text-sm">SORT:</span>
-            <select value={sortBy} onChange={onSortChange} className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm">
-              <option value="best-sellers">Best Sellers</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="newest">Newest First</option>
-            </select>
+            <SortControl value={sortBy} onChange={onSortChange} />
           </div>
         </div>
       </div>
 
       <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 flex-1 lg:min-h-0 lg:overflow-y-auto scrollbar-hide">
         {products.length === 0 && !fetching ? (
-          <p className="text-center col-span-full py-10">No products found</p>
+          <div className="flex w-full flex-col items-start px-2 pt-2 pb-10 lg:pt-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
+                <Inbox className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">No products found</h3>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  Try adjusting your filters to find what you're looking for.
+                </p>
+              </div>
+            </div>
+          </div>
         ) : (
           <Grid columns={4} gap={5}>
             {productCards}

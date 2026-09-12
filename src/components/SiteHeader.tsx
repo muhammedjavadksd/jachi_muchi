@@ -195,7 +195,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
                   </span>
                 </div>
                 <div className="absolute right-0 top-full mt-2 w-[200px] rounded-xl bg-white shadow-lg border border-line overflow-hidden opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
-                  <Link to="/account" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors">
+                  <Link to="/account/info" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors">
                     <User className="w-4 h-4 text-teal" />
                     My Profile
                   </Link>
