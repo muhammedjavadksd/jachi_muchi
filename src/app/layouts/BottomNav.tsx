@@ -1,16 +1,19 @@
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/features/auth/hooks";
+import { useWishlist } from "@/features/wishlist/hooks";
+import { BOTTOM_NAV_ROUTES } from "./constants";
 
-export type NavTab = "home" | "stores" | "ar-tryon" | "eye-test" | "orders" | "wishlist";
+export type NavTab = "home" | "stores" | "eye-test" | "orders" | "wishlist"; // "ar-tryon" — temporarily hidden
 
 interface NavItemProps {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
-  badge?: number;
 }
 
-const NavItem = memo(function NavItem({ active, onClick, icon, label, badge }: NavItemProps): JSX.Element {
+const NavItem = memo(function NavItem({ active, onClick, icon, label }: NavItemProps): JSX.Element {
   const activeColor = label === "AI Stylist" ? "#e74c3c" : "#4FC3F7";
   const inactiveColor = "#8899b0";
 
@@ -19,14 +22,7 @@ const NavItem = memo(function NavItem({ active, onClick, icon, label, badge }: N
       onClick={onClick}
       className="flex flex-col items-center justify-center py-1 px-2 relative min-w-[60px]"
     >
-      <div className="relative">
-        {icon}
-        {badge && badge > 0 && (
-          <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-            {badge > 9 ? "9+" : badge}
-          </span>
-        )}
-      </div>
+      {icon}
       <span
         className="text-[10px] mt-1 font-medium transition-colors"
         style={{ color: active ? activeColor : inactiveColor }}
@@ -42,12 +38,6 @@ const NavItem = memo(function NavItem({ active, onClick, icon, label, badge }: N
     </button>
   );
 });
-
-interface BottomNavProps {
-  activeTab: NavTab;
-  onTabChange: (tab: NavTab) => void;
-  orderCount?: number;
-}
 
 const HomeIcon = memo(function HomeIcon({ active }: { active: boolean }): JSX.Element {
   const color = active ? "#4FC3F7" : "#8899b0";
@@ -71,6 +61,7 @@ const StoresIcon = memo(function StoresIcon({ active }: { active: boolean }): JS
   );
 });
 
+/* AR Try on icon — temporarily hidden
 const ARTryOnIcon = memo(function ARTryOnIcon({ active }: { active: boolean }): JSX.Element {
   const color = active ? "#4FC3F7" : "#8899b0";
   return (
@@ -86,6 +77,7 @@ const ARTryOnIcon = memo(function ARTryOnIcon({ active }: { active: boolean }): 
     </svg>
   );
 });
+*/
 
 const EyeTestIcon = memo(function EyeTestIcon({ active }: { active: boolean }): JSX.Element {
   const color = active ? "#4FC3F7" : "#8899b0";
@@ -118,9 +110,41 @@ const WishlistIcon = memo(function WishlistIcon({ active }: { active: boolean })
   );
 });
 
-export const BottomNav = memo(function BottomNav({ activeTab, onTabChange, orderCount = 0 }: BottomNavProps): JSX.Element {
+export const BottomNav = memo(function BottomNav(): JSX.Element {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { open: openWishlist } = useWishlist();
   const [isNavVisible, setIsNavVisible] = useState(true);
   const lastScrollY = useRef(0);
+
+  const activeTab = useMemo<NavTab>(() => {
+    const pathname = location.pathname;
+    return (
+      (Object.keys(BOTTOM_NAV_ROUTES) as NavTab[]).find((tab) => {
+        const route = BOTTOM_NAV_ROUTES[tab];
+        return route === "/" ? pathname === "/" : pathname.startsWith(route);
+      }) ?? "home"
+    );
+  }, [location.pathname]);
+
+  const handleTabChange = useCallback(
+    (tab: NavTab) => {
+      if (tab === "wishlist") {
+        if (isAuthenticated) {
+          openWishlist();
+        } else {
+          navigate("/wishlist");
+        }
+        return;
+      }
+      const route = BOTTOM_NAV_ROUTES[tab];
+      if (location.pathname !== route) {
+        navigate(route);
+      }
+    },
+    [openWishlist, isAuthenticated, navigate, location.pathname]
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -152,38 +176,39 @@ export const BottomNav = memo(function BottomNav({ activeTab, onTabChange, order
       <div className="flex items-center justify-around max-w-md mx-auto">
         <NavItem
           active={activeTab === "home"}
-          onClick={() => onTabChange("home")}
+          onClick={() => handleTabChange("home")}
           icon={<HomeIcon active={activeTab === "home"} />}
           label="Home"
         />
         <NavItem
           active={activeTab === "stores"}
-          onClick={() => onTabChange("stores")}
+          onClick={() => handleTabChange("stores")}
           icon={<StoresIcon active={activeTab === "stores"} />}
           label="Stores"
         />
+        {/* AR Try on — temporarily hidden
         <NavItem
           active={activeTab === "ar-tryon"}
-          onClick={() => onTabChange("ar-tryon")}
+          onClick={() => handleTabChange("ar-tryon")}
           icon={<ARTryOnIcon active={activeTab === "ar-tryon"} />}
           label="AR Try on"
         />
+        */}
         <NavItem
           active={activeTab === "eye-test"}
-          onClick={() => onTabChange("eye-test")}
+          onClick={() => handleTabChange("eye-test")}
           icon={<EyeTestIcon active={activeTab === "eye-test"} />}
           label="Eye Test"
         />
         <NavItem
           active={activeTab === "orders"}
-          onClick={() => onTabChange("orders")}
+          onClick={() => handleTabChange("orders")}
           icon={<OrdersIcon active={activeTab === "orders"} />}
           label="Orders"
-          badge={orderCount}
         />
         <NavItem
           active={activeTab === "wishlist"}
-          onClick={() => onTabChange("wishlist")}
+          onClick={() => handleTabChange("wishlist")}
           icon={<WishlistIcon active={activeTab === "wishlist"} />}
           label="Wishlist"
         />
