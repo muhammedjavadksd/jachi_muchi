@@ -19,9 +19,7 @@ export const RootLayout = memo(function RootLayout(): JSX.Element {
   return (
     <>
       <SiteHeader />
-      <div className={showBottomNav ? "pb-20 md:pb-0" : undefined}>
-        <Outlet />
-      </div>
+      <Outlet />
       {showBottomNav && <BottomNav />}
     </>
   );
