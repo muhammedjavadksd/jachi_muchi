@@ -1,20 +1,9 @@
-import { memo, useEffect, useState } from "react";
-import { getSettings } from "@/features/account/api/settingsApi";
-import type { Settings } from "@/features/account/types";
+import { memo } from "react";
 
 export const WhatsAppButton = memo(function WhatsAppButton(): JSX.Element {
-  const [settings, setSettings] = useState<Settings | null>(null);
-
-  useEffect(() => {
-    getSettings().then(setSettings);
-  }, []);
-
-  const whatsappNumber = settings?.whatsappNumber || "918447821891";
-  const href = `https://wa.me/${whatsappNumber}`;
-
   return (
     <a
-      href={href}
+      href="https://wa.me/97477264007"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50"

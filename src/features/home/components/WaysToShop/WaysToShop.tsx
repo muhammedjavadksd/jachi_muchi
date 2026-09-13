@@ -28,14 +28,15 @@ const CARDS: ShopCard[] = [
   {
     title: "Order on WhatsApp",
     subtitle: "Chat with us and order without the app hassle.",
-    link: "https://wa.me/",
+    link: "https://wa.me/97477264007",
     linkExternal: true,
     image: "https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&h=400&fit=crop",
   },
   {
     title: "Talk to an expert",
     subtitle: "Get guidance on lenses, fit and frame style.",
-    link: "/talk-to-expert",
+    link: "https://wa.me/97477264007",
+    linkExternal: true,
     image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&h=400&fit=crop",
   },
 ];

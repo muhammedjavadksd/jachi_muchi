@@ -11,22 +11,22 @@ const SLIDES: CarouselSlide[] = [
   {
     category: " Youth",
     image: "/category/adult.png",
-    link: "/category/eyeglasses?gender=men",
+    link: "",
   },
   {
     category: "Formal",
     image: "/category/professional.png",
-    link: "/category/eyeglasses?style=formal",
+    link: "",
   },
   {
     category: "Silvers",
     image: "/category/silver.png",
-    link: "/category/eyeglasses?collection=silvers",
+    link: "",
   },
   {
     category: "Kids",
     image: "/category/kids.png",
-    link: "/category/eyeglasses?gender=kids",
+    link: "",
   },
 ];
 

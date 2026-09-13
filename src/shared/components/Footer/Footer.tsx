@@ -7,8 +7,7 @@ import type { FooterLink } from "@/shared/types";
 const FOOTER_BACKGROUND = "#0c1018";
 const COPYRIGHT_TEXT = "© 2026 Jachi & Muchi";
 const FOOTER_LINK_CLASSES = "text-gray-300 text-sm hover:text-white transition-colors";
-const FACEBOOK_URL = "https://facebook.com";
-const INSTAGRAM_URL = "https://instagram.com";
+const INSTAGRAM_URL = "https://www.instagram.com/jachiandmuchi?stkn=MWQyMmdtanluYzFjNg%3D%3D&utm_source=qr";
 
 /** Bottom-bar legal links for quick access to the key policies */
 const FOOTER_BOTTOM_LINKS: FooterLink[] = [
@@ -96,19 +95,6 @@ export const Footer = memo(function Footer(): JSX.Element {
 
             {/* Social Icons — right padding keeps the fixed WhatsApp button clear */}
             <div className="flex items-center gap-4 md:pr-24">
-              {/* Facebook */}
-              <a
-                href={FACEBOOK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                aria-label="Facebook"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                </svg>
-              </a>
-
               {/* Instagram */}
               <a
                 href={INSTAGRAM_URL}
