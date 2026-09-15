@@ -208,7 +208,7 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
 
   return (
     <div className="min-h-screen w-full bg-[#0c1018] text-gray-100">
-      <div className="bg-white" style={{ height: "144px" }} />
+      <div className="bg-white" style={{ height: "170px" }} />
 
       <main className="mx-auto max-w-2xl px-4 sm:px-6 py-6 space-y-5">
         {state.phase === "idle" && (

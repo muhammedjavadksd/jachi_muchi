@@ -8,7 +8,7 @@ export const TOTAL_SLIDES = 5;
 
 export const SCROLL_THRESHOLD = 200;
 
-export const HEADER_SPACER_HEIGHT = 144;
+export const HEADER_SPACER_HEIGHT = 132;
 
 export const LOGOUT_REDIRECT_PATH = "/?login=true";
 

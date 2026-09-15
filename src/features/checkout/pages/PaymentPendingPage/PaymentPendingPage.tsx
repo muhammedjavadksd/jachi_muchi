@@ -4,7 +4,7 @@ import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { verifySkipCashPayment } from "@/features/checkout/api/paymentApi";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 const POLL_INTERVAL = 5000;
 
 export const PaymentPendingPage = memo(function PaymentPendingPage(): JSX.Element {

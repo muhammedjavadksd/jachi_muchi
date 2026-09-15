@@ -8,7 +8,7 @@ import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { HEADER_NAV_ITEMS } from "@/shared/constants";
 
-export const SITE_HEADER_SPACER_HEIGHT = 144;
+export const SITE_HEADER_SPACER_HEIGHT = 132;
 
 const HEADER_NAV_IDS: string[] = HEADER_NAV_ITEMS.map((item) => item.id);
 
@@ -130,7 +130,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
 
       {/* Row 1 — main header row */}
       <div className="bg-white border-b border-line">
-        <Container className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-3 py-2 md:py-3">
+        <Container className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-3 py-2 md:py-3 h-[78px] md:h-[88px]">
           {/* Left cluster — Search + Track Order */}
           <div className="flex items-center justify-start gap-1.5 md:gap-[22px] min-w-0">
             <button
@@ -154,14 +154,14 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
           {/* Center — Logo */}
           <Link
             to="/"
-            aria-label="Jachi Muchi home"
-            className="flex flex-col items-center justify-center min-w-0 text-center"
+            aria-label="Jachi & Muchi home"
+            className="flex flex-col items-center justify-center text-center min-w-0"
           >
-            <img src="/logo.png" alt="Jachi Muchi" className="h-9 w-auto" />
-            <span className="mt-1 text-[18px] md:text-[22px] font-bold leading-none tracking-[0.06em] text-teal-deep">
-              JACHI MUCHI
+            <img src="/logo.png" alt="" className="h-[38px] md:h-[44px] w-auto shrink-0" />
+            <span className="mt-[1px] text-[15px] md:text-[17px] font-bold leading-none tracking-[0.5px] text-teal-deep font-brand whitespace-nowrap">
+              JACHI &amp; MUCHI
             </span>
-            <span className="mt-1 text-[9px] font-semibold leading-none tracking-[0.3em] text-amber uppercase">
+            <span className="mt-[1px] text-[8px] md:text-[9px] font-medium leading-none tracking-[2px] text-amber uppercase font-brand whitespace-nowrap">
               Premium Eyewear
             </span>
           </Link>
@@ -255,7 +255,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
       {/* Row 2 — category pills */}
       <nav className="bg-white border-b border-line">
         <Container>
-          <div className="flex items-center justify-start md:justify-center gap-1.5 py-2 overflow-x-auto scrollbar-hide whitespace-nowrap">
+          <div className="flex items-center justify-start md:justify-center gap-1.5 py-1 overflow-x-auto scrollbar-hide whitespace-nowrap">
             {HEADER_NAV_ITEMS.map((item) => {
               const isActive = item.id === activeCategoryId;
               return (

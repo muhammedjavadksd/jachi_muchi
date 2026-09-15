@@ -73,6 +73,18 @@ export const Footer = memo(function Footer(): JSX.Element {
       {/* Navigation Columns */}
       <Container>
         <div className="pt-9 sm:pt-10 pb-8">
+          {/* Footer Brand Block — logo + wordmark, left aligned */}
+          <div className="flex items-center gap-3 mb-8">
+            <img
+              src="/logo.png"
+              alt=""
+              className="h-10 w-auto shrink-0"
+              // style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <span className="font-brand text-white text-xl md:text-2xl leading-none">
+              Jachi &amp; Muchi
+            </span>
+          </div>
           <nav aria-label="Footer links">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
               {linkColumns}

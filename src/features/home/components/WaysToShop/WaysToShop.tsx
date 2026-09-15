@@ -46,14 +46,14 @@ export const WaysToShop = memo(function WaysToShop(): JSX.Element {
     <section className="py-12">
       <Container>
         <p
-          className="text-xs font-semibold tracking-[0.2em] uppercase mb-3"
+          className="text-xs font-semibold uppercase mb-3 font-brand"
           style={{ color: "#C1652F" }}
         >
           Ways to shop with us
         </p>
 
         <h2
-          className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]"
+          className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a] font-brand"
         >
           Visit, try on, or just say hi
         </h2>

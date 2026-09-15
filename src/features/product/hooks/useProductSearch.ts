@@ -17,8 +17,10 @@ function filtersToParams(
   searchQuery?: string | null,
   sortBy?: string,
   cardId?: string | null,
+  gender?: string | null,
 ): Record<string, any> {
   const params: Record<string, any> = { category };
+  if (gender) params.gender = gender.toLowerCase();
   if (searchQuery) params.q = searchQuery;
   if (collectionSlug) params.collection = collectionSlug;
   if (brandFromQuery) params.brand = brandFromQuery;
@@ -65,6 +67,7 @@ export function useProductSearch() {
   const brandFromQuery = searchParams.get("brand");
   const searchQuery = searchParams.get("q");
   const cardId = searchParams.get("cardId");
+  const gender = searchParams.get("gender");
 
   useEffect(() => {
     getBrands().then((brands) => {
@@ -103,7 +106,7 @@ export function useProductSearch() {
 
   useEffect(() => {
     setFetching(true);
-    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId);
+    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender);
     getProducts(params)
       .then((res) => {
         const extracted = res.data?.data?.products || res.data?.products || res?.products || [];
@@ -116,7 +119,7 @@ export function useProductSearch() {
         setLoading(false);
         setFetching(false);
       });
-  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender]);
 
   const handleSortChange = useCallback((value: string) => {
     setSortBy(value);

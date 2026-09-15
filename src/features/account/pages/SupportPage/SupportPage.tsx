@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 /** WhatsApp support number – same as floating WhatsApp button */
 const SUPPORT_WHATSAPP_URL = "https://wa.me/918447821891";

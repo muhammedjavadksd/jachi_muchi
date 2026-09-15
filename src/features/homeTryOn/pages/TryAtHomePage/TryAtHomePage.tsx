@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Footer, WhatsAppButton, Container } from "@/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const INSTRUCTIONS =
   "Face a light source, align your face, take off your glasses, and tuck your hair behind your ears.";

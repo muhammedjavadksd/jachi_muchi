@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import { Footer, WhatsAppButton, Container } from "@/components";
 import { EmptyState } from "@/shared/components";
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 import { api } from "@/shared/lib/axios";
 
 interface Appointment {

@@ -11,7 +11,7 @@ import { mapProductToCardProps } from "@/features/product/utils/mapProductToCard
 import { useProductSearch } from "@/features/product/hooks";
 import type { OfferBadge } from "@/features/offer/types";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const SortControl = memo(function SortControl({
   value,

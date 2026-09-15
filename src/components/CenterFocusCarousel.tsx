@@ -9,24 +9,24 @@ interface CarouselSlide {
 
 const SLIDES: CarouselSlide[] = [
   {
-    category: " Youth",
-    image: "/category/adult.png",
-    link: "",
+    category: "Unisex",
+    image: "/category/unisex.png",
+    link: "/search?gender=Unisex",
   },
   {
-    category: "Formal",
+    category: "Men",
     image: "/category/professional.png",
-    link: "",
+    link: "/search?gender=Men",
   },
   {
-    category: "Silvers",
-    image: "/category/silver.png",
-    link: "",
+    category: "Women",
+    image: "/category/adult.png",
+    link: "/search?gender=Women",
   },
   {
     category: "Kids",
     image: "/category/kids.png",
-    link: "",
+    link: "/search?gender=Kids",
   },
 ];
 

@@ -38,6 +38,7 @@ export const getProducts = async (filters?: {
   cardId?: string;
   q?: string;
   sortBy?: string;
+  gender?: string;
   limit?: number;      // ← added
   page?: number;       // ← added
   [key: string]: any;
@@ -45,6 +46,7 @@ export const getProducts = async (filters?: {
   const params: Record<string, any> = {};
 
   if (filters?.category) params.category = filters.category;
+  if (filters?.gender) params.gender = filters.gender;
   if (filters?.q) params.q = filters.q;
   if (filters?.shape) params.shape = filters.shape;
   if (filters?.brand) params.brand = filters.brand;

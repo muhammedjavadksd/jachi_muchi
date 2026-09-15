@@ -5,7 +5,7 @@ import { ProductImageViewer } from "@/features/product/components/ProductImageVi
 import { Container, Price } from "@/shared/components";
 import { useProductDetail } from "@/features/product/hooks";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element {
   const {

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { serviceSections } from "@/features/account/constants/servicesData";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const PLACEHOLDER_IMAGE = "/category/image.png";
 

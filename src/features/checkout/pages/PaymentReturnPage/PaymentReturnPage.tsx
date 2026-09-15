@@ -12,7 +12,7 @@ import {
   SKIPCASH_POLL_TIMEOUT_MS,
 } from "@/features/checkout/constants";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 const MAX_CONSECUTIVE_ERRORS = 3;
 
 type ReturnView = "confirming" | "success" | "failed";

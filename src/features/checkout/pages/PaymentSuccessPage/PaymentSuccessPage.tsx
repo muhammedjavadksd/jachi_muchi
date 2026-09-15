@@ -5,7 +5,7 @@ import { Container } from "@/shared/components/Container/Container";
 import { markCouponAsUsed } from "@/features/coupon/api/couponApi";
 import { useAuth } from "@/features/auth/hooks";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const PaymentSuccessPage = memo(function PaymentSuccessPage(): JSX.Element {
   const [searchParams] = useSearchParams();

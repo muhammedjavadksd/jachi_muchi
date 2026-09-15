@@ -15,7 +15,7 @@ import {
  */
 export function HomePage2(): JSX.Element {
   const spacerStyle = useMemo(
-    () => ({ height: `144px` }),
+    () => ({ height: `170px` }),
     []
   );
 

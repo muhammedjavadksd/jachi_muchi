@@ -116,7 +116,7 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
   return (
     <section className="relative py-12">
       <Container className="overflow-visible">
-        <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">Top Categories</h2>
+        <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a] font-brand">Top Categories</h2>
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-5 w-full">{categoryCards}</div>
       </Container>
     </section>

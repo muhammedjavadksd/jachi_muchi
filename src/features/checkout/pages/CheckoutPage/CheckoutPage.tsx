@@ -5,7 +5,7 @@ import { useCheckout } from "@/features/checkout/hooks";
 import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
 import { ConfirmModal } from "@/shared/components/ConfirmModal/ConfirmModal";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const CHECKOUT_STEPS = [
   { id: "login", label: "Login/Signup" },

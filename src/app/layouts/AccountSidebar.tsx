@@ -39,7 +39,7 @@ const MENU_ITEMS = ALL_MENU_ITEMS.filter(
 );
 
 const SIDEBAR_WIDTH = 280;
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 function getInitials(name: string): string {
   return name
