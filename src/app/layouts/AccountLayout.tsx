@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Footer, WhatsAppButton, AccountSidebar } from "@/app/layouts";
 import { Container } from "@/shared/components/Container/Container";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const AccountLayout = memo(function AccountLayout(): JSX.Element {
   const spacerStyle = useMemo(() => ({

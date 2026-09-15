@@ -7,7 +7,7 @@ import {
 } from "@/components";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const SIX_SIGNS = [
   {

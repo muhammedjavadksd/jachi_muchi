@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 /**
  * 500 Server Error page – shown when something goes wrong on our side

@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 /**
  * 404 Not Found page – shown when the user navigates to a route that doesn't exist

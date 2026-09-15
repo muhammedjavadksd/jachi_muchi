@@ -100,7 +100,7 @@ const SectionBlock = memo(function SectionBlock({
   return (
     <section className="relative py-12">
       <Container>
-        <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a]">
+        <h2 className="text-xl sm:text-2xl md:text-[30px] font-semibold mb-4 text-[#1a1a1a] font-brand">
           {section.name}
         </h2>
         {tiles.length >= 6 ? (

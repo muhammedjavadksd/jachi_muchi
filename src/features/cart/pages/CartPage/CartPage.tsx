@@ -6,7 +6,7 @@ import { getImageUrl } from "@/shared/utils/image";
 import { useCartPage } from "@/features/cart/hooks";
 import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const CartPage = memo(function CartPage(): JSX.Element {
   const {

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { sizeChartRows, faceSizes, faqData } from "@/features/account/constants/faqData";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 
 

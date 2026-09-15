@@ -4,7 +4,7 @@ import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getOrderById } from "@/features/checkout/api/orderApi";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 interface OrderItem {
   id?: string;

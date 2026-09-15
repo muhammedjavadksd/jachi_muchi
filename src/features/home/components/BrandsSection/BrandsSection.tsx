@@ -19,7 +19,7 @@ export const BrandsSection = memo(function BrandsSection({
   return (
     <section className="w-full bg-white py-12">
       <Container>
-        <h2 className="font-semibold mb-6 text-[30px] text-[#1a1a1a]">Our Brands</h2>
+        <h2 className="font-semibold mb-6 text-[30px] text-[#1a1a1a] font-brand">Our Brands</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
           {active.map((brand) => {
             const logo = getImageUrl(brand.logo) || FALLBACK;

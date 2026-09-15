@@ -4,7 +4,7 @@ import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { getCollections } from "@/features/collections/api/collectionApi";
 import { getImageUrl } from "@/shared/utils/image";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 const PLACEHOLDER_IMAGE = "/category/image.png";
 
 export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {

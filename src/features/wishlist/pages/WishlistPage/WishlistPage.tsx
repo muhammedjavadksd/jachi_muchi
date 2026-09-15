@@ -6,7 +6,7 @@ import { Container, EmptyState, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useWishlist } from "@/features/wishlist/hooks";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const WishlistPage = memo(function WishlistPage(): JSX.Element {
   const { items, removeItem, loading } = useWishlist();

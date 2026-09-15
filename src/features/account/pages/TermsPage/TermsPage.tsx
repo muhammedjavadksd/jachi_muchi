@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 /**
  * Terms of Service page

@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 const FRAME_WARRANTY_ROWS: { issue: string; covered: string; period: string }[] = [
   { issue: "Peeling paint and faded frame", covered: "Yes", period: "1 Year / 6 Months / 15 Days / 10 Days" },

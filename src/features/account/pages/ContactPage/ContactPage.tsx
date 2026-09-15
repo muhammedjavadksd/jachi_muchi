@@ -2,7 +2,7 @@ import { memo, useMemo, useState } from "react";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
 import { supportCards, serviceLinks, contactInfo } from "@/features/account/constants/contactData";
 import { submitContactMessage } from "@/features/account/api/contactApi";
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 
 

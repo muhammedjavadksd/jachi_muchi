@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 
 export const PaymentFailedPage = memo(function PaymentFailedPage(): JSX.Element {
   const [searchParams] = useSearchParams();

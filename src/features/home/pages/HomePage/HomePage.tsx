@@ -5,7 +5,7 @@ import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkel
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
 
-const HEADER_SPACER_HEIGHT = 144;
+const HEADER_SPACER_HEIGHT = 132;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
 import { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCarousel";
 import { api } from "@/shared/lib/axios";
