@@ -130,7 +130,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
 
       {/* Row 1 — main header row */}
       <div className="bg-white border-b border-line">
-        <Container className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-3 py-2 md:py-3 h-[78px] md:h-[88px]">
+        <Container className="relative grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center gap-2 md:gap-3 py-2 md:py-3 h-[78px] md:h-[88px]">
           {/* Left cluster — Search + Track Order */}
           <div className="flex items-center justify-start gap-1.5 md:gap-[22px] min-w-0">
             <button
@@ -155,15 +155,15 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
           <Link
             to="/"
             aria-label="Jachi & Muchi home"
-            className="flex flex-col items-center justify-center text-center min-w-0"
+            className="flex flex-col items-center justify-center text-center min-w-0 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 md:static md:left-auto md:top-auto md:translate-x-0 md:translate-y-0"
           >
-            <img src="/logo.png" alt="" className="h-[38px] md:h-[44px] w-auto shrink-0" />
-            <span className="mt-[1px] text-[15px] md:text-[17px] font-bold leading-none tracking-[0.5px] text-teal-deep font-brand whitespace-nowrap">
-              JACHI &amp; MUCHI
-            </span>
-            <span className="mt-[1px] text-[8px] md:text-[9px] font-medium leading-none tracking-[2px] text-amber uppercase font-brand whitespace-nowrap">
-              Premium Eyewear
-            </span>
+            <div className="relative w-[66px] h-[50px] md:w-[82px] md:h-[62px] overflow-hidden shrink-0 mx-auto">
+              <img
+                src="/logo.png"
+                alt=""
+                className="absolute left-1/2 top-1/2 w-[142px] md:w-[176px] max-w-none -translate-x-1/2 -translate-y-1/2"
+              />
+            </div>
           </Link>
 
           {/* Right cluster — Wishlist + Account + Cart */}
