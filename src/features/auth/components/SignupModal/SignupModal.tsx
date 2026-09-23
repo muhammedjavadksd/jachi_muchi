@@ -27,7 +27,7 @@ function getLastNameError(value: string): string {
 function getMobileError(value: string): string {
   if (!value.trim()) return "Please enter your mobile number";
   const digits = value.replace(/\D/g, "");
-  if (digits.length !== 10) return "Please enter a valid 10-digit mobile number";
+  if (digits.length !== 8) return "Please enter a valid 8-digit Qatar mobile number";
   return "";
 }
 
@@ -358,9 +358,9 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
             <input
               type="tel"
               value={mobile}
-              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 8))}
               onBlur={() => setTouched((t) => ({ ...t, mobile: true }))}
-              placeholder="+91 Mobile*"
+              placeholder="+974 Mobile*"
               className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
                 showError("mobile") && mobileError
                   ? "border-red-500"

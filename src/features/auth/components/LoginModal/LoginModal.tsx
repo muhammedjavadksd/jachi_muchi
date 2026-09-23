@@ -3,13 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth, useLoginModal, useSignupModal, useForgotPasswordModal } from "@/features/auth/hooks";
 import { authApi } from "@/features/auth/api/authApi";
 
-function isValidEmailOrMobile(value: string): boolean {
+function isValidEmail(value: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) return false;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (emailRegex.test(trimmed)) return true;
-  const mobileRegex = /^[6-9]\d{9}$/;
-  return mobileRegex.test(trimmed.replace(/\s/g, ""));
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 }
 
 type LoginStep = "email" | "password";
@@ -22,21 +19,21 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<LoginStep>("email");
-  const [mobileOrEmail, setMobileOrEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  const emailValid = isValidEmailOrMobile(mobileOrEmail);
-  const showEmailError = touched && !emailValid && mobileOrEmail.length > 0;
+  const emailValid = isValidEmail(email);
+  const showEmailError = touched && !emailValid && email.length > 0;
   const canContinue = emailValid;
   const canSignIn = step === "password" && password.length >= 6;
 
   const handleClose = useCallback(() => {
     close();
     setStep("email");
-    setMobileOrEmail("");
+    setEmail("");
     setPassword("");
     setTouched(false);
   }, [close]);
@@ -60,7 +57,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
       setLoginError("");
       try {
         const response = await authApi.login({
-          email: mobileOrEmail,
+          email: email.trim(),
           password,
         });
         if (response.success && response.data) {
@@ -104,7 +101,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
         setIsLoading(false);
       }
     },
-    [step, canSignIn, mobileOrEmail, password, login, close, navigate]
+    [step, canSignIn, email, password, login, close, navigate]
   );
 
   const handleBack = useCallback(() => {
@@ -158,11 +155,12 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
             <form onSubmit={handleContinue} className="space-y-4">
               <div>
                 <input
-                  type="text"
-                  value={mobileOrEmail}
-                  onChange={(e) => setMobileOrEmail(e.target.value)}
+                  type="email"
+                  inputMode="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   onBlur={() => setTouched(true)}
-                  placeholder="Mobile / Email"
+                  placeholder="Email"
                   className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
                     showEmailError ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-teal-600"
                   }`}
@@ -172,7 +170,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
                 />
                 {showEmailError && (
                   <p id="login-error" className="mt-1.5 text-sm text-red-500">
-                    Please enter a valid Email or Mobile Number
+                    Please enter a valid email address
                   </p>
                 )}
               </div>
@@ -199,7 +197,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
           ) : (
             <form onSubmit={handleSignIn} className="space-y-4">
               <p className="text-sm text-gray-600">
-                Welcome back. Enter password for <strong className="text-gray-900">{mobileOrEmail}</strong>
+                Welcome back. Enter password for <strong className="text-gray-900">{email}</strong>
               </p>
 
               <button
@@ -207,7 +205,7 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
                 onClick={handleBack}
                 className="text-sm text-teal-600 hover:text-teal-700 hover:underline"
               >
-                ← Use a different email or mobile
+                ← Use a different email
               </button>
 
               <div>
