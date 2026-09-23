@@ -15,7 +15,7 @@ const CARDS: ShopCard[] = [
   {
     title: "Visit nearest store",
     subtitle: "Try frames in person, get a proper fitting from our team.",
-    link: "/store-locator",
+    link: "/stores",
     image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=400&fit=crop",
   },
   {
