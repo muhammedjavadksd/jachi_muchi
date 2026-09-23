@@ -337,7 +337,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
                         className="w-5 h-5 mt-1"
                       />
                       <p className="text-gray-700">
-                        A well-lit room with 10 ft space is required
+                        A well-lit room with 6 ft space is required
                       </p>
                     </div>
                     <div className="flex items-start gap-3">
