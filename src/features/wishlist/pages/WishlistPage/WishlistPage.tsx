@@ -5,6 +5,8 @@ import { Footer, WhatsAppButton } from "@/components";
 import { Container, EmptyState, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useWishlist } from "@/features/wishlist/hooks";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -17,6 +19,7 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.wishlist} noIndex />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 md:py-10">

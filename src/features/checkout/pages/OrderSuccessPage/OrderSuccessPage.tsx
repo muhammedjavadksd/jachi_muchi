@@ -3,6 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getOrderById } from "@/features/checkout/api/orderApi";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -154,6 +156,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   if (loading) {
     return (
       <div className="w-full min-h-screen flex flex-col bg-gray-50">
+        <SEO {...noIndexMeta.orderSuccess} noIndex />
         <div style={spacerStyle} />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-gray-500 text-lg">Loading order...</p>
@@ -167,6 +170,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   if (!order) {
     return (
       <div className="w-full min-h-screen flex flex-col bg-gray-50">
+        <SEO {...noIndexMeta.orderSuccess} noIndex />
         <div style={spacerStyle} />
         <main className="flex-1 flex items-center justify-center">
           <p className="text-gray-500 text-lg">Order not found</p>
@@ -178,8 +182,9 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <div style={spacerStyle} />
+      <div className="w-full min-h-screen flex flex-col bg-gray-50">
+        <SEO {...noIndexMeta.orderSuccess} noIndex />
+        <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">
         <Container>

@@ -4,6 +4,8 @@ import { ChevronDown, PackageX, RotateCcw } from "lucide-react";
 import { getImageUrl } from "@/shared/utils/image";
 import { EmptyState } from "@/shared/components";
 import { ReturnStatusTracker } from "@/features/returns/components/ReturnStatusTracker/ReturnStatusTracker";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import { ReturnStatusBadge } from "@/features/returns/components/ReturnStatusBadge/ReturnStatusBadge";
 import { ReturnAgainButton } from "@/features/returns/components/ReturnAgainButton/ReturnAgainButton";
 import { useMyReturns } from "@/features/returns/hooks";
@@ -132,6 +134,7 @@ export const AccountMyReturnsPage = memo(function AccountMyReturnsPage(): JSX.El
 
   return (
     <>
+      <SEO {...noIndexMeta.accountReturns} noIndex />
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Returns</h1>
         <p className="text-gray-500 mt-1">Track the status of your return requests</p>

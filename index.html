@@ -10,7 +10,11 @@
 
     <title>Jachi Muchi — Premium Eyewear</title>
 
+    <!-- `data-rh` marks the tags that react-helmet-async owns so it reconciles
+         them in place. Do NOT add it to any other tag in this file: Helmet
+         purges every `meta[data-rh]` it does not itself declare. -->
     <meta
+      data-rh="true"
       name="description"
       content="Shop premium glasses, sunglasses and lenses at Jachi Muchi. Free home try-on, online eye test, and fast delivery."
     />
@@ -27,8 +31,9 @@
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Jachi Muchi — Premium Eyewear" />
+    <meta data-rh="true" property="og:title" content="Jachi Muchi — Premium Eyewear" />
     <meta
+      data-rh="true"
       property="og:description"
       content="Shop premium glasses, sunglasses and lenses at Jachi Muchi."
     />
@@ -104,6 +109,8 @@
       gtag("js", new Date());
 
       gtag("config", "AW-18017446397");
+
+      gtag("config", "G-XQBRYBDW88");
     </script>
 
     <!-- End Google Ads / Google tag -->

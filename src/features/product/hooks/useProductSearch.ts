@@ -160,6 +160,7 @@ export function useProductSearch() {
     pendingFilters,
     filters,
     filterConfig,
+    category,
     categoryBanner,
     pendingCount,
     applyCount,

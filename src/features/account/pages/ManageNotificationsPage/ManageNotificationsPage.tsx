@@ -1,4 +1,6 @@
 import { memo, useMemo, useState, useCallback } from "react";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 /** Notification type interface */
 interface NotificationType {
@@ -97,6 +99,7 @@ export const ManageNotificationsPage = memo(function ManageNotificationsPage(): 
 
   return (
     <>
+      <SEO {...noIndexMeta.accountNotifications} noIndex />
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Manage Notifications</h1>
         <p className="text-gray-500 mt-1">Control how you receive updates and alerts</p>

@@ -4,6 +4,8 @@ import { Footer, CenterFocusCarousel } from "@/components";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { seoMeta } from "@/shared/constants/seoMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
@@ -99,6 +101,7 @@ export function HomePage(): JSX.Element {
 
   return (
     <div className="w-full flex flex-col bg-white min-h-screen font-sans overflow-x-hidden">
+      <SEO {...seoMeta.home} />
       <div className="bg-white" style={spacerStyle} />
 
       <main className="flex-1">

@@ -4,6 +4,8 @@ import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { markCouponAsUsed } from "@/features/coupon/api/couponApi";
 import { useAuth } from "@/features/auth/hooks";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -26,6 +28,7 @@ export const PaymentSuccessPage = memo(function PaymentSuccessPage(): JSX.Elemen
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.paymentSuccess} noIndex />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">

@@ -2,6 +2,8 @@ import { memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { seoMeta } from "@/shared/constants/seoMeta";
 
 export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <SEO {...seoMeta.moiEyeTest} />
       {/* White header bar */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-center relative">

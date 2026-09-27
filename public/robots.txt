@@ -1,0 +1,36 @@
+# robots.txt for https://jachiandmuchi.com
+# Public storefront routes are crawlable. Account, cart, checkout and other
+# transactional/result routes are blocked, and are additionally marked
+# noindex,nofollow in the app itself (see src/shared/constants/noIndexMeta.ts).
+
+User-agent: *
+Allow: /
+
+# --- Cart & checkout -------------------------------------------------------
+Disallow: /cart
+Disallow: /checkout
+
+# --- Account area (all sub-routes) ----------------------------------------
+Disallow: /account
+Disallow: /account/
+Disallow: /wishlist
+Disallow: /my-returns
+
+# --- Order result / tracking pages ---------------------------------------
+Disallow: /order-success/
+Disallow: /order-failure
+Disallow: /track
+Disallow: /track/
+Disallow: /500
+
+# --- Payment gateway result & return pages --------------------------------
+Disallow: /payment/
+Disallow: /payment-success
+Disallow: /payment-return
+
+# --- Home try-on booking & member area ------------------------------------
+Disallow: /home-try-on/book
+Disallow: /my-home-try-on
+Disallow: /my-home-try-on-appointments
+
+Sitemap: https://jachiandmuchi.com/sitemap.xml
