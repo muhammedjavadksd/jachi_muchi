@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { CalendarDays } from "lucide-react";
 import { Footer, WhatsAppButton, Container } from "@/components";
 import { EmptyState } from "@/shared/components";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 const HEADER_SPACER_HEIGHT = 132;
 import { api } from "@/shared/lib/axios";
 
@@ -63,6 +65,7 @@ export const MyHomeTryOnPage = memo(function MyHomeTryOnPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO {...noIndexMeta.myHomeTryOn} noIndex />
       <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1">

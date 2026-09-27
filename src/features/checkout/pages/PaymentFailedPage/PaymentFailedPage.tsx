@@ -2,6 +2,8 @@ import { memo, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -15,6 +17,7 @@ export const PaymentFailedPage = memo(function PaymentFailedPage(): JSX.Element 
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.paymentFailed} noIndex />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">

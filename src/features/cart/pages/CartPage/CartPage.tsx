@@ -5,6 +5,8 @@ import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { useCartPage } from "@/features/cart/hooks";
 import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -206,6 +208,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.cart} noIndex />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-6 md:py-10">

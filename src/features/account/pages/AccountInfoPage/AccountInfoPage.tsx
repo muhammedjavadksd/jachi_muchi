@@ -3,6 +3,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuth } from "@/features/auth/hooks";
 import type { UserProfile } from "@/features/auth/types";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const GENDER_OPTIONS = [
   { value: "", label: "Select" },
@@ -163,6 +165,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
   if (loading) {
     return (
       <div className="space-y-4 min-w-0 w-full max-w-full">
+        <SEO {...noIndexMeta.accountInfo} noIndex />
         {[1, 2, 3].map(i => (
           <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-1/4 mb-4" />
@@ -178,6 +181,7 @@ export const AccountInfoPage = memo(function AccountInfoPage(): JSX.Element {
 
   return (
     <>
+      <SEO {...noIndexMeta.accountInfo} noIndex />
       <div className="space-y-4 min-w-0 w-full max-w-full">
 
         {/* Profile Header Card */}

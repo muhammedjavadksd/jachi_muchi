@@ -4,6 +4,8 @@ import { authApi } from "@/features/auth/api/authApi";
 import { useAuth } from "@/features/auth/hooks";
 import { EmptyState } from "@/shared/components";
 import type { AddressData, SaveAddressRequest } from "@/features/auth/types";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 interface CountryEntry {
   name: string;
@@ -345,6 +347,7 @@ export const AddressBookPage = memo(function AddressBookPage(): JSX.Element {
 
   return (
     <>
+      <SEO {...noIndexMeta.accountAddress} noIndex />
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Address Book</h1>
         <p className="text-gray-500 mt-1">Manage your saved addresses for faster checkout</p>

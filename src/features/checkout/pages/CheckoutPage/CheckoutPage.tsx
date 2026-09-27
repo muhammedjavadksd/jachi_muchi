@@ -4,6 +4,8 @@ import { Container, Price } from "@/shared/components";
 import { useCheckout } from "@/features/checkout/hooks";
 import { CouponModal } from "@/features/checkout/components/CouponModal/CouponModal";
 import { ConfirmModal } from "@/shared/components/ConfirmModal/ConfirmModal";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -457,6 +459,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.checkout} noIndex />
       <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1 py-6 md:py-10">

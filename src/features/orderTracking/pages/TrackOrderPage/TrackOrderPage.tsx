@@ -30,6 +30,8 @@ import {
   TRACK_PAYMENT_STATUS_META,
   TRACK_STATUS_META,
 } from "@/features/orderTracking/constants";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import type { TrackShippingAddress } from "@/features/orderTracking/types";
 
 const CARD = "rounded-2xl border border-white/10 bg-[#151c28] p-5 sm:p-6";
@@ -208,6 +210,7 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
 
   return (
     <div className="min-h-screen w-full bg-[#0c1018] text-gray-100">
+      <SEO {...noIndexMeta.trackOrder} noIndex />
       <div className="bg-white" style={{ height: "170px" }} />
 
       <main className="mx-auto max-w-2xl px-4 sm:px-6 py-6 space-y-5">

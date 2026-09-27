@@ -6,6 +6,8 @@ import {
   Container,
 } from "@/components";
 import { useAuth, useLoginModal } from "@/features/auth/hooks";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { seoMeta } from "@/shared/constants/seoMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -106,6 +108,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO {...seoMeta.eyeTestHomeVisit} />
       <div style={spacerStyle} />
 
       <main className="flex-1">

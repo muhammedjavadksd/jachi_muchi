@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import { Package } from "lucide-react";
 import { ORDER_CANCELLED_REFUND_NOTE } from "@/shared/constants";
 import { getImageUrl } from "@/shared/utils/image";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import { EmptyState, Price } from "@/shared/components";
 import { generateInvoicePdf } from "@/shared/utils/invoice";
 import { cancelOrder } from "@/features/checkout/api/orderApi";
@@ -1030,6 +1032,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
 
   return (
     <>
+      <SEO {...noIndexMeta.account} noIndex />
       <div className="space-y-3 sm:space-y-4">
         <h3 ref={ordersTopRef} className="text-base sm:text-lg font-semibold text-gray-900">My Orders</h3>
 

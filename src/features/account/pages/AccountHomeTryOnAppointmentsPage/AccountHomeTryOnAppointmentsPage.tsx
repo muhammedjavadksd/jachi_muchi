@@ -4,6 +4,8 @@ import { CalendarDays } from "lucide-react";
 import { EmptyState } from "@/shared/components";
 import { getMyHomeTryOnAppointments } from "@/features/homeTryOn/api/homeTryOnApi";
 import { useAuth } from "@/features/auth/hooks";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import type { HomeTryOnAppointment } from "@/features/homeTryOn/types";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -57,6 +59,7 @@ export const AccountHomeTryOnAppointmentsPage = memo(function AccountHomeTryOnAp
 
   return (
     <>
+      <SEO {...noIndexMeta.accountHomeTryOnAppointments} noIndex />
       <div className="mb-6 md:mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Home Try-On Appointments</h1>

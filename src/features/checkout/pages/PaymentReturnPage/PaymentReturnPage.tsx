@@ -6,6 +6,8 @@ import { getSkipCashSessionStatus } from "@/features/checkout/api/paymentApi";
 import { clearCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
 import { markCouponAsUsed } from "@/features/coupon/api/couponApi";
 import { useAuth } from "@/features/auth/hooks";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import {
   PAYMENT_SESSION_REF_KEY,
   SKIPCASH_POLL_INTERVAL_MS,
@@ -136,6 +138,7 @@ export const PaymentReturnPage = memo(function PaymentReturnPage(): JSX.Element 
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
+      <SEO {...noIndexMeta.paymentReturn} noIndex />
       <div style={spacerStyle} />
 
       <main className="flex-1 py-8 md:py-12">

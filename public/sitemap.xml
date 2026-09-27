@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!--
+    Static sitemap: public, indexable, non-protected routes only.
+
+    Mirrors the canonicalPath values in src/shared/constants/seoMeta.ts plus the
+    remaining public routes from src/app/routes/index.tsx.
+
+    Intentionally excluded:
+      - /product/:id  - dynamic; needs a generated sitemap (highest-value gap)
+      - /category/:category - duplicate of /search/:category (same component)
+      - /home-2       - work-in-progress alternate homepage, duplicate of /
+      - /online-eye-test/screening | /instructions | /device-check | /app
+                       - wizard UI screens, not standalone content
+      - /500 and the * 404 catch-all - error pages
+      - all cart, checkout, account, payment and tracking routes
+    No <lastmod> is declared because these are hand-maintained and a fabricated
+    date would be worse than none.
+  -->
+
+  <url><loc>https://jachiandmuchi.com/</loc></url>
+  <url><loc>https://jachiandmuchi.com/online-eye-test</loc></url>
+  <url><loc>https://jachiandmuchi.com/search</loc></url>
+  <url><loc>https://jachiandmuchi.com/search/eyeglasses</loc></url>
+  <url><loc>https://jachiandmuchi.com/search/sunglasses</loc></url>
+  <url><loc>https://jachiandmuchi.com/search/screen-glasses</loc></url>
+  <url><loc>https://jachiandmuchi.com/search/kids-glasses</loc></url>
+  <url><loc>https://jachiandmuchi.com/try-at-home</loc></url>
+  <url><loc>https://jachiandmuchi.com/home-try-on</loc></url>
+  <url><loc>https://jachiandmuchi.com/stores</loc></url>
+  <url><loc>https://jachiandmuchi.com/find-nearest-store</loc></url>
+  <url><loc>https://jachiandmuchi.com/about</loc></url>
+  <url><loc>https://jachiandmuchi.com/contact</loc></url>
+  <url><loc>https://jachiandmuchi.com/faq</loc></url>
+  <url><loc>https://jachiandmuchi.com/terms</loc></url>
+  <url><loc>https://jachiandmuchi.com/privacy</loc></url>
+  <url><loc>https://jachiandmuchi.com/refund-policy</loc></url>
+  <url><loc>https://jachiandmuchi.com/shipping-policy</loc></url>
+  <url><loc>https://jachiandmuchi.com/support</loc></url>
+  <url><loc>https://jachiandmuchi.com/warranty</loc></url>
+  <url><loc>https://jachiandmuchi.com/collections</loc></url>
+  <url><loc>https://jachiandmuchi.com/brands</loc></url>
+  <url><loc>https://jachiandmuchi.com/services</loc></url>
+
+</urlset>

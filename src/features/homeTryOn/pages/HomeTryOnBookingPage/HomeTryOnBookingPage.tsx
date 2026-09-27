@@ -4,6 +4,8 @@ import { Footer, WhatsAppButton, Container } from "@/components";
 import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { PREFERRED_FRAME_TYPES } from "@/features/product/constants";
 import { api } from "@/shared/lib/axios";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import { useAuth } from "@/features/auth/hooks";
 
 interface FormData {
@@ -212,6 +214,7 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO {...noIndexMeta.homeTryOnBooking} noIndex />
       <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
 
       <main className="flex-1">

@@ -9,6 +9,8 @@ import { PRODUCT_SORT_OPTIONS } from "@/features/product/constants";
 import { ChevronDown, Inbox, SlidersHorizontal, X } from "lucide-react";
 import { mapProductToCardProps } from "@/features/product/utils/mapProductToCardProps";
 import { useProductSearch } from "@/features/product/hooks";
+import { CATEGORY_SEO_MAP } from "@/features/product/constants/categorySeoMap";
+import { SEO } from "@/shared/components/SEO/SEO";
 import type { OfferBadge } from "@/features/offer/types";
 
 const HEADER_SPACER_HEIGHT = 132;
@@ -214,6 +216,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     showFilters,
     pendingFilters,
     filterConfig,
+    category,
     categoryBanner,
     pendingCount,
     applyCount,
@@ -229,8 +232,17 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     height: `${HEADER_SPACER_HEIGHT}px`,
   }), []);
 
+  // Only the four approved category slugs get their own metadata. Anything
+  // else (e.g. a brand or shape filter with no approved copy) renders no
+  // override, so the static index.html title/description remain.
+  const categorySeo = useMemo(
+    () => (category ? CATEGORY_SEO_MAP[category.toLowerCase()] : undefined),
+    [category]
+  );
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-white">
+      {categorySeo ? <SEO {...categorySeo} /> : null}
       <div style={spacerStyle} />
 
       <main className="flex-1">

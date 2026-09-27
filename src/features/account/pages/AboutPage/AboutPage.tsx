@@ -1,6 +1,8 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { seoMeta } from "@/shared/constants/seoMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -12,6 +14,7 @@ export const AboutPage = memo(function AboutPage(): JSX.Element {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <SEO {...seoMeta.aboutUs} />
       <div style={spacerStyle} />
 
       <main className="flex-1">

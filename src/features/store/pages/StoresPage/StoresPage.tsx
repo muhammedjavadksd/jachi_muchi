@@ -8,6 +8,8 @@ import { HEADER_SPACER_HEIGHT } from "@/shared/constants";
 import { getStores, findNearestStore } from "@/features/store/api/storeApi";
 import type { Store } from "@/features/store/types";
 import { getImageUrl } from "@/shared/utils/image";
+import { SEO } from "@/shared/components/SEO/SEO";
+import { seoMeta } from "@/shared/constants/seoMeta";
 
 const ALL = "All";
 
@@ -170,6 +172,7 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
 
   return (
     <div className="w-full flex flex-col min-h-screen">
+      <SEO {...seoMeta.storeLocator} />
       <div style={spacerStyle} />
 
       <main className="flex-1">
