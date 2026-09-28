@@ -20,10 +20,26 @@ export interface SEOProps {
   /** Optional `keywords` meta. Omitted from the head when not provided. */
   keywords?: string;
   /**
+   * Overrides the `og:title` value only. Defaults to `title`, so pages whose
+   * social copy should read differently (e.g. shorter, more click-oriented)
+   * can diverge from the SERP title without duplicating the whole entry.
+   */
+  ogTitle?: string;
+  /** Overrides the `og:description` value only. Defaults to `description`. */
+  ogDescription?: string;
+  /**
    * Emits `<meta name="robots" content="noindex, nofollow" />`. Use for
    * protected, transactional and account pages that must stay out of the index.
    */
   noIndex?: boolean;
+  /**
+   * Emits an explicit `<meta name="robots" content="index, follow" />`.
+   *
+   * Crawlers already default to index,follow, so this is cosmetic; it exists so
+   * a page that must be an ad landing target can state its indexability
+   * explicitly in the head rather than relying on the absence of a tag.
+   */
+  indexFollow?: boolean;
 }
 
 /**
@@ -50,9 +66,14 @@ export const SEO = memo(function SEO({
   description,
   canonicalPath,
   keywords,
+  ogTitle,
+  ogDescription,
   noIndex = false,
+  indexFollow = false,
 }: SEOProps): JSX.Element | null {
   const canonicalUrl = canonicalPath ? `${SITE_URL}${canonicalPath}` : undefined;
+  const resolvedOgTitle = ogTitle ?? title;
+  const resolvedOgDescription = ogDescription ?? description;
 
   return (
     <Helmet>
@@ -60,9 +81,10 @@ export const SEO = memo(function SEO({
       <meta name="description" content={description} />
       {keywords ? <meta name="keywords" content={keywords} /> : null}
       {noIndex ? <meta name="robots" content="noindex, nofollow" /> : null}
+      {indexFollow ? <meta name="robots" content="index, follow" /> : null}
       {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={resolvedOgTitle} />
+      <meta property="og:description" content={resolvedOgDescription} />
       {canonicalUrl ? <meta property="og:url" content={canonicalUrl} /> : null}
     </Helmet>
   );

@@ -33,6 +33,7 @@ const ServicesPage = lazy(() => import("@/features/account/pages/ServicesPage/Se
 const HomePage2 = lazy(() => import("@/features/home/pages/HomePage2/HomePage2").then(m => ({ default: m.HomePage2 })));
 const HomeTryOnPage = lazy(() => import("@/features/homeTryOn/pages/HomeTryOnPage/HomeTryOnPage").then(m => ({ default: m.HomeTryOnPage })));
 const StoresPage = lazy(() => import("@/features/store/pages/StoresPage/StoresPage").then(m => ({ default: m.StoresPage })));
+const MoiApprovedEyeTestPage = lazy(() => import("@/features/eyetest/pages/MoiApprovedEyeTestPage/MoiApprovedEyeTestPage").then(m => ({ default: m.MoiApprovedEyeTestPage })));
 const WishlistPage = lazy(() => import("@/features/wishlist/pages/WishlistPage/WishlistPage").then(m => ({ default: m.WishlistPage })));
 
 export const ROUTES: RouteConfig[] = [
@@ -62,6 +63,7 @@ export const ROUTES: RouteConfig[] = [
   { path: "/try-at-home", component: TryAtHomePage },
   { path: "/home-try-on", component: HomeTryOnPage },
   { path: "/stores", component: StoresPage },
+  { path: "/moi-approved-eye-test-qatar", component: MoiApprovedEyeTestPage },
   { path: "/warranty", component: WarrantyPage },
   { path: "/collections", component: CollectionsPage },
   { path: "/brands", component: CollectionsPage },

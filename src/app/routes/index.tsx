@@ -45,6 +45,7 @@ const StoresPage = lazy(() => import("@/features/store/pages/StoresPage/StoresPa
 const FindNearestStorePage = lazy(() => import("@/features/store/pages/FindNearestStorePage/FindNearestStorePage").then(m => ({ default: m.FindNearestStorePage })));
 const WishlistPage = lazy(() => import("@/features/wishlist/pages/WishlistPage/WishlistPage").then(m => ({ default: m.WishlistPage })));
 const OnlineEyeTestPage = lazy(() => import("@/features/eyetest/pages/OnlineEyeTestPage/OnlineEyeTestPage").then(m => ({ default: m.OnlineEyeTestPage })));
+const MoiApprovedEyeTestPage = lazy(() => import("@/features/eyetest/pages/MoiApprovedEyeTestPage/MoiApprovedEyeTestPage").then(m => ({ default: m.MoiApprovedEyeTestPage })));
 const VisionScreeningDisclaimerPage = lazy(() => import("@/features/eyetest/pages/VisionScreeningDisclaimerPage/VisionScreeningDisclaimerPage").then(m => ({ default: m.VisionScreeningDisclaimerPage })));
 const BrightnessSetupPage = lazy(() => import("@/features/eyetest/pages/BrightnessSetupPage/BrightnessSetupPage").then(m => ({ default: m.BrightnessSetupPage })));
 const DeviceCheckPage = lazy(() => import("@/features/eyetest/pages/DeviceCheckPage/DeviceCheckPage").then(m => ({ default: m.DeviceCheckPage })));
@@ -107,6 +108,7 @@ export const routes: RouteObject[] = [
       { path: "/my-home-try-on-appointments", element: <ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute> },
       { path: "/find-nearest-store", element: <FindNearestStorePage /> },
       { path: "/stores", element: <StoresPage /> },
+      { path: "/moi-approved-eye-test-qatar", element: <MoiApprovedEyeTestPage /> },
       { path: "/warranty", element: <WarrantyPage /> },
       { path: "/collections", element: <CollectionsPage /> },
       { path: "/brands", element: <CollectionsPage /> },

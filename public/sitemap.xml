@@ -15,12 +15,15 @@
                        - wizard UI screens, not standalone content
       - /500 and the * 404 catch-all - error pages
       - all cart, checkout, account, payment and tracking routes
-    No <lastmod> is declared because these are hand-maintained and a fabricated
-    date would be worse than none.
+    No <lastmod> is declared for the long-standing URLs because they are
+    hand-maintained and a fabricated date would be worse than none. The two
+    URLs touched in the MOI/online-eye-test SEO pass DO carry a real <lastmod>
+    (the date that copy was last revised).
   -->
 
   <url><loc>https://jachiandmuchi.com/</loc></url>
-  <url><loc>https://jachiandmuchi.com/online-eye-test</loc></url>
+  <url><loc>https://jachiandmuchi.com/online-eye-test</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://jachiandmuchi.com/moi-approved-eye-test-qatar</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://jachiandmuchi.com/search</loc></url>
   <url><loc>https://jachiandmuchi.com/search/eyeglasses</loc></url>
   <url><loc>https://jachiandmuchi.com/search/sunglasses</loc></url>
