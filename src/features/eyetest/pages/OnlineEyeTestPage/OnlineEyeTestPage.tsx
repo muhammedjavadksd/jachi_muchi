@@ -1,5 +1,5 @@
 import { memo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { SEO } from "@/shared/components/SEO/SEO";
@@ -22,7 +22,7 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <SEO {...seoMeta.moiEyeTest} />
+      <SEO {...seoMeta.onlineEyeTest} />
       {/* White header bar */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-center relative">
@@ -46,7 +46,7 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-12 sm:py-16 lg:py-24">
         <div className="w-full max-w-lg mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-10 sm:mb-12 lg:mb-14">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-8 sm:mb-10">
             Jachi&Muchi Online Vision Screening
           </h1>
 
@@ -71,6 +71,28 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
               Book home eye test
             </button>
           </div>
+
+          {/*
+            Scope note. This page used to be served MOI / driving-license meta,
+            which misdescribed the page and contradicted the ad that lands here.
+            The webcam screening is a self-assessment only — it is not a medical
+            examination and it is not MOI-approved, so the page now says so and
+            routes anyone who actually needs a licence test to the store page.
+          */}
+          <p className="mt-8 sm:mt-10 text-xs sm:text-sm text-gray-500 leading-relaxed max-w-md mx-auto">
+            This is a vision screening for self-assessment only. It is not a
+            medical examination and it is not an MOI-approved test.
+          </p>
+
+          <p className="mt-3 text-sm sm:text-base text-gray-700 max-w-md mx-auto">
+            Need an eye test for your driving license?{" "}
+            <Link
+              to="/moi-approved-eye-test-qatar"
+              className="font-semibold text-teal-600 hover:text-teal-700 underline underline-offset-2"
+            >
+              Visit our store.
+            </Link>
+          </p>
         </div>
       </main>
 

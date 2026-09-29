@@ -15,4 +15,8 @@ export const BOTTOM_NAV_EXCLUDED_PREFIXES: readonly string[] = [
   "/order-failure",
   "/payment",
   "/online-eye-test",
+  // Google Ads landing page. It ships its own fixed bottom CTA bar
+  // (Call / WhatsApp / Get Directions); the app bottom nav would sit on top of
+  // it and neither belongs on an ad landing page.
+  "/moi-approved-eye-test-qatar",
 ];

@@ -16,6 +16,7 @@ export const FOOTER_LINKS: FooterLinkColumn[] = [
     title: "Services",
     links: [
       { label: "Store Locator", href: "/stores" },
+      { label: "MOI Approved Eye Test", href: "/moi-approved-eye-test-qatar" },
       { label: "Buying Guide", href: "/buying-guide" },
       { label: "Frame Size", href: "/frame-size" },
     ],

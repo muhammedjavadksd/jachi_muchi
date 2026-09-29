@@ -88,6 +88,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
     if (root === "category" && slug && HEADER_NAV_IDS.includes(slug)) return slug;
     if (root === "online-eye-test") return "home-eye-test";
     if (root === "stores") return "store-locator";
+    if (root === "moi-approved-eye-test-qatar") return "moi-approved";
     return null;
   }, [location.pathname]);
 

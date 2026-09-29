@@ -4,6 +4,7 @@ export { EyeTestIconIllustration } from "./components/EyeTestIconIllustration/Ey
 export { VisionScreeningModal } from "./components/VisionScreeningModal/VisionScreeningModal";
 
 export { OnlineEyeTestPage } from "./pages/OnlineEyeTestPage/OnlineEyeTestPage";
+export { MoiApprovedEyeTestPage } from "./pages/MoiApprovedEyeTestPage/MoiApprovedEyeTestPage";
 export { BrightnessSetupPage } from "./pages/BrightnessSetupPage/BrightnessSetupPage";
 export { DeviceCheckPage } from "./pages/DeviceCheckPage/DeviceCheckPage";
 export { VisionScreeningDisclaimerPage } from "./pages/VisionScreeningDisclaimerPage/VisionScreeningDisclaimerPage";

@@ -1,12 +1,32 @@
 import { memo } from "react";
+import { QATAR_WHATSAPP_URL } from "@/shared/constants";
 
-export const WhatsAppButton = memo(function WhatsAppButton(): JSX.Element {
+/** Default fixed position — the floating bubble most pages render. */
+const DEFAULT_POSITION_CLASSES = "bottom-6 right-6";
+
+export interface WhatsAppButtonProps {
+  /**
+   * Replaces the default `bottom-6 right-6` positioning utilities wholesale.
+   *
+   * Pages that render their own fixed bottom bar (e.g. the Google Ads landing
+   * page, whose mobile CTA bar is `md:hidden` and full width) pass a full
+   * positioning class string here so the bubble lifts clear of that bar
+   * instead of overlapping it. Passing a replacement rather than an extra
+   * class avoids two competing `bottom-*` utilities, whose winner depends on
+   * stylesheet order rather than the class attribute.
+   */
+  className?: string;
+}
+
+export const WhatsAppButton = memo(function WhatsAppButton({
+  className = DEFAULT_POSITION_CLASSES,
+}: WhatsAppButtonProps = {}): JSX.Element {
   return (
     <a
-      href="https://wa.me/97477264007"
+      href={QATAR_WHATSAPP_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50"
+      className={`fixed ${className} w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors z-50`}
       aria-label="Chat on WhatsApp"
     >
       <svg width="28" height="28" viewBox="0 0 24 24" fill="white">

@@ -10,6 +10,14 @@
  * the `*` NotFoundPage catch-all, so it was corrected rather than added as a
  * new route.
  *
+ * MOI / driving-license / Metrash2 wording lives in exactly ONE entry,
+ * `moiApprovedEyeTest`, and that entry is consumed only by
+ * `/moi-approved-eye-test-qatar`. The other eye-test surfaces —
+ * `onlineEyeTest` (`/online-eye-test`) and `eyeTestHomeVisit`
+ * (`/home-try-on`) — must stay free of it: the online webcam screening is not
+ * confirmed as MOI-approved, and advertising it as such is both a Google Ads
+ * policy problem and a plain false claim.
+ *
  * Routes deliberately absent from this map (cart, checkout, account, policies,
  * support, warranty, collections, services, and the remaining
  * `/online-eye-test/*` wizard steps) have no approved copy yet and therefore
@@ -22,6 +30,12 @@ export interface SeoMetaEntry {
   description: string;
   keywords: string;
   canonicalPath: string;
+  /**
+   * Optional social-only overrides. Both default to the SERP `title` /
+   * `description` when omitted, so entries that need no divergence stay silent.
+   */
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
 /**
@@ -55,13 +69,27 @@ export const seoMeta = {
       "opticals in qatar, glasses shop doha, eyewear store qatar, prescription glasses doha",
     canonicalPath: "/",
   },
-  moiEyeTest: {
-    title: "MOI Approved Eye Test Qatar | Driving License & Renewal",
+  moiApprovedEyeTest: {
+    title: "MOI Approved Eye Test Qatar | Driving License Eye Test – Jachi & Muchi",
     description:
-      "Get your certified MOI driving license eye test at Jachi & Muchi Qatar. Fast visual screening with instant Metrash2 system upload. Walk-ins welcome.",
+      "Get your eye test for a Qatar driving license at Jachi & Muchi Opticals. Visit our store, walk-in or WhatsApp booking.",
     keywords:
-      "moi approved eye test centre qatar, driving license eye test doha, metrash2 eye test renewal",
+      "MOI approved eye test centre Qatar, driving license eye test Doha, Metrash2 eye test renewal, optical center for driving license test Qatar",
+    canonicalPath: "/moi-approved-eye-test-qatar",
+    ogTitle: "MOI Approved Eye Test for Qatar Driving License & Metrash2",
+    ogDescription:
+      "Fast, hassle-free vision testing for your Qatar driving license. Visit Jachi & Muchi Opticals.",
+  },
+  onlineEyeTest: {
+    title: "Online Eye Test Qatar | Free Vision Screening – Jachi & Muchi",
+    description:
+      "Take a quick online vision screening from home, or book an optometrist home eye test anywhere in Qatar with Jachi & Muchi.",
+    keywords:
+      "online eye test qatar, free vision screening doha, home eye test qatar, eyesight test at home",
     canonicalPath: "/online-eye-test",
+    ogTitle: "Online Eye Test Qatar | Free Vision Screening – Jachi & Muchi",
+    ogDescription:
+      "Take a quick online vision screening from home, or book an optometrist home eye test anywhere in Qatar with Jachi & Muchi.",
   },
   eyeglasses: {
     title: "Eyeglasses in Qatar | Prescription Frames – Jachi & Muchi",
@@ -128,9 +156,9 @@ export const seoMeta = {
     canonicalPath: "/contact",
   },
   faqs: {
-    title: "FAQs | Eyewear & Driving Eye Tests – Jachi & Muchi Qatar",
+    title: "FAQs | Eyewear, Eye Tests & Delivery – Jachi & Muchi Qatar",
     description:
-      "Got questions about driving license eye tests, lens options, warranty, or delivery in Qatar? Find quick answers in our official Jachi & Muchi FAQ.",
+      "Got questions about eye tests, lens options, warranty, or delivery in Qatar? Find quick answers in our official Jachi & Muchi FAQ.",
     keywords:
       "eyewear faq qatar, lens warranty doha, optical test questions qatar",
     canonicalPath: "/faq",
