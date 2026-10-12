@@ -117,6 +117,11 @@ export interface PremiumBrandTile {
   tagline: string;
   image: string;
   link: string;
+  /**
+   * Optional per-card CSS `object-position` (e.g. "50% 20%") that controls the
+   * crop focal point so faces stay in frame. Falls back to a layout default.
+   */
+  imagePosition?: string;
 }
 
 export interface CollectionSectionCard {
@@ -126,6 +131,8 @@ export interface CollectionSectionCard {
   thumbnail: string;
   link: string;
   order: number;
+  /** Optional server-provided crop focal point for the card image. */
+  imagePosition?: string;
 }
 
 export interface CollectionSection {

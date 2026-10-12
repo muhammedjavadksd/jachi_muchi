@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Footer, CenterFocusCarousel } from "@/components";
+import { TrendingProducts } from "@/components/TrendingProducts";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
@@ -112,6 +113,8 @@ export function HomePage(): JSX.Element {
           ) : heroBanners.length > 0 ? (
             <HeroSlider banners={heroBanners} />
           ) : null}        </Suspense>
+
+        <TrendingProducts />
 
         <TopCategories />
 

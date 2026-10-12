@@ -2,6 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
+import { resolveCardImagePosition } from "@/features/home/constants";
 import { useCollectionSections } from "@/features/home/hooks/useCollectionSections";
 import { getImageUrl } from "@/shared/utils/image";
 import type {
@@ -34,12 +35,17 @@ const BrandCard = memo(function BrandCard({
 
   const cardClassName =
     variant === "grid"
-      ? "group relative block overflow-hidden rounded-2xl bg-gray-100 h-52 sm:h-60 lg:h-72"
+      ? "group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/3] lg:aspect-[5/4]"
       : `group relative block overflow-hidden rounded-2xl bg-gray-100 ${
           featured
-            ? "h-72 sm:h-96 md:h-auto md:min-h-[460px] md:row-span-2"
-            : "h-40 sm:h-48 md:h-auto"
+            ? "aspect-[4/3] md:aspect-auto md:min-h-[460px] md:row-span-2"
+            : "aspect-[4/3] md:aspect-auto"
         }`;
+
+  const objectPosition = resolveCardImagePosition(
+    tile.image,
+    tile.imagePosition
+  );
 
   return (
     <Link to={tile.link} className={cardClassName}>
@@ -48,6 +54,7 @@ const BrandCard = memo(function BrandCard({
         alt={tile.name}
         loading="lazy"
         onError={handleError}
+        style={{ objectPosition }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -80,6 +87,7 @@ function toTile(card: CollectionSectionCard): PremiumBrandTile {
     tagline: card.tagline || "",
     image: card.thumbnail || "",
     link: `/search?cardId=${card._id}`,
+    imagePosition: card.imagePosition,
   };
 }
 

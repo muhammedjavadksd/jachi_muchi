@@ -2,6 +2,48 @@ import type { ShapeItem, CategoryItem, ProductItem, NearbyServiceItem, Exclusive
 import type { PopularEyewearItem } from "@/shared/types";
 import { ROUTE_PATHS, storeLocatorWithService } from "@/shared/constants/routes";
 
+/**
+ * Shared default `object-position` for every homepage image card (Ways to Shop,
+ * "Exclusively at Jachi & Muchi", and the brand grid). Model photos keep the
+ * head near the top of the frame, so the crop is biased to the upper area
+ * instead of the browser default (center) which clips heads. 15% keeps the
+ * head, forehead and glasses in frame without over-cropping. Any single card
+ * can override this via its own `imagePosition` value.
+ */
+export const DEFAULT_CARD_IMAGE_POSITION = "50% 15%";
+
+/**
+ * Per-card focal overrides for the homepage collection grids, keyed by the
+ * thumbnail file name. Needed because the collection-sections API currently
+ * does not expose a per-card `imagePosition`, yet some source photos are
+ * framed very differently (e.g. portrait shots whose subject sits low). Value
+ * format matches CSS `object-position`: "<x>% <y>%". Entries can be deleted
+ * once the backend/admin returns a real `imagePosition` for each card.
+ */
+export const CARD_IMAGE_POSITION_OVERRIDES: Record<string, string> = {
+  "1787403474692-WhatsApp-Image-2026-08-08-at-10.08.32-PM.webp": "50% 80%",
+};
+
+/**
+ * Resolves the `object-position` for a card image, preferring an explicit
+ * API/admin value, then the local per-file override map, then the shared
+ * default. Only the file name (query string and directories stripped) is used
+ * for the override lookup so it stays stable regardless of API origin.
+ */
+export function resolveCardImagePosition(
+  image?: string | null,
+  apiValue?: string
+): string {
+  if (apiValue) return apiValue;
+  if (image) {
+    const fileName = image.split("?")[0].split("/").pop();
+    if (fileName && CARD_IMAGE_POSITION_OVERRIDES[fileName]) {
+      return CARD_IMAGE_POSITION_OVERRIDES[fileName];
+    }
+  }
+  return DEFAULT_CARD_IMAGE_POSITION;
+}
+
 export const EYEGLASS_SHAPES: ShapeItem[] = [
   { label: "Rectangle", image: "/category/image.png", link: "/eyeglasses/rectangle" },
   { label: "Cateye", image: "/category/image.png", link: "/eyeglasses/cateye" },

@@ -39,6 +39,7 @@ export const getProducts = async (filters?: {
   q?: string;
   sortBy?: string;
   gender?: string;
+  trending?: string | boolean;
   limit?: number;      // ← added
   page?: number;       // ← added
   [key: string]: any;
@@ -55,6 +56,7 @@ export const getProducts = async (filters?: {
   if (filters?.collection) params.collection = filters.collection;
   if (filters?.cardId) params.cardId = filters.cardId;
   if (filters?.sortBy) params.sortBy = filters.sortBy;
+  if (filters?.trending) params.trending = filters.trending;
 
   // ↓ added: always fetch everything by default
   params.limit = filters?.limit ?? 1000;

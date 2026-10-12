@@ -220,10 +220,12 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
     categoryBanner,
     pendingCount,
     applyCount,
+    trending,
     handleSortChange,
     handleFilterChange,
     applyFilters,
     clearFilters,
+    clearTrending,
     setShowFilters,
     getOfferBadge,
   } = useProductSearch();
@@ -250,6 +252,21 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
           {categoryBanner && (
             <div className="pt-6">
               <Campaign image={categoryBanner.image} link={categoryBanner.redirectUrl || "#"} alt={categoryBanner.title} />
+            </div>
+          )}
+
+          {trending && (
+            <div className="pt-6 flex items-center gap-3">
+              <h1 className="text-lg font-semibold text-gray-900">Trending Products</h1>
+              <button
+                type="button"
+                onClick={clearTrending}
+                aria-label="Clear trending filter"
+                className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                <X size={14} />
+                Clear
+              </button>
             </div>
           )}
 
