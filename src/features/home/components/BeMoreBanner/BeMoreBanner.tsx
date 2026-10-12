@@ -19,7 +19,7 @@ export const BeMoreBanner = memo(function BeMoreBanner(): JSX.Element {
 
       <Container>
         <div className="mt-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-teal-600">
+          <p className="font-arvo text-xs font-bold uppercase tracking-[0.3em] text-teal-600">
             {BE_MORE_BANNER.eyebrow}
           </p>
           <p className="mt-2 text-xl md:text-2xl font-semibold" style={{ color: "#1a1a1a" }}>
