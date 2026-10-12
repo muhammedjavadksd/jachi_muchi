@@ -20,16 +20,25 @@ const STATUS_MESSAGES: Record<string, string> = {
   completed: "Appointment completed successfully.",
 };
 
-const formatDate = (dateStr: string) => {
-  try {
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
+const formatDate = (dateStr: string, timeZone?: string) => {
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    ...(timeZone ? { timeZone } : {}),
+  });
+};
+
+const formatTime = (timeStr: string) => {
+  const match = /^(\d{1,2}):(\d{2})$/.exec((timeStr || "").trim());
+  if (!match) return "-";
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return "-";
+  const period = hours >= 12 ? "PM" : "AM";
+  return `${hours % 12 || 12}:${match[2]} ${period}`;
 };
 
 export const AccountHomeTryOnAppointmentsPage = memo(function AccountHomeTryOnAppointmentsPage(): JSX.Element {
@@ -114,11 +123,11 @@ export const AccountHomeTryOnAppointmentsPage = memo(function AccountHomeTryOnAp
                             )}
                             <div>
                               <span className="text-gray-500">Preferred Date</span>
-                              <p className="font-medium text-gray-900">{apt.preferredDate}</p>
+                              <p className="font-medium text-gray-900">{formatDate(apt.preferredDate, "UTC")}</p>
                             </div>
                             <div>
                               <span className="text-gray-500">Preferred Time</span>
-                              <p className="font-medium text-gray-900">{apt.preferredTime}</p>
+                              <p className="font-medium text-gray-900">{formatTime(apt.preferredTime)}</p>
                             </div>
                             <div className="sm:col-span-2">
                               <span className="text-gray-500">Address</span>
