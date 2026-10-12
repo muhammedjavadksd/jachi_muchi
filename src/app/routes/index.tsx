@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { ProtectedRoute } from "@/shared/components/ProtectedRoute/ProtectedRoute";
 import { AccountLayout, RootLayout } from "@/app/layouts";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 // Lazy-loaded pages from feature locations (NOT old @/pages/)
 const App = lazy(() => import("@/App").then(m => ({ default: m.default })));
@@ -24,6 +25,18 @@ const AddressBookPage = lazy(() => import("@/features/account").then(m => ({ def
 const AccountHomeTryOnAppointmentsPage = lazy(() => import("@/features/account").then(m => ({ default: m.AccountHomeTryOnAppointmentsPage })));
 const TermsPage = lazy(() => import("@/features/account/pages/TermsPage/TermsPage").then(m => ({ default: m.TermsPage })));
 const PrivacyPage = lazy(() => import("@/features/account/pages/PrivacyPage/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
+// BUG-023: the footer linked to /disclaimer from two places but this route was
+// never registered, so the path fell through to the `*` catch-all below and
+// rendered the 404 page. The page itself did not exist.
+const DisclaimerPage = lazy(() => import("@/features/account/pages/DisclaimerPage/DisclaimerPage").then(m => ({ default: m.DisclaimerPage })));
+// BUG-028: the footer's "Frame Size" link (Services column) pointed at
+// /frame-size, but no route was registered for it and no page existed, so the
+// path fell through to the `*` catch-all and rendered the 404 page.
+const FrameSizeGuidePage = lazy(() => import("@/features/account/pages/FrameSizeGuidePage/FrameSizeGuidePage").then(m => ({ default: m.FrameSizeGuidePage })));
+// BUG-029: the footer's "Buying Guide" link (Services column) pointed at
+// /buying-guide, but no route was registered for it and no page existed, so the
+// path fell through to the `*` catch-all and rendered the 404 page.
+const BuyingGuidePage = lazy(() => import("@/features/account/pages/BuyingGuidePage/BuyingGuidePage").then(m => ({ default: m.BuyingGuidePage })));
 const RefundPolicyPage = lazy(() => import("@/features/account/pages/RefundPolicyPage/RefundPolicyPage").then(m => ({ default: m.RefundPolicyPage })));
 const ShippingPolicyPage = lazy(() => import("@/features/account/pages/ShippingPolicyPage/ShippingPolicyPage").then(m => ({ default: m.ShippingPolicyPage })));
 const FAQPage = lazy(() => import("@/features/account/pages/FAQPage/FAQPage").then(m => ({ default: m.FAQPage })));
@@ -93,10 +106,11 @@ export const routes: RouteObject[] = [
 
         ],
       },
-      { path: "/terms", element: <TermsPage /> },
-      { path: "/privacy", element: <PrivacyPage /> },
-      { path: "/refund-policy", element: <RefundPolicyPage /> },
-      { path: "/shipping-policy", element: <ShippingPolicyPage /> },
+  { path: ROUTE_PATHS.terms, element: <TermsPage /> },
+  { path: ROUTE_PATHS.privacy, element: <PrivacyPage /> },
+  { path: ROUTE_PATHS.disclaimer, element: <DisclaimerPage /> },
+  { path: ROUTE_PATHS.refundPolicy, element: <RefundPolicyPage /> },
+  { path: ROUTE_PATHS.shippingPolicy, element: <ShippingPolicyPage /> },
       { path: "/faq", element: <FAQPage /> },
       { path: "/contact", element: <ContactPage /> },
       { path: "/about", element: <AboutPage /> },
@@ -106,10 +120,14 @@ export const routes: RouteObject[] = [
       { path: "/home-try-on/book", element: <ProtectedRoute><HomeTryOnBookingPage /></ProtectedRoute> },
       { path: "/my-home-try-on", element: <ProtectedRoute><MyHomeTryOnPage /></ProtectedRoute> },
       { path: "/my-home-try-on-appointments", element: <ProtectedRoute><MyHomeTryOnAppointmentsPage /></ProtectedRoute> },
-      { path: "/find-nearest-store", element: <FindNearestStorePage /> },
-      { path: "/stores", element: <StoresPage /> },
+      // Registered from the shared constant so the route and every "Locate Us"
+      // link can never drift apart (BUG-024).
+      { path: ROUTE_PATHS.findNearestStore, element: <FindNearestStorePage /> },
+      { path: ROUTE_PATHS.storeLocator, element: <StoresPage /> },
       { path: "/moi-approved-eye-test-qatar", element: <MoiApprovedEyeTestPage /> },
-      { path: "/warranty", element: <WarrantyPage /> },
+      { path: ROUTE_PATHS.warranty, element: <WarrantyPage /> },
+  { path: ROUTE_PATHS.frameSizeGuide, element: <FrameSizeGuidePage /> },
+  { path: ROUTE_PATHS.buyingGuide, element: <BuyingGuidePage /> },
       { path: "/collections", element: <CollectionsPage /> },
       { path: "/brands", element: <CollectionsPage /> },
       { path: "/services", element: <ServicesPage /> },

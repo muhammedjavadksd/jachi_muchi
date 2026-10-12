@@ -3,7 +3,9 @@
  *
  * Single source of truth for document titles, meta descriptions, keywords and
  * canonical paths. Every `canonicalPath` below is verified against the live
- * route table in `src/app/routes/index.tsx`.
+ * route table in `src/app/routes/index.tsx`; the store locator's canonical path
+ * is read from `ROUTE_PATHS` so the SEO tag, the link and the route registration
+ * cannot disagree (BUG-024).
  *
  * NOTE: `faqs.canonicalPath` is `/faq` — the live route. The spec draft
  * originally said `/faqs`, which is not a declared route and would resolve to
@@ -24,6 +26,8 @@
  * fall back to the static `<title>` / `<meta name="description">` in
  * `index.html`.
  */
+
+import { ROUTE_PATHS } from "./routes";
 
 export interface SeoMetaEntry {
   title: string;
@@ -137,7 +141,7 @@ export const seoMeta = {
       "Find your nearest Jachi & Muchi optical branch in Qatar. Check opening hours, store locations at Ezdan Mall Al Wakra, Ezdan Mall Al Gharaffa, and contact details.",
     keywords:
       "opticals ezdan mall wakra, jachi and muchi gharrafa, optical shop near me qatar",
-    canonicalPath: "/stores",
+    canonicalPath: ROUTE_PATHS.storeLocator,
   },
   aboutUs: {
     title: "About Jachi & Muchi | Qatar's Modern Eyewear Brand",
@@ -162,5 +166,43 @@ export const seoMeta = {
     keywords:
       "eyewear faq qatar, lens warranty doha, optical test questions qatar",
     canonicalPath: "/faq",
+  },
+  /**
+   * BUG-023: `/disclaimer` had no page and no route at all, so the footer's
+   * "Disclaimer" link rendered the 404 page. The canonical path is read from
+   * `ROUTE_PATHS` so the SEO tag, the footer links and the route registration
+   * cannot disagree — the same guarantee `storeLocator` already has.
+   */
+  disclaimer: {
+    title: "Disclaimer | Website Terms – Jachi & Muchi Opticals Qatar",
+    description:
+      "Read the Jachi & Muchi website disclaimer covering general information, professional advice, product information and pricing, external links and limitation of liability.",
+    keywords: "jachi and muchi disclaimer, website disclaimer qatar, optical store disclaimer doha",
+    canonicalPath: ROUTE_PATHS.disclaimer,
+  },
+  /**
+   * BUG-028: `/frame-size` had no page and no route at all, so the footer's
+   * "Frame Size" link rendered the 404 page. As with `disclaimer`, the canonical
+   * path comes from `ROUTE_PATHS` so the SEO tag, the footer link and the route
+   * registration cannot disagree.
+   */
+  frameSizeGuide: {
+    title: "Frame Size Guide | Lens Width, Bridge & Temple Length – Jachi & Muchi",
+    description:
+      "Find your ideal eyewear fit with our frame size guide. Understand lens width, bridge and temple length measurements, and learn how to measure your current glasses at home.",
+    keywords: "frame size guide, lens width bridge temple length, glasses size chart, eyewear fit qatar, how to measure glasses",
+    canonicalPath: ROUTE_PATHS.frameSizeGuide,
+  },
+  /**
+   * BUG-029: `/buying-guide` had no page and no route at all, so the footer's
+   * "Buying Guide" link rendered the 404 page. Third instance of the same
+   * link/route drift, fixed the same way.
+   */
+  buyingGuide: {
+    title: "Buying Guide | How to Choose Glasses & Lenses – Jachi & Muchi Qatar",
+    description:
+      "A practical guide to choosing eyewear in Qatar — how to pick the right frame, which lens type suits your prescription and lifestyle, how ordering works, and what our returns and warranty cover.",
+    keywords: "buying glasses guide qatar, how to choose glasses, lens types explained, eyeglasses buying guide doha",
+    canonicalPath: ROUTE_PATHS.buyingGuide,
   },
 } satisfies Record<string, SeoMetaEntry>;

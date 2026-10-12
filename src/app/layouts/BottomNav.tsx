@@ -1,27 +1,35 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { BOTTOM_NAV_ROUTES } from "./constants";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export type NavTab = "home" | "stores" | "eye-test" | "orders" | "wishlist"; // "ar-tryon" — temporarily hidden
 
 interface NavItemProps {
   active: boolean;
-  onClick: () => void;
   icon: React.ReactNode;
   label: string;
+  /**
+   * Router destination. BUG-024: these tabs used to be `<button onClick={() =>
+   * navigate(...)}>`, which is not a link — middle-click, right-click "Open in
+   * new tab" and "Copy link address" were all unavailable, and the control was
+   * unreachable in the expected way for a navigation target. When `to` is set
+   * the item renders a real react-router `<Link>`, so the browser owns the
+   * history entry and the back button works.
+   */
+  to?: string;
+  /** Only used for the Wishlist tab, which opens a canvas instead of routing. */
+  onClick?: () => void;
 }
 
-const NavItem = memo(function NavItem({ active, onClick, icon, label }: NavItemProps): JSX.Element {
+const NavItem = memo(function NavItem({ active, icon, label, to, onClick }: NavItemProps): JSX.Element {
   const activeColor = label === "AI Stylist" ? "#e74c3c" : "#4FC3F7";
   const inactiveColor = "#8899b0";
 
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center py-1 px-2 relative min-w-[60px]"
-    >
+  const content = (
+    <>
       {icon}
       <span
         className="text-[10px] mt-1 font-medium transition-colors"
@@ -35,6 +43,20 @@ const NavItem = memo(function NavItem({ active, onClick, icon, label }: NavItemP
           style={{ backgroundColor: activeColor }}
         />
       )}
+    </>
+  );
+
+  const className = "flex flex-col items-center justify-center py-1 px-2 relative min-w-[60px]";
+
+  // `aria-current` exposes the active tab to assistive tech; the amber dot and
+  // icon colour were the only previous signal.
+  return to ? (
+    <Link to={to} aria-current={active ? "page" : undefined} className={className}>
+      {content}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
     </button>
   );
 });
@@ -120,6 +142,9 @@ export const BottomNav = memo(function BottomNav(): JSX.Element {
 
   const activeTab = useMemo<NavTab>(() => {
     const pathname = location.pathname;
+    // Both store pages belong to the "Stores" tab, so the tab stays highlighted
+    // on the geolocation variant too (BUG-024).
+    if (pathname === ROUTE_PATHS.findNearestStore) return "stores";
     return (
       (Object.keys(BOTTOM_NAV_ROUTES) as NavTab[]).find((tab) => {
         const route = BOTTOM_NAV_ROUTES[tab];
@@ -128,23 +153,16 @@ export const BottomNav = memo(function BottomNav(): JSX.Element {
     );
   }, [location.pathname]);
 
-  const handleTabChange = useCallback(
-    (tab: NavTab) => {
-      if (tab === "wishlist") {
-        if (isAuthenticated) {
-          openWishlist();
-        } else {
-          navigate("/wishlist");
-        }
-        return;
-      }
-      const route = BOTTOM_NAV_ROUTES[tab];
-      if (location.pathname !== route) {
-        navigate(route);
-      }
-    },
-    [openWishlist, isAuthenticated, navigate, location.pathname]
-  );
+  // Only the Wishlist tab is not a plain navigation: when signed in it opens
+  // the wishlist canvas overlay instead of routing, so it keeps a button. Every
+  // other tab is a real <Link> (see NavItem).
+  const handleWishlistClick = useCallback(() => {
+    if (isAuthenticated) {
+      openWishlist();
+    } else {
+      navigate(BOTTOM_NAV_ROUTES.wishlist);
+    }
+  }, [openWishlist, isAuthenticated, navigate]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -176,39 +194,39 @@ export const BottomNav = memo(function BottomNav(): JSX.Element {
       <div className="flex items-center justify-around max-w-md mx-auto">
         <NavItem
           active={activeTab === "home"}
-          onClick={() => handleTabChange("home")}
+          to={BOTTOM_NAV_ROUTES.home}
           icon={<HomeIcon active={activeTab === "home"} />}
           label="Home"
         />
         <NavItem
           active={activeTab === "stores"}
-          onClick={() => handleTabChange("stores")}
+          to={BOTTOM_NAV_ROUTES.stores}
           icon={<StoresIcon active={activeTab === "stores"} />}
           label="Stores"
         />
         {/* AR Try on — temporarily hidden
         <NavItem
           active={activeTab === "ar-tryon"}
-          onClick={() => handleTabChange("ar-tryon")}
+          to={BOTTOM_NAV_ROUTES["ar-tryon"]}
           icon={<ARTryOnIcon active={activeTab === "ar-tryon"} />}
           label="AR Try on"
         />
         */}
         <NavItem
           active={activeTab === "eye-test"}
-          onClick={() => handleTabChange("eye-test")}
+          to={BOTTOM_NAV_ROUTES["eye-test"]}
           icon={<EyeTestIcon active={activeTab === "eye-test"} />}
           label="Eye Test"
         />
         <NavItem
           active={activeTab === "orders"}
-          onClick={() => handleTabChange("orders")}
+          to={BOTTOM_NAV_ROUTES.orders}
           icon={<OrdersIcon active={activeTab === "orders"} />}
           label="Orders"
         />
         <NavItem
           active={activeTab === "wishlist"}
-          onClick={() => handleTabChange("wishlist")}
+          onClick={handleWishlistClick}
           icon={<WishlistIcon active={activeTab === "wishlist"} />}
           label="Wishlist"
         />

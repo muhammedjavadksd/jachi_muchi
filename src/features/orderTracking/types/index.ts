@@ -31,6 +31,9 @@ export interface TrackShippingAddress {
   city?: string;
   state?: string;
   pincode?: string;
+  country?: string;
+  /** Pre-formatted single-line address supplied by the tracking API. */
+  formatted?: string;
 }
 
 export interface TrackOrderData {

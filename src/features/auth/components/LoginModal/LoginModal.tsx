@@ -1,4 +1,4 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, useLoginModal, useSignupModal, useForgotPasswordModal } from "@/features/auth/hooks";
 import { authApi } from "@/features/auth/api/authApi";
@@ -25,10 +25,23 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  // Raised by "Use a different email" and consumed on the next step change.
+  // The email input is unmounted while the password step is showing, so the
+  // click handler cannot focus it directly — React has not swapped the form
+  // yet. Waiting for the step change means the input is mounted and focusable.
+  const shouldFocusEmailRef = useRef(false);
+
   const emailValid = isValidEmail(email);
   const showEmailError = touched && !emailValid && email.length > 0;
   const canContinue = emailValid;
   const canSignIn = step === "password" && password.length >= 6;
+
+  useEffect(() => {
+    if (!shouldFocusEmailRef.current) return;
+    shouldFocusEmailRef.current = false;
+    emailInputRef.current?.focus();
+  }, [step]);
 
   const handleClose = useCallback(() => {
     close();
@@ -36,7 +49,19 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
     setEmail("");
     setPassword("");
     setTouched(false);
+    // loginError and isLoading are component state, not per-step state: without
+    // clearing them a failed attempt would resurface the next time the modal is
+    // opened and the user reaches the password step.
+    setLoginError("");
+    setIsLoading(false);
   }, [close]);
+
+  // Typing a new email starts a new attempt, so the previous failure is dropped
+  // before the user can navigate back to the password step and see it again.
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setLoginError("");
+  }, []);
 
   const handleContinue = useCallback(
     (e: React.FormEvent) => {
@@ -45,6 +70,9 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
       if (!emailValid) return;
       setStep("password");
       setTouched(false);
+      // Backstop for browser autofill and password managers, which can populate
+      // the field without firing onChange and would leave the alert behind.
+      setLoginError("");
     },
     [emailValid]
   );
@@ -104,9 +132,19 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
     [step, canSignIn, email, password, login, close, navigate]
   );
 
+  // "Use a different email" (BUG-007). Previously this only reset the step and
+  // the password, leaving `loginError` set: the alert vanished with the password
+  // form but the string survived, so it popped straight back up as soon as the
+  // user continued to the password step with a new email. Every piece of the
+  // failed attempt is cleared here so the error can only be recreated by a new
+  // failed sign-in, and focus is handed to the email field.
   const handleBack = useCallback(() => {
+    shouldFocusEmailRef.current = true;
     setStep("email");
     setPassword("");
+    setLoginError("");
+    setTouched(false);
+    setIsLoading(false);
   }, []);
 
   const handleForgotPassword = useCallback(
@@ -155,10 +193,11 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
             <form onSubmit={handleContinue} className="space-y-4">
               <div>
                 <input
+                  ref={emailInputRef}
                   type="email"
                   inputMode="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={handleEmailChange}
                   onBlur={() => setTouched(true)}
                   placeholder="Email"
                   className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
@@ -228,7 +267,14 @@ export const LoginModal = memo(function LoginModal(): JSX.Element | null {
                 </div>
               </div>
 
-              {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
+              {/* role="alert" announces the failure as soon as it is rendered.
+                  It is unmounted, not just hidden, whenever loginError is reset,
+                  so a cleared message is never re-read by a screen reader. */}
+              {loginError && (
+                <p role="alert" className="text-red-500 text-sm text-center">
+                  {loginError}
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={!canSignIn || isLoading}

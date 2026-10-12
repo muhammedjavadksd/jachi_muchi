@@ -1,10 +1,12 @@
 import { memo, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
+import { formatVariantLabel, hasVariant } from "@/shared/utils/variant";
 import { useCartPage } from "@/features/cart/hooks";
-import { addToWishlistAPI } from "@/features/wishlist/api/wishlistApi";
+import { useWishlist } from "@/features/wishlist/hooks";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
@@ -27,24 +29,46 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   } = useCartPage();
 
   const [pendingRemoval, setPendingRemoval] = useState<{ cartItemId: string; productId: string; productName: string; productPrice: number; productImage?: string } | null>(null);
+  const [isMovingToWishlist, setIsMovingToWishlist] = useState(false);
+  const { addItem: addToWishlist } = useWishlist();
 
+  // Dismissal is blocked while the move is in flight so the request cannot be
+  // abandoned halfway. The success path closes the modal directly, bypassing it.
+  const closeRemovalModal = useCallback(() => {
+    if (isMovingToWishlist) return;
+    setPendingRemoval(null);
+  }, [isMovingToWishlist]);
+
+  // BUG-008: this called addToWishlistAPI directly, so the POST succeeded on the
+  // server but WishlistProvider's items were never touched. WishlistPage and
+  // the header badge read only from that context, so they kept rendering the
+  // pre-move snapshot and the item only appeared after a refresh remounted the
+  // provider. Going through useWishlist reconciles the shared list instead.
+  //
+  // The cart item is removed only once the wishlist write is confirmed, so a
+  // failed request leaves it in the cart, and isMovingToWishlist blocks repeat
+  // clicks for the duration.
   const handleMoveToWishlist = useCallback(async () => {
-    if (!pendingRemoval) return;
+    if (!pendingRemoval || isMovingToWishlist) return;
+    const target = pendingRemoval;
+    setIsMovingToWishlist(true);
     try {
-      await addToWishlistAPI({
-        productId: pendingRemoval.productId,
-        name: pendingRemoval.productName,
-        image: pendingRemoval.productImage || "",
-        link: `/product/${pendingRemoval.productId}`,
-        price: pendingRemoval.productPrice,
+      await addToWishlist({
+        name: target.productName,
+        image: target.productImage || "",
+        link: `/product/${target.productId}`,
+        price: target.productPrice,
       });
-      await handleRemoveItem(pendingRemoval.cartItemId);
-    } catch {
-      // failed — silently ignore
-    } finally {
       setPendingRemoval(null);
+      await handleRemoveItem(target.cartItemId);
+      toast.success("Moved to your wishlist.");
+    } catch (error) {
+      console.error("Failed to move item to wishlist:", error);
+      toast.error("Could not move this item to your wishlist. It is still in your cart.");
+    } finally {
+      setIsMovingToWishlist(false);
     }
-  }, [pendingRemoval, handleRemoveItem]);
+  }, [pendingRemoval, isMovingToWishlist, addToWishlist, handleRemoveItem]);
 
   const spacerStyle = useMemo(() => ({
     height: `${HEADER_SPACER_HEIGHT}px`,
@@ -109,7 +133,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               </div>
             )}
 
-            {item.color && (
+            {hasVariant(item.variant) ? (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-gray-600 text-sm">{formatVariantLabel(item.variant)}</span>
+              </div>
+            ) : item.color && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: item.color.name }} />
                 <span className="text-gray-600 text-sm">Color: {item.color.name}</span>
@@ -326,11 +354,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
 
       {pendingRemoval && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setPendingRemoval(null)} />
+          <div className="fixed inset-0 bg-black/50" onClick={closeRemovalModal} />
           <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 z-10">
             <button
-              onClick={() => setPendingRemoval(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={closeRemovalModal}
+              disabled={isMovingToWishlist}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
               aria-label="Close"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -344,9 +373,11 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             <div className="flex flex-col gap-3 mt-6">
               <button
                 onClick={handleMoveToWishlist}
-                className="w-full py-3 px-4 border border-teal-700 text-teal-700 font-semibold rounded-xl hover:bg-teal-50 transition-colors"
+                disabled={isMovingToWishlist}
+                aria-busy={isMovingToWishlist}
+                className="w-full py-3 px-4 border border-teal-700 text-teal-700 font-semibold rounded-xl hover:bg-teal-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Move to wishlist
+                {isMovingToWishlist ? "Moving to wishlist..." : "Move to wishlist"}
               </button>
               <button
                 onClick={async () => {
@@ -355,7 +386,8 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   }
                   setPendingRemoval(null);
                 }}
-                className="w-full py-3 px-4 bg-teal-700 text-white font-semibold rounded-xl hover:bg-teal-800 transition-colors"
+                disabled={isMovingToWishlist}
+                className="w-full py-3 px-4 bg-teal-700 text-white font-semibold rounded-xl hover:bg-teal-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Yes, remove
               </button>

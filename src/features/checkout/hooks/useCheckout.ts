@@ -4,7 +4,8 @@ import { useAuth } from "@/features/auth/hooks";
 import { fetchAddresses, saveAddress, deleteAddress, type BackendAddress } from "@/features/auth/api/addressApi";
 import { authApi } from "@/features/auth/api/authApi";
 import { applyCoupon, removeCoupon, fetchUserCoupons, markCouponAsUsed } from "@/features/coupon/api/couponApi";
-import { fetchCart, mapBackendItem, clearCartApi } from "@/features/cart/api/cartApi";
+import { fetchCart, mapBackendItem } from "@/features/cart/api/cartApi";
+import { useCart } from "@/features/cart/hooks";
 import type { UserCoupon } from "@/features/coupon/types";
 import { createOrder } from "@/features/checkout/api/orderApi";
 import { initiateSkipCashPayment } from "@/features/checkout/api/paymentApi";
@@ -139,7 +140,13 @@ export interface UseCheckoutReturn {
 }
 
 export function useCheckout(): UseCheckoutReturn {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  // BUG-012: this held a third copy of the cart, fetched on mount, and cleared
+  // the server cart after ordering without telling CartProvider — so a COD
+  // checkout left the header badge showing the pre-order count until a refresh.
+  // It now reads the provider's items/bill and clears through it, so checkout and
+  // the badge move together. The pre-submit fetchCart further down is kept: it
+  // is a fresh-price guard, not state ownership.
+  const { items: cart, bill: cartBill, total: cartTotal, clearCart } = useCart();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressLoading, setAddressLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -157,7 +164,8 @@ export function useCheckout(): UseCheckoutReturn {
   const [userCoupons, setUserCoupons] = useState<UserCoupon[]>([]);
   const [isCouponListOpen, setIsCouponListOpen] = useState(true);
   const [copiedCoupon, setCopiedCoupon] = useState<string | null>(null);
-  const [normalizedBill, setNormalizedBill] = useState<NormalizedBill | null>(null);
+
+  const normalizedBill = useMemo(() => normalizeBill(cartBill, cartTotal), [cartBill, cartTotal]);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -331,8 +339,8 @@ export function useCheckout(): UseCheckoutReturn {
       const backendCart = await fetchCart();
       latestCart = backendCart.items.map(mapBackendItem);
       latestBill = normalizeBill(backendCart.bill, backendCart.total);
-      setCart(latestCart);
-      setNormalizedBill(latestBill);
+      // Deliberately not written back to state: the provider owns cart/bill, and
+      // this snapshot is only used to price the order payload below.
     } catch (err) {
       console.warn("Failed to refresh cart before order, using stale state:", err);
     }
@@ -400,7 +408,9 @@ export function useCheckout(): UseCheckoutReturn {
       if (appliedCoupon && user?.id && orderId) {
         markCouponAsUsed(appliedCoupon, user.id, orderId).catch(() => {});
       }
-      await clearCartApi();
+      // Clears through CartProvider so the header badge empties as soon as the
+      // order is placed, instead of waiting for a refresh.
+      await clearCart();
       navigate(`/order-success/${orderId}`);
     } catch (error: any) {
       console.error(error);
@@ -422,19 +432,7 @@ export function useCheckout(): UseCheckoutReturn {
     } finally {
       setOrderLoading(false);
     }
-  }, [cart, addresses, paymentMethod, normalizedBill, couponSavings, appliedCoupon, user, navigate, offers, orderLoading]);
-
-  useEffect(() => {
-    fetchCart()
-      .then((backendCart) => {
-        setCart(backendCart.items.map(mapBackendItem));
-        setNormalizedBill(normalizeBill(backendCart.bill, backendCart.total));
-      })
-      .catch(() => {
-        setCart([]);
-        setNormalizedBill(null);
-      });
-  }, []);
+  }, [cart, addresses, paymentMethod, normalizedBill, couponSavings, appliedCoupon, user, navigate, offers, orderLoading, clearCart]);
 
   useEffect(() => {
     getOffers().then(setOffers).catch(() => {});

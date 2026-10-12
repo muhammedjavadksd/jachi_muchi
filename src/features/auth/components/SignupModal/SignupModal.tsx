@@ -1,5 +1,6 @@
-import { memo, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuth, useLoginModal, useSignupModal } from "@/features/auth/hooks";
 import { WelcomeCouponModal } from "@/features/auth/components/WelcomeCouponModal/WelcomeCouponModal";
@@ -43,6 +44,70 @@ function getPasswordError(value: string): string {
   return "";
 }
 
+interface PasswordInputProps {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  placeholder: string;
+  autoComplete: string;
+  hasError: boolean;
+  isVisible: boolean;
+  onToggleVisibility: () => void;
+}
+
+/**
+ * Password field with a per-instance show/hide toggle. Visibility is driven
+ * entirely by the `isVisible` prop, so rendering two of these never lets one
+ * field's toggle affect the other.
+ */
+const PasswordInput = memo(function PasswordInput({
+  value,
+  onChange,
+  onBlur,
+  placeholder,
+  autoComplete,
+  hasError,
+  isVisible,
+  onToggleVisibility,
+}: PasswordInputProps): JSX.Element {
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Plain eye while masked (action: reveal), crossed-out eye once revealed.
+  const VisibilityIcon = isVisible ? EyeOff : Eye;
+
+  // Keep the caret in the field after toggling so keyboard users can keep typing.
+  const handleToggle = () => {
+    onToggleVisibility();
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="relative">
+      <input
+        ref={inputRef}
+        type={isVisible ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        className={`w-full px-4 py-3 pr-11 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
+          hasError ? "border-red-500" : "border-gray-300 focus:border-teal-600"
+        }`}
+      />
+      <button
+        type="button"
+        onClick={handleToggle}
+        aria-label={isVisible ? "Hide password" : "Show password"}
+        className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+      >
+        <VisibilityIcon className="w-5 h-5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+});
+
+PasswordInput.displayName = "SignupModal.PasswordInput";
+
 export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   const { isOpen, close } = useSignupModal();
   const { open: openLoginModal } = useLoginModal();
@@ -54,6 +119,7 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -79,12 +145,21 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
 
   const showError = (field: string) => touched[field] ?? false;
 
+  const handlePasswordBlur = useCallback(() => {
+    setTouched((t) => ({ ...t, password: true }));
+  }, []);
+
+  const handleTogglePasswordVisibility = useCallback(() => {
+    setShowPassword((prev) => !prev);
+  }, []);
+
   const handleClose = () => {
     close();
     setFirstName("");
     setLastName("");
     setMobile("");
     setEmail("");
+    setShowPassword(false);
     setTouched({});
     setApiError("");
     setLoading(false);
@@ -393,18 +468,15 @@ export const SignupModal = memo(function SignupModal(): JSX.Element | null {
           </div>
 
           <div>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+              onChange={setPassword}
+              onBlur={handlePasswordBlur}
               placeholder="Password*"
-              className={`w-full px-4 py-3 border rounded-lg text-gray-900 placeholder-gray-400 outline-none transition-colors ${
-                showError("password") && passwordError
-                  ? "border-red-500"
-                  : "border-gray-300 focus:border-teal-600"
-              }`}
               autoComplete="new-password"
+              hasError={showError("password") && !!passwordError}
+              isVisible={showPassword}
+              onToggleVisibility={handleTogglePasswordVisibility}
             />
             {showError("password") && passwordError && (
               <p className="mt-1 text-sm text-red-500">{passwordError}</p>

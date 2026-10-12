@@ -3,6 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container, Price } from "@/shared/components";
 import { getOrderById } from "@/features/checkout/api/orderApi";
+import {
+  formatVariantLabel,
+  hasVariant,
+  type OrderItemVariant,
+} from "@/shared/utils/variant";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 
@@ -18,6 +23,7 @@ interface OrderItem {
   totalPrice?: number;
   productPrice?: number;
   color?: { id: string; name: string } | null;
+  variant?: OrderItemVariant | null;
   isFree?: boolean;
   bogoGroupId?: string;
   triggerProductName?: string;
@@ -83,6 +89,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
             quantity: item.quantity || item.totalQuantity,
             price: item.price,
             color: item.color || null,
+            variant: item.variant || null,
             isFree: item.isFree || false,
             bogoGroupId: item.bogoGroupId || undefined,
             triggerProductName: item.triggerProductName || undefined,
@@ -256,9 +263,11 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                             )}
                           </div>
                           <p className="text-sm text-gray-500">Qty: {item.totalQuantity || item.quantity || 1}</p>
-                          {item.color && (
+                          {hasVariant(item.variant) ? (
+                            <p className="text-sm text-gray-500">{formatVariantLabel(item.variant)}</p>
+                          ) : item.color ? (
                             <p className="text-sm text-gray-500">Color: {item.color.name}</p>
-                          )}
+                          ) : null}
                           {isFree && item.triggerProductName && (
                             <p className="text-xs text-green-600 mt-0.5">Free with {item.triggerProductName}</p>
                           )}

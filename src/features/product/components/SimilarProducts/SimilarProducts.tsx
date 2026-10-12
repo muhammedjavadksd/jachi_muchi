@@ -70,6 +70,7 @@ export const SimilarProducts = memo(function SimilarProducts({
       <h2 className="text-xl font-bold text-gray-900 mb-5">Similar Products</h2>
       <AutoScrollCarousel
         items={items}
+        ariaLabel="Similar products"
         keyExtractor={(item) => item.id}
         renderCard={(item) => (
           <ProductCard

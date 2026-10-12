@@ -1,6 +1,13 @@
 import { memo, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Footer, WhatsAppButton, Container } from "@/shared/components";
-import { supportCards, serviceLinks, contactInfo } from "@/features/account/constants/contactData";
+import { supportCards, serviceLinks } from "@/features/account/constants/contactData";
+import {
+  CUSTOMER_CARE,
+  CUSTOMER_CARE_CALL_LABEL,
+  CUSTOMER_CARE_FALLBACK_MESSAGE,
+  CUSTOMER_CARE_HOURS,
+} from "@/shared/constants/contactInfo";
 import { submitContactMessage } from "@/features/account/api/contactApi";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { seoMeta } from "@/shared/constants/seoMeta";
@@ -108,20 +115,57 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
               <p className="mt-1 text-base sm:text-lg text-gray-800">
                 Call our customer care team during support hours.
               </p>
-              <p className="mt-3 text-xs text-gray-500">
-                Monday to Sunday, 9:00 AM – 9:00 PM
+              {/* BUG-025: hours moved to the shared constant so the Contact Us
+                  page, Help page and footer state the same window. */}
+              <p className="mt-3 text-xs sm:text-sm text-gray-600">
+                {CUSTOMER_CARE_HOURS.label}
               </p>
             </div>
             <div className="text-left sm:text-right">
-              <a
-                href={`tel:${contactInfo.phone.replace(/-/g, '')}`}
-                className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-6 py-3 text-lg sm:text-2xl font-semibold tracking-wide text-gray-900 hover:bg-white hover:border-teal-500 hover:text-teal-600 transition-colors"
-              >
-                {contactInfo.phone}
-              </a>
-              <p className="mt-2 text-[11px] text-gray-500">
-                Standard call charges may apply.
-              </p>
+              {CUSTOMER_CARE.isAvailable ? (
+                <>
+                  {/* BUG-025: renders the real number from the single source and
+                      dials it. `telHref` is built from digits only, so the href
+                      has no spaces or dashes; the visible text stays formatted.
+                      Text is a real <a>, so it is focusable, activates with
+                      Enter, and supports "Copy link address" / long-press to
+                      dial on mobile. */}
+                  <a
+                    href={CUSTOMER_CARE.telHref}
+                    aria-label={`${CUSTOMER_CARE_CALL_LABEL} on ${CUSTOMER_CARE.display}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-gray-50 px-6 py-3 text-lg sm:text-2xl font-semibold tracking-wide text-gray-900 hover:bg-white hover:border-teal-500 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 transition-colors"
+                  >
+                    <svg
+                      className="h-5 w-5 shrink-0 text-teal-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      aria-hidden
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                      />
+                    </svg>
+                    {CUSTOMER_CARE.display}
+                  </a>
+                  <p className="mt-2 text-[11px] text-gray-600">
+                    Standard call charges may apply.
+                  </p>
+                </>
+              ) : (
+                /* BUG-025: no number configured (or an all-zero placeholder).
+                   Show a friendly, actionable fallback instead of an empty gap
+                   or the literal text "undefined". */
+                <p
+                  role="status"
+                  className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-sm sm:text-base text-gray-700 max-w-sm text-left sm:text-right"
+                >
+                  {CUSTOMER_CARE_FALLBACK_MESSAGE}
+                </p>
+              )}
             </div>
           </section>
 
@@ -161,18 +205,32 @@ export const ContactPage = memo(function ContactPage(): JSX.Element {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {serviceLinks.map(link => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="group flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 text-sm font-medium text-gray-800 hover:border-teal-500 hover:bg-teal-50/40 transition-colors"
-                >
-                  <span>{link.label}</span>
+              {serviceLinks.map(link => {
+                // Internal destinations must be router links, not raw <a href>.
+                // A plain anchor forces a full document reload, which drops the
+                // SPA history entry and makes Back leave the site instead of
+                // returning here (BUG-024). External schemes (wa.me, mailto:)
+                // stay as plain anchors.
+                const isInternal = link.href.startsWith("/") && !link.href.startsWith("//");
+                const className =
+                  "group flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 text-sm font-medium text-gray-800 hover:border-teal-500 hover:bg-teal-50/40 transition-colors";
+                const arrow = (
                   <span className="ml-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-500 group-hover:bg-teal-600 group-hover:text-white transition-colors">
                     →
                   </span>
-                </a>
-              ))}
+                );
+                return isInternal ? (
+                  <Link key={link.label} to={link.href} className={className}>
+                    <span>{link.label}</span>
+                    {arrow}
+                  </Link>
+                ) : (
+                  <a key={link.label} href={link.href} className={className}>
+                    <span>{link.label}</span>
+                    {arrow}
+                  </a>
+                );
+              })}
             </div>
           </section>
 

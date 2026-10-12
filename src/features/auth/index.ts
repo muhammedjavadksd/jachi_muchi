@@ -3,3 +3,4 @@ export { SignupModal } from "./components/SignupModal/SignupModal";
 export { ForgotPasswordModal } from "./components/ForgotPasswordModal/ForgotPasswordModal";
 export { WelcomeCouponModal } from "./components/WelcomeCouponModal/WelcomeCouponModal";
 export { LogoutButton } from "./components/LogoutButton/LogoutButton";
+export { LogoutConfirmDialog } from "./components/LogoutConfirmDialog/LogoutConfirmDialog";

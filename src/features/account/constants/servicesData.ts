@@ -1,3 +1,4 @@
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export const serviceSections = [
   {
@@ -47,7 +48,7 @@ export const serviceSections = [
     title: "Shops",
     description:
       "Visit us in store for a personalised fitting, expert advice, and to try on frames. Find your nearest location and experience our full range of services.",
-    link: "/stores",
+    link: ROUTE_PATHS.storeLocator,
     imageFirst: false,
   },
   {

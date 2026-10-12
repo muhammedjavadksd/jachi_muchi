@@ -50,6 +50,16 @@ export function phoneDisplay(): string {
   return QATAR_PHONE_DISPLAY;
 }
 
+/**
+ * BUG-025: the customer care number is configuration-driven, so `telUrl()` and
+ * `phoneDisplay()` are empty strings when it is not configured. Call CTAs must
+ * be hidden in that case — an `<a href="">` reloads the current page and an
+ * anchor with no text is invisible, which reads as a broken page.
+ */
+export function canCall(): boolean {
+  return Boolean(QATAR_TEL_URL && QATAR_PHONE_DISPLAY);
+}
+
 export interface CrumbItem {
   label: string;
   to: string;
@@ -288,7 +298,12 @@ interface JsonLdOptician {
   "@id": string;
   name: string;
   url: string;
-  telephone: string;
+  /**
+   * BUG-025: omitted entirely when the customer care number is not configured,
+   * rather than emitted as `""` — an empty `telephone` is invalid structured
+   * data and can get the rich result suppressed in search.
+   */
+  telephone?: string;
   logo: string;
   image: string;
   email: string;
@@ -318,7 +333,7 @@ export function buildStoreJsonLd(): JsonLdOptician[] {
     "@id": `${SITE_URL}${MOI_PAGE_PATH}#${store.id}`,
     name: store.name,
     url: `${SITE_URL}/stores`,
-    telephone: QATAR_PHONE_DISPLAY,
+    ...(QATAR_PHONE_DISPLAY ? { telephone: QATAR_PHONE_DISPLAY } : {}),
     logo: LOGO_ABSOLUTE_URL,
     image: LOGO_ABSOLUTE_URL,
     email: CONTACT_EMAIL,

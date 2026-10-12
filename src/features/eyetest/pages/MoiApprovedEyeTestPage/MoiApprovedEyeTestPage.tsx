@@ -23,6 +23,7 @@ import {
   phoneDisplay,
   telUrl,
   whatsappUrl,
+  canCall,
 } from "@/features/eyetest/constants/moiApprovedContent";
 
 /** Shared primary/secondary button classes, matching the rest of the storefront. */
@@ -53,6 +54,7 @@ export const MoiApprovedEyeTestPage = memo(function MoiApprovedEyeTestPage(): JS
 
   const waHref = useMemo(() => whatsappUrl(), []);
   const callHref = useMemo(() => telUrl(), []);
+  const showCallCta = useMemo(() => canCall(), []);
   const primaryMapsHref = useMemo(() => STORES[0].mapsUrl, []);
 
   const faqJsonLd = useMemo(() => JSON.stringify(buildFaqJsonLd()), []);
@@ -104,10 +106,12 @@ export const MoiApprovedEyeTestPage = memo(function MoiApprovedEyeTestPage(): JS
             </p>
 
             <div className="mt-7 flex flex-col sm:flex-row sm:flex-wrap gap-3">
-              <a href={callHref} className={`${CTA_PRIMARY} w-full sm:w-auto`}>
-                <Phone className="w-5 h-5" aria-hidden />
-                {HERO.callLabel}
-              </a>
+              {showCallCta && (
+                <a href={callHref} className={`${CTA_PRIMARY} w-full sm:w-auto`}>
+                  <Phone className="w-5 h-5" aria-hidden />
+                  {HERO.callLabel}
+                </a>
+              )}
               <a
                 href={waHref}
                 target="_blank"
@@ -274,10 +278,21 @@ export const MoiApprovedEyeTestPage = memo(function MoiApprovedEyeTestPage(): JS
               {LOCATIONS_SECTION.testAvailabilityNote}
             </p>
             <p className="mt-3 text-sm text-gray-700">
-              <a href={callHref} className="font-semibold text-teal-600 hover:text-teal-700">
-                {phoneDisplay()}
-              </a>
-              {" · "}
+              {showCallCta ? (
+                <>
+                  <a href={callHref} className="font-semibold text-teal-600 hover:text-teal-700">
+                    {phoneDisplay()}
+                  </a>
+                  {" · "}
+                </>
+              ) : (
+                <>
+                  <span>
+                    Our phone line is currently unavailable. Please email us and we will get back
+                    to you.{" "}
+                  </span>
+                </>
+              )}
               <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-teal-600 hover:text-teal-700">
                 {CONTACT_EMAIL}
               </a>
@@ -353,20 +368,27 @@ export const MoiApprovedEyeTestPage = memo(function MoiApprovedEyeTestPage(): JS
       <WhatsAppButton className="bottom-24 md:bottom-6" />
 
       {/* --------------------------------- Mobile sticky CTA bar (md:hidden) */}
+      {/* BUG-025: the Call column collapses to two columns when no customer care
+          number is configured, rather than rendering an `href=""` link that
+          reloads the page. */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-gray-200 bg-white">
-        <div className="grid grid-cols-3">
-          <a
-            href={callHref}
-            className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold text-gray-700"
-          >
-            <Phone className="w-5 h-5 text-teal-600" aria-hidden />
-            {STICKY_BAR.call}
-          </a>
+        <div className={`grid ${showCallCta ? "grid-cols-3" : "grid-cols-2"}`}>
+          {showCallCta && (
+            <a
+              href={callHref}
+              className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold text-gray-700"
+            >
+              <Phone className="w-5 h-5 text-teal-600" aria-hidden />
+              {STICKY_BAR.call}
+            </a>
+          )}
           <a
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold text-gray-700 border-x border-gray-200"
+            className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold text-gray-700 ${
+              showCallCta ? "border-x border-gray-200" : "border-r border-gray-200"
+            }`}
           >
             <span className="text-teal-600">
               <WhatsAppGlyph />
