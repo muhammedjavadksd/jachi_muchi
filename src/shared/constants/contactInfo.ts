@@ -110,7 +110,7 @@ export const CUSTOMER_CARE = {
    * false, so a placeholder can never reach a customer.
    */
   isAvailable: isRealNumber(supportDigits),
-  email: import.meta.env.VITE_SUPPORT_EMAIL?.trim() || "care@jachiandmuchi.com",
+  email: import.meta.env.VITE_SUPPORT_EMAIL?.trim() || "jachiandmuchi@gmail.com",
 } as const;
 
 /**

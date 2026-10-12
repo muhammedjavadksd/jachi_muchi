@@ -35,7 +35,7 @@ export const HeroSlider = memo(function HeroSlider({ banners }: HeroSliderProps)
           <img
             src={imageUrl}
             alt={banner.title || `Banner ${index + 1}`}
-            className="w-full h-[180px] sm:h-[250px] md:h-[320px] lg:h-[400px] object-cover"
+            className="w-full h-auto md:h-[320px] lg:h-[400px] md:object-cover"
             loading={index === 0 ? "eager" : "lazy"}
           />
         </Link>

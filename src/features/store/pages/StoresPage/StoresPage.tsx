@@ -13,8 +13,6 @@ import { seoMeta } from "@/shared/constants/seoMeta";
 
 const ALL = "All";
 
-const DEFAULT_STORE_HOURS = "10:00 AM – 9:00 PM";
-
 const PLACEHOLDER_IMG = "https://placehold.co/600x400/f6f6f6/999999?text=Store";
 
 function storeImg(images?: string[]): string {
@@ -31,7 +29,7 @@ function mapsUrl(store: Store): string {
 
 const StoreRow = memo(function StoreRow({ store, index }: { store: Store; index: number }): JSX.Element {
   const photoOnRight = index % 2 === 1;
-  const hours = store.timings || store.timing || DEFAULT_STORE_HOURS;
+  const hours = store.timings;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] md:gap-10 py-8 md:py-10 border-b border-[#e7e7e7] last:border-b-0">
@@ -56,10 +54,12 @@ const StoreRow = memo(function StoreRow({ store, index }: { store: Store; index:
             <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7683]">Address</p>
             <p className="mt-1.5 leading-relaxed text-[#1a2733]">{storeAddress(store)}</p>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7683]">Hours</p>
-            <p className="mt-1.5 leading-relaxed text-[#1a2733]">{hours}</p>
-          </div>
+          {hours && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7683]">Hours</p>
+              <p className="mt-1.5 leading-relaxed text-[#1a2733]">{hours}</p>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
