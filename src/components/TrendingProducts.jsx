@@ -14,6 +14,9 @@ const trendingImage = "/banner/trending.jpeg";
 const mainLink = "/search";
 const exploreLink = "/search?trending=true";
 
+const trendingText =
+  "Our most-loved frames this season. Lightweight, easy to wear, and picked by thousands of customers like you.";
+
 const SKELETON_COUNT = 4;
 
 /** Maps an API product to the card view-model used by this section. */
@@ -194,13 +197,14 @@ export function TrendingProducts() {
                       src={product.image}
                       alt={product.name}
                       loading="lazy"
-                      className="w-full aspect-[10/11] object-cover"
+                      className="w-full aspect-[10/11] object-contain bg-[#f7f7f7] p-2"
                     />
                     <h3 className="mt-2 font-medium group-hover:underline">{product.name}</h3>
                     <p className="mt-1 text-sm text-gray-600">{product.price}</p>
                   </Link>
                 ))}
           </div>
+          <p className="mt-6 text-base text-gray-600 max-w-md leading-relaxed">{trendingText}</p>
         </div>
       </div>
     </section>
