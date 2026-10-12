@@ -148,7 +148,7 @@ export function TrendingProducts() {
     <section className="bg-[#fdfcfa] px-[4vw] pt-8 pb-10 md:py-14">
       <SectionHeading title="Trending Products" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-5 md:gap-10 items-start">
         <Link to={mainLink} aria-label="Explore trending products" className={`block ${focusRing}`}>
           <img
             src={trendingImage}
