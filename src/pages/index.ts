@@ -7,6 +7,9 @@ export { CheckoutPage, OrderSuccessPage, OrderFailurePage, PaymentSuccessPage, P
 export { AccountPage, My3DModelPage, AccountInfoPage, ManageNotificationsPage, AddressBookPage, MyHomeTryOnPage, MyHomeTryOnAppointmentsPage, AccountHomeTryOnAppointmentsPage } from "@/features/account";
 export { TermsPage } from "@/features/account/pages/TermsPage/TermsPage";
 export { PrivacyPage } from "@/features/account/pages/PrivacyPage/PrivacyPage";
+export { DisclaimerPage } from "@/features/account/pages/DisclaimerPage/DisclaimerPage";
+export { FrameSizeGuidePage } from "@/features/account/pages/FrameSizeGuidePage/FrameSizeGuidePage";
+export { BuyingGuidePage } from "@/features/account/pages/BuyingGuidePage/BuyingGuidePage";
 export { RefundPolicyPage } from "@/features/account/pages/RefundPolicyPage/RefundPolicyPage";
 export { ShippingPolicyPage } from "@/features/account/pages/ShippingPolicyPage/ShippingPolicyPage";
 export { FAQPage } from "@/features/account/pages/FAQPage/FAQPage";

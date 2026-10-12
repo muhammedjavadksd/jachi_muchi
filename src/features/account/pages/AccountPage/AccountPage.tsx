@@ -12,7 +12,7 @@ import { cancelOrder } from "@/features/checkout/api/orderApi";
 import { useOrders } from "@/features/account/hooks";
 import { submitContactMessage } from "@/features/account/api/contactApi";
 import { useAuth } from "@/features/auth/hooks";
-import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
+import { useCart } from "@/features/cart/hooks";
 import { OrderItemReviewAction } from "@/features/review/components/OrderItemReviewAction/OrderItemReviewAction";
 import { ReturnButton } from "@/features/returns/components/ReturnButton/ReturnButton";
 import { ReturnStatusBadge } from "@/features/returns/components/ReturnStatusBadge/ReturnStatusBadge";
@@ -22,6 +22,21 @@ import {
 } from "@/features/returns/constants";
 import type { OrderItemReturnInfo } from "@/features/returns/hooks/useOrderReturnStatus";
 import { useOrderReturnStatus } from "@/features/returns/hooks";
+import {
+  formatShippingAddress,
+  hasShippingAddress,
+  type ShippingAddress,
+} from "@/features/account/utils/shippingAddress";
+import {
+  getAddressLockReason,
+  isOrderAddressEditable,
+} from "@/features/account/utils/orderAddress";
+import { ChangeOrderAddressModal } from "@/features/account/components/ChangeOrderAddressModal/ChangeOrderAddressModal";
+import {
+  formatVariantLabel,
+  hasVariant,
+  type OrderItemVariant,
+} from "@/shared/utils/variant";
 
 interface CountryEntry {
   name: string;
@@ -146,6 +161,7 @@ interface OrderItem {
   triggerProductName?: string;
   mrp?: number;
   returnStatus?: string;
+  variant?: OrderItemVariant | null;
 }
 
 interface Order {
@@ -163,7 +179,7 @@ interface Order {
   total?: number;
   deliveryDate?: string;
   paymentMethod?: string;
-  address?: string;
+  shippingAddress?: ShippingAddress | null;
   statusTimeline?: {
     status: OrderStatus;
     date: string;
@@ -296,6 +312,7 @@ const OrderDrawer = memo(function OrderDrawer({
   isOpen,
   onClose,
   onCancelSuccess,
+  onAddressUpdated,
   onPayNow,
   isProcessingPayment,
   getItemReturn,
@@ -305,6 +322,7 @@ const OrderDrawer = memo(function OrderDrawer({
   isOpen: boolean;
   onClose: () => void;
   onCancelSuccess?: (orderId: string) => void;
+  onAddressUpdated?: (orderId: string, address: ShippingAddress) => void;
   onPayNow?: (order: Order) => void;
   isProcessingPayment?: boolean;
   getItemReturn: ItemReturnLookup;
@@ -312,7 +330,9 @@ const OrderDrawer = memo(function OrderDrawer({
 }): JSX.Element | null {
 
   const { user } = useAuth();
+const { addToCart } = useCart();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [reorderLoading, setReorderLoading] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -461,7 +481,10 @@ const OrderDrawer = memo(function OrderDrawer({
       try {
         const productId = (item as any).productId || (item as any)._id;
         if (!productId) { skipped++; continue; }
-        await addToCartApi({
+        // BUG-012: goes through CartProvider so the header badge advances as each
+        // item is confirmed, instead of a single event + refetch at the very end
+        // (which is what left the badge showing the pre-reorder cart).
+        await addToCart({
           productId,
           quantity: item.quantity || 1,
           color: (item as any).color ?? null,
@@ -475,7 +498,6 @@ const OrderDrawer = memo(function OrderDrawer({
       }
     }
     setReorderLoading(false);
-    notifyCartUpdated();
     if (added === 0) {
       toast.error("None of the items could be added to your cart. They may no longer be available.");
     } else if (skipped > 0) {
@@ -494,7 +516,7 @@ const OrderDrawer = memo(function OrderDrawer({
         items: order.items,
         customerName: user?.name,
         customerEmail: user?.email,
-        shippingAddress: order.address,
+        shippingAddress: formatShippingAddress(order.shippingAddress),
         subtotal: order.subtotal,
         shipping: order.shipping,
         discount: order.discount,
@@ -651,6 +673,9 @@ const OrderDrawer = memo(function OrderDrawer({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.name || "Unnamed Product"}</p>
+                    {hasVariant(item.variant) && (
+                      <p className="text-xs text-gray-500 mt-0.5">{formatVariantLabel(item.variant)}</p>
+                    )}
                     <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
                       {item.price === 0 ? <span className="text-teal-600">FREE</span> : <Price value={item.price ?? 0} size="sm" />}
@@ -743,18 +768,44 @@ const OrderDrawer = memo(function OrderDrawer({
             </div>
           )}
 
-          {order.address && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Delivery Address</h3>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-700">Delivery Address</h3>
+              {hasShippingAddress(order.shippingAddress) && isOrderAddressEditable(order.status) && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddressModal(true)}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-700"
+                >
+                  Change address
+                </button>
+              )}
+            </div>
+            {hasShippingAddress(order.shippingAddress) ? (
               <div className="flex gap-3 p-3 bg-gray-50 rounded-lg">
                 <svg className="w-5 h-5 text-gray-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <p className="text-sm text-gray-600">{order.address}</p>
+                <div className="text-sm text-gray-600">
+                  {order.shippingAddress?.name && (
+                    <p className="font-medium text-gray-900">{order.shippingAddress.name}</p>
+                  )}
+                  <p>{formatShippingAddress(order.shippingAddress)}</p>
+                  {order.shippingAddress?.phone && (
+                    <p className="text-gray-500 mt-0.5">{order.shippingAddress.phone}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-500">
+                Delivery address is not available for this order.
+              </div>
+            )}
+            {hasShippingAddress(order.shippingAddress) && !isOrderAddressEditable(order.status) && (
+              <p className="text-xs text-gray-400 mt-2">{getAddressLockReason(order.status)}</p>
+            )}
+          </div>
 
           <div className="space-y-3">
             {displayStatus === "delivered" && (
@@ -802,38 +853,46 @@ const OrderDrawer = memo(function OrderDrawer({
 
       {showSupportModal && (
         <div className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4" onClick={() => setShowSupportModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 relative" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-h-[90vh] w-full max-w-[90vw] sm:max-w-sm overflow-y-auto overscroll-contain rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setShowSupportModal(false)} className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             <h3 className="text-lg font-bold text-gray-900 mb-1">Contact Customer Support</h3>
-            <p className="text-sm text-gray-500 mb-4">Order: {order?.orderId || order?._id}</p>
+            <p className="mb-4 break-words text-sm text-gray-500">Order: {order?.orderId || order?._id}</p>
             <form onSubmit={handleSupportSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
-                <div className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.name}</div>
+                <div className="w-full max-w-full break-words rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.name}</div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
-                <div className="w-full rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.email}</div>
+                <div className="w-full max-w-full break-words rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed">{supportForm.email}</div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Phone (optional)</label>
-                <div className="flex gap-2">
+                {/* BUG-019: the number input had `flex-1` but no `min-w-0`. Flex
+                    items default to `min-width: auto`, which floors an <input> at
+                    its `size` intrinsic width (~20ch), so it refused to shrink and
+                    pushed ~90px past the modal at 320px. `min-w-0` removes that
+                    floor; `basis-[8rem]` + `grow` keep it on one row while there
+                    is room and let the pair wrap instead of overflowing below
+                    ~228px. Both controls cap at `max-w-full`/`w-full` so neither
+                    can escape the modal content box. */}
+                <div className="flex w-full max-w-full flex-wrap items-stretch gap-2">
                   {/* Country code selector */}
-                  <div className="relative shrink-0" ref={countryDropdownRef}>
+                  <div className="relative min-w-0 max-w-full" ref={countryDropdownRef}>
                     <button
                       type="button"
                       onClick={() => { setShowCountryDropdown(p => !p); setCountrySearch(""); }}
-                      className="h-full min-w-[120px] flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-700 hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200 transition-colors"
+                      className="h-full min-w-[92px] max-w-full flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-700 hover:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200 transition-colors"
                     >
                       {selectedCountry ? (
                         <>
-                          <span className="text-base leading-none">{selectedCountry.flag}</span>
-                          <span className="font-medium">{selectedCountry.code}</span>
-                          <span className="text-gray-500 truncate max-w-[60px]">{selectedCountry.name}</span>
+                          <span className="shrink-0 text-base leading-none">{selectedCountry.flag}</span>
+                          <span className="shrink-0 font-medium">{selectedCountry.code}</span>
+                          <span className="min-w-0 truncate text-gray-500 max-w-[60px]">{selectedCountry.name}</span>
                         </>
                       ) : (
                         <span className="text-gray-400">Code</span>
@@ -844,7 +903,7 @@ const OrderDrawer = memo(function OrderDrawer({
                     </button>
 
                     {showCountryDropdown && (
-                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-[120] overflow-hidden">
+                      <div className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-3rem)] bg-white border border-gray-200 rounded-xl shadow-lg z-[120] overflow-hidden">
                         <div className="p-2 border-b border-gray-100">
                           <input
                             autoFocus
@@ -873,16 +932,21 @@ const OrderDrawer = memo(function OrderDrawer({
                     )}
                   </div>
 
-                  {/* Phone number input — digits only */}
+                  {/* Phone number input — digits only.
+                      `min-w-0` is the actual BUG-019 fix: it overrides the flex
+                      default `min-width: auto` that was flooring this input at its
+                      intrinsic `size` width and pushing the row out of the modal.
+                      Long numbers are never truncated — the input scrolls its own
+                      value, so nothing is cut off. */}
                   <input
                     value={supportForm.phone}
                     onChange={handlePhoneChange}
                     placeholder=""
                     inputMode="numeric"
-                    className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 ${phoneError ? "border-red-400" : "border-gray-200"}`}
+                    className={`min-w-0 grow basis-[8rem] box-border w-full max-w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 ${phoneError ? "border-red-400" : "border-gray-200"}`}
                   />
                 </div>
-                {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
+                {phoneError && <p className="mt-1 break-words text-xs text-red-500">{phoneError}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Message</label>
@@ -891,13 +955,13 @@ const OrderDrawer = memo(function OrderDrawer({
                   onChange={(e) => setSupportForm(p => ({ ...p, message: e.target.value }))}
                   rows={3}
                   maxLength={2000}
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  className="box-border w-full max-w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
                 />
-                <div className="flex justify-between mt-1">
+                <div className="mt-1 flex justify-between gap-2">
                   {supportForm.message.trim().length > 0 && supportForm.message.trim().length < 15 && (
-                    <p className="text-xs text-red-500">Too short — please add a bit more detail.</p>
+                    <p className="min-w-0 break-words text-xs text-red-500">Too short — please add a bit more detail.</p>
                   )}
-                  <p className={`text-xs ml-auto ${
+                  <p className={`ml-auto shrink-0 text-xs ${
                     supportForm.message.length > 1900 ? "text-red-500" :
                     supportForm.message.length > 1500 ? "text-amber-500" : "text-gray-400"
                   }`}>{supportForm.message.length}/2000</p>
@@ -976,6 +1040,16 @@ const OrderDrawer = memo(function OrderDrawer({
           </div>
         </div>
       )}
+
+      {order && (
+        <ChangeOrderAddressModal
+          isOpen={showAddressModal}
+          orderId={order._id || order.id || ""}
+          address={order.shippingAddress}
+          onClose={() => setShowAddressModal(false)}
+          onSuccess={(address) => onAddressUpdated?.(order._id || order.id || "", address)}
+        />
+      )}
     </>
   );
 });
@@ -993,6 +1067,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
     handlePayNow,
     openOrderDrawer,
     closeOrderDrawer,
+    handleOrderAddressUpdated,
     getStatusColors,
   } = useOrders();
 
@@ -1233,6 +1308,7 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
         isOpen={isDrawerOpen}
         onClose={closeOrderDrawer}
         onCancelSuccess={handleOrderCancel}
+        onAddressUpdated={handleOrderAddressUpdated}
         onPayNow={handlePayNow}
         isProcessingPayment={payNowLoading === (selectedOrder?._id || selectedOrder?.id)}
         getItemReturn={getItemReturn}

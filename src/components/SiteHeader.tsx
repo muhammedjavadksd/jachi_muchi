@@ -1,12 +1,16 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent } from "react";
+// React's KeyboardEvent is aliased because the bare name is the DOM
+// KeyboardEvent used by the document-level Escape listeners below.
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Truck, Heart, ShoppingBag, User, Package, LogOut, X } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
-import { useAuth, useLoginModal } from "@/features/auth/hooks";
+import { useAuth, useLoginModal, useLogoutConfirm } from "@/features/auth/hooks";
+import { LogoutConfirmDialog } from "@/features/auth/components/LogoutConfirmDialog/LogoutConfirmDialog";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { HEADER_NAV_ITEMS } from "@/shared/constants";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export const SITE_HEADER_SPACER_HEIGHT = 132;
 
@@ -21,10 +25,27 @@ const HEADER_NAV_IDS: string[] = HEADER_NAV_ITEMS.map((item) => item.id);
 export const SiteHeader = memo(function SiteHeader(): JSX.Element {
   const { open: openWishlist, items: wishlistItems } = useWishlist();
   const { open: openLoginModal } = useLoginModal();
-  const { isAuthenticated, user, logout } = useAuth();
-  const { itemCount: cartCount } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const { itemCount: cartCount, loading: isCartLoading } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Sign Out asks for confirmation first (BUG-006) instead of signing out on
+  // click. The dialog owns its own overlay, so it renders alongside the header.
+  //
+  // `triggerRef` is the element focus returns to when the dialog closes. It is
+  // attached to the account trigger rather than the Sign Out row, because that
+  // row unmounts as soon as the account menu collapses (BUG-015) — focusing a
+  // detached node is a silent no-op, which would drop keyboard users on <body>
+  // after cancelling. The account trigger is always mounted.
+  const {
+    isOpen: isSignOutConfirmOpen,
+    isLoggingOut: isSigningOut,
+    triggerRef: accountTriggerRef,
+    open: openSignOutConfirm,
+    cancel: cancelSignOut,
+    confirm: confirmSignOut,
+  } = useLogoutConfirm();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -74,10 +95,6 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
     [query, navigate]
   );
 
-  const handleSignOut = useCallback(() => {
-    void logout();
-  }, [logout]);
-
   const activeCategoryId = useMemo(() => {
     const parts = location.pathname.split("/").filter(Boolean);
     const [root, slug] = parts;
@@ -87,13 +104,109 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
     }
     if (root === "category" && slug && HEADER_NAV_IDS.includes(slug)) return slug;
     if (root === "online-eye-test") return "home-eye-test";
-    if (root === "stores") return "store-locator";
+    // The store-locator branch is compared against the shared route constant, so
+    // both store pages (/stores and /find-nearest-store) keep the "Store
+    // Locator" pill highlighted and the highlight follows the path if it ever
+    // changes (BUG-024).
+    if (
+      location.pathname === ROUTE_PATHS.storeLocator ||
+      location.pathname === ROUTE_PATHS.findNearestStore
+    ) {
+      return "store-locator";
+    }
     if (root === "moi-approved-eye-test-qatar") return "moi-approved";
     return null;
   }, [location.pathname]);
 
-  const initial = user?.name?.trim().charAt(0)?.toUpperCase() ?? "";
+  // Spread with `[...name]` so a name starting with a surrogate pair (an emoji,
+  // some accented scripts) is not cut in half by charAt.
+  const trimmedName = user?.name?.trim() ?? "";
+  const initial = trimmedName ? ([...trimmedName][0]?.toUpperCase() ?? "") : "";
   const firstName = user?.name?.split(" ")[0] ?? "";
+
+  // BUG-015: the account menu was a <div>/<span> pair with no click handler at
+  // all. It only ever appeared because the panel was revealed by a CSS
+  // `group-hover:` rule, which means it was dead on touch (no hover, no handler
+  // to fall back on), unreachable by keyboard, and had no aria-expanded state.
+  //
+  // It is now driven by real state behind a real <button>, so click, tap,
+  // Enter/Space, outside click and Escape all work, and the panel is a real
+  // role="menu" to match the aria-haspopup="menu" it advertises.
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+  const accountMenuId = "site-header-account-menu";
+
+  const closeAccountMenu = useCallback((returnFocus = false) => {
+    setIsAccountMenuOpen(false);
+    if (returnFocus) accountTriggerRef.current?.focus();
+  }, []);
+
+  const toggleAccountMenu = useCallback(() => {
+    setIsAccountMenuOpen((prev) => !prev);
+  }, []);
+
+  // Activating any row navigates or acts, so the panel is no longer needed.
+  const collapseAccountMenu = useCallback(() => setIsAccountMenuOpen(false), []);
+
+  // Signed out (or logged out) there is no account trigger left, so the panel
+  // must not survive the session that owned it.
+  useEffect(() => {
+    if (!isAuthenticated) setIsAccountMenuOpen(false);
+  }, [isAuthenticated]);
+
+  // Outside click and Escape, mirroring the search overlay's handling. The
+  // setTimeout defers listener registration so the click that opened the menu
+  // is not immediately read as an outside click.
+  useEffect(() => {
+    if (!isAccountMenuOpen) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        closeAccountMenu();
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // Stopped so the search overlay's own Escape handler does not also fire.
+      e.stopPropagation();
+      closeAccountMenu(true);
+    };
+    const timerId = setTimeout(() => {
+      document.addEventListener("pointerdown", handlePointerDown);
+      document.addEventListener("keydown", handleKeyDown);
+    }, 0);
+    return () => {
+      clearTimeout(timerId);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAccountMenuOpen, closeAccountMenu]);
+
+  /**
+   * Arrow/Home/End navigation across the menu rows. Bound to the wrapper rather
+   * than the panel so it works while focus is still on the trigger, where
+   * currentIndex is -1 and ArrowDown lands on the first row.
+   */
+  const handleAccountMenuKeyDown = useCallback((e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return;
+    const rows = Array.from(
+      e.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]:not([disabled])')
+    );
+    if (rows.length === 0) return;
+
+    e.preventDefault();
+    if (e.key === "Home") {
+      rows[0].focus();
+      return;
+    }
+    if (e.key === "End") {
+      rows[rows.length - 1].focus();
+      return;
+    }
+    const current = rows.indexOf(document.activeElement as HTMLElement);
+    const next = current + (e.key === "ArrowDown" ? 1 : -1);
+    rows[(next + rows.length) % rows.length].focus();
+  }, []);
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
@@ -186,38 +299,93 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
 
             {/* Account menu */}
             {isAuthenticated && user ? (
-              <div className="group relative">
-                <div className="flex items-center gap-2 p-1 cursor-pointer">
-                  <span className="w-8 h-8 rounded-full bg-amber text-white flex items-center justify-center text-sm font-bold">
-                    {initial}
+              <div
+                ref={accountMenuRef}
+                className="relative"
+                onKeyDown={handleAccountMenuKeyDown}
+              >
+                <button
+                  ref={accountTriggerRef}
+                  type="button"
+                  onClick={toggleAccountMenu}
+                  aria-haspopup="menu"
+                  aria-expanded={isAccountMenuOpen}
+                  aria-controls={isAccountMenuOpen ? accountMenuId : undefined}
+                  aria-label={
+                    firstName ? `Account menu, signed in as ${firstName}` : "Account menu"
+                  }
+                  className="flex min-h-[40px] min-w-[40px] items-center gap-2 rounded-full p-1 cursor-pointer transition-colors hover:bg-teal-tint/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
+                >
+                  {/* Both spans are decorative: the accessible name comes from
+                      the button's aria-label, so the trigger reads as one control
+                      rather than an initial plus a stray name. */}
+                  <span
+                    aria-hidden="true"
+                    className="w-8 h-8 shrink-0 rounded-full bg-amber text-white flex items-center justify-center text-sm font-bold"
+                  >
+                    {initial || "U"}
                   </span>
-                  <span className="hidden lg:inline text-sm font-medium text-ink max-w-28 truncate">
+                  <span
+                    aria-hidden="true"
+                    className="hidden lg:inline text-sm font-medium text-ink max-w-28 truncate"
+                  >
                     {firstName}
                   </span>
-                </div>
-                <div className="absolute right-0 top-full mt-2 w-[200px] rounded-xl bg-white shadow-lg border border-line overflow-hidden opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
-                  <Link to="/account/info" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors">
-                    <User className="w-4 h-4 text-teal" />
+                </button>
+                <div
+                  id={accountMenuId}
+                  role="menu"
+                  aria-label="Account"
+                  className={`absolute right-0 top-full mt-2 w-[200px] rounded-xl bg-white shadow-lg border border-line overflow-hidden transition-all duration-200 z-50 ${
+                    isAccountMenuOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible translate-y-1"
+                  }`}
+                >
+                  <Link
+                    to="/account/info"
+                    role="menuitem"
+                    onClick={collapseAccountMenu}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors focus-visible:outline-none focus-visible:bg-teal-tint"
+                  >
+                    <User className="w-4 h-4 text-teal" aria-hidden="true" />
                     My Profile
                   </Link>
-                  <Link to="/account/orders" className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors">
-                    <Package className="w-4 h-4 text-teal" />
+                  <Link
+                    to="/account/orders"
+                    role="menuitem"
+                    onClick={collapseAccountMenu}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors focus-visible:outline-none focus-visible:bg-teal-tint"
+                  >
+                    <Package className="w-4 h-4 text-teal" aria-hidden="true" />
                     My Orders
                   </Link>
                   <button
                     type="button"
-                    onClick={openWishlist}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors text-left"
+                    role="menuitem"
+                    onClick={() => {
+                      collapseAccountMenu();
+                      openWishlist();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors text-left focus-visible:outline-none focus-visible:bg-teal-tint"
                   >
-                    <Heart className="w-4 h-4 text-teal" />
+                    <Heart className="w-4 h-4 text-teal" aria-hidden="true" />
                     Wishlist
                   </button>
                   <button
                     type="button"
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors text-left border-t border-line"
+                    role="menuitem"
+                    onClick={() => {
+                      // Collapse first: the dialog is a sibling overlay, and
+                      // keeping the panel open would only trap focus behind it.
+                      collapseAccountMenu();
+                      openSignOutConfirm();
+                    }}
+                    disabled={isSigningOut}
+                    aria-haspopup="dialog"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink hover:bg-teal-tint transition-colors text-left border-t border-line disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:bg-teal-tint"
                   >
-                    <LogOut className="w-4 h-4 text-teal" />
+                    <LogOut className="w-4 h-4 text-teal" aria-hidden="true" />
                     Sign Out
                   </button>
                 </div>
@@ -238,15 +406,37 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
             <button
               type="button"
               onClick={() => navigate("/cart")}
-              aria-label="Cart"
+              // BUG-012/BUG-014: the label used to be a static "Cart", so a screen
+              // reader user got no indication the badge had moved. It now names
+              // the current total, reports "loading" while a cart fetch is in
+              // flight, and the badge is a polite live region so every confirmed
+              // add/remove/quantity change is announced.
+              aria-label={
+                isCartLoading && cartCount === 0
+                  ? "Cart, loading"
+                  : `Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`
+              }
               className="relative flex items-center justify-center rounded-full bg-teal text-white hover:bg-teal-deep hover:-translate-y-px transition-all duration-150 p-2.5 md:pl-4 md:pr-5 md:py-2"
             >
               <ShoppingBag className="w-5 h-5" />
               <span className="hidden md:inline ml-2 text-sm font-semibold">Cart</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber text-white text-[11px] font-bold flex items-center justify-center">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
+              {/* A pending load shows a placeholder rather than nothing, so an
+                  empty-looking badge is never mistaken for a confirmed 0. */}
+              {isCartLoading && cartCount === 0 ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber/70 animate-pulse"
+                />
+              ) : (
+                cartCount > 0 && (
+                  <span
+                    aria-live="polite"
+                    aria-atomic="true"
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber text-white text-[11px] font-bold flex items-center justify-center"
+                  >
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )
               )}
             </button>
           </div>
@@ -263,6 +453,10 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
                 <Link
                   key={item.id}
                   to={item.link}
+                  // `aria-current` mirrors the amber active pill so assistive tech
+                  // announces which section the visitor is on — previously the
+                  // highlight was colour-only (BUG-024).
+                  aria-current={isActive ? "page" : undefined}
                   className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
                     isActive
                       ? "bg-amber text-ink"
@@ -276,6 +470,16 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
           </div>
         </Container>
       </nav>
+
+      {/* Sign-out confirmation. Portalled to document.body, so it escapes this
+          z-50 fixed bar and the dropdown's overflow-hidden clipping. */}
+      <LogoutConfirmDialog
+        isOpen={isSignOutConfirmOpen}
+        isLoggingOut={isSigningOut}
+        onCancel={cancelSignOut}
+        onConfirm={confirmSignOut}
+        returnFocusRef={accountTriggerRef}
+      />
     </div>
   );
 });

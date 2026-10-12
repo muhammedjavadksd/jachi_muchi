@@ -2,8 +2,7 @@ import { memo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { useWishlist } from "@/features/wishlist/hooks";
-import { EmptyState, Price } from "@/shared/components";
-import { getImageUrl } from "@/shared/utils/image";
+import { EmptyState, Price, SafeImage } from "@/shared/components";
 import type { WishlistItem as WishlistItemType } from "@/features/wishlist/types";
 
 export const WishlistCanvas = memo(function WishlistCanvas(): JSX.Element | null {
@@ -114,8 +113,8 @@ const WishlistCanvasItem = memo(function WishlistCanvasItem({
         }}
         className="shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-white border border-gray-200"
       >
-        <img
-          src={getImageUrl(item.image)}
+        <SafeImage
+          src={item.image}
           alt={item.name}
           className="w-full h-full object-cover"
         />

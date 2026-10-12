@@ -33,6 +33,10 @@ import {
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import type { TrackShippingAddress } from "@/features/orderTracking/types";
+import {
+  formatShippingAddress,
+  formatShippingAddressLines,
+} from "@/features/account/utils/shippingAddress";
 
 const CARD = "rounded-2xl border border-white/10 bg-[#151c28] p-5 sm:p-6";
 const FALLBACK_PAYMENT_BADGE = "bg-amber-400/10 text-amber-300 ring-amber-400/30";
@@ -153,14 +157,25 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
   const isCod = paymentMethodKey === "cod" || paymentMethodKey === "cash";
   const showCodCollectionNote = isCod && statusKey === "delivered" && (paymentStatusKey === "pending" || paymentStatusKey === "");
 
+  const shipping: TrackShippingAddress | null =
+    order?.shippingAddress || (typeof order?.address === "object" ? order.address : null) || null;
+  const addressString = typeof order?.address === "string" ? order.address : "";
+  // Structured lines (street, city/state/pincode, country, phone); the name is
+  // masked and rendered separately. Falls back to the API's pre-formatted
+  // string only when no structured parts are present.
+  const structuredLines = shipping
+    ? formatShippingAddressLines(shipping, { includeName: false })
+    : [];
+  const fallbackLine =
+    structuredLines.length === 0 ? shipping?.formatted || addressString : "";
+  const addressLines = structuredLines.length > 0 ? structuredLines : fallbackLine ? [fallbackLine] : [];
+  const hasAddress = Boolean(shipping) && (addressLines.length > 0 || Boolean(shipping?.name));
+
   const handleDownloadInvoice = async () => {
     if (!order) return;
     try {
       const orderId = order.orderId || order._id || order.id || "unknown";
-      const addrParts = addressLine
-        ? [addressLine, cityStatePin].filter(Boolean).join(", ")
-        : "";
-      const shippingAddr = addrParts || (typeof order.address === "string" ? order.address : "");
+      const shippingAddr = shipping ? formatShippingAddress(shipping) : addressString;
       await generateInvoicePdf({
         orderId,
         date: order.createdAt,
@@ -197,16 +212,6 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
       setCancelling(false);
     }
   };
-
-  const shipping: TrackShippingAddress | null =
-    order?.shippingAddress || (typeof order?.address === "object" ? order.address : null) || null;
-  const addressString = typeof order?.address === "string" ? order.address : "";
-  const addressLine = shipping
-    ? [shipping.addressLine1, shipping.addressLine2].filter(Boolean).join(", ")
-    : addressString;
-  const cityStatePin = shipping
-    ? ([shipping.city, shipping.state].filter(Boolean).join(", ") + (shipping.pincode ? ` - ${shipping.pincode}` : ""))
-    : "";
 
   return (
     <div className="min-h-screen w-full bg-[#0c1018] text-gray-100">
@@ -350,13 +355,19 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
 
             <section className={CARD}>
               <h2 className="text-sm font-semibold text-gray-100 mb-4">Shipping Address</h2>
-              <div className="flex gap-3">
+              <div className="flex gap-3 min-w-0">
                 <MapPin className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <div className="text-sm space-y-0.5">
-                  <p className="font-medium text-gray-100">{maskName(shipping?.name)}</p>
-                  {addressLine && <p className="text-gray-400">{addressLine}</p>}
-                  {cityStatePin && <p className="text-gray-400">{cityStatePin}</p>}
-                  {!addressLine && !cityStatePin && <p className="text-gray-500">Not available</p>}
+                <div className="text-sm space-y-0.5 min-w-0 flex-1">
+                  {hasAddress ? (
+                    <>
+                      <p className="font-medium text-gray-100 break-words">{maskName(shipping?.name)}</p>
+                      {addressLines.map((line, index) => (
+                        <p key={index} className="text-gray-400 break-words">{line}</p>
+                      ))}
+                    </>
+                  ) : (
+                    <p className="text-gray-500">Address not available for this order.</p>
+                  )}
                 </div>
               </div>
             </section>

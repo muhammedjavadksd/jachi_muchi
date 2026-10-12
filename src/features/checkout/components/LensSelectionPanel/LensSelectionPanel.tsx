@@ -1,12 +1,13 @@
 import { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { getLenses } from "@/features/lens/api/lensApi";
 import type { LensItem } from "@/features/lens/types";
 import { getOffers } from "@/shared/services/offerEngine";
 import { Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
-import { addToCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
+import { useCart } from "@/features/cart/hooks";
 import { useAuthGuard } from "@/shared/hooks";
 
 
@@ -105,6 +106,8 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
 }: LensSelectionPanelProps): JSX.Element | null {
   const navigate = useNavigate();
   const { requireAuth } = useAuthGuard();
+const { addToCart } = useCart();
+const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [step, setStep] = useState(1);
   const [selectedPowerType, setSelectedPowerType] = useState<PowerType | null>(null);
   const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
@@ -245,57 +248,82 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     return Object.keys(errs).length === 0;
   }, [powerDetails, samePowerBothEyes, hasCylindrical, selectedCountry]);
 
+  // BUG-012: this called addToCartApi directly and threw the response away, then
+  // broadcast a "cart changed" event so the provider would guess the new state
+  // with its own refetch. Routing through useCart means the badge is driven by the
+  // cart the server just returned. The isAddingToCart guard closes the double
+  // submit window that used to let one intent POST twice, and the try/catch keeps
+  // a failed write from silently skipping the toast and the navigation.
   const handleAddToCart = useCallback(async () => {
-    requireAuth(async () => {
-    if (selectedPowerType === "with-power" || selectedPowerType === "progressive") {
-      if (!validatePrescription()) return;
-    }
-    const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
+    if (isAddingToCart) return;
+    setIsAddingToCart(true);
+    try {
+      await requireAuth(async () => {
+        if (selectedPowerType === "with-power" || selectedPowerType === "progressive") {
+          if (!validatePrescription()) return;
+        }
+        const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
 
-    const resolvedPowerDetails =
-      selectedPowerType === "with-power" || selectedPowerType === "progressive"
-        ? {
-            leftSPH: powerDetails.leftSph,
-            rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
-            leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
-            rightCYL: hasCylindrical ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl) : null,
-            isSamePower: samePowerBothEyes,
-            hasCylindrical,
-            customerName: powerDetails.name,
-            customerPhone: powerDetails.phone ? `${selectedCountry?.code ?? ""}${powerDetails.phone}` : "",
-            knowPowerLater: powerDetails.knowPowerLater,
-          }
-        : null;
+        const resolvedPowerDetails =
+          selectedPowerType === "with-power" || selectedPowerType === "progressive"
+            ? {
+                leftSPH: powerDetails.leftSph,
+                rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
+                leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
+                rightCYL: hasCylindrical
+                  ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl)
+                  : null,
+                isSamePower: samePowerBothEyes,
+                hasCylindrical,
+                customerName: powerDetails.name,
+                customerPhone: powerDetails.phone
+                  ? `${selectedCountry?.code ?? ""}${powerDetails.phone}`
+                  : "",
+                knowPowerLater: powerDetails.knowPowerLater,
+              }
+            : null;
 
-    await addToCartApi({
-      productId,
-      quantity: 1,
-      color: selectedColor ?? null,
-      lens: selectedLens ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price } : null,
-      powerType: selectedPowerType,
-      powerDetails: resolvedPowerDetails,
-      bogoGroupId: bogoGroupId ?? null,
-      isFree: false,
-    });
+        await addToCart({
+          productId,
+          quantity: 1,
+          color: selectedColor ?? null,
+          lens: selectedLens
+            ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price }
+            : null,
+          powerType: selectedPowerType,
+          powerDetails: resolvedPowerDetails,
+          bogoGroupId: bogoGroupId ?? null,
+          isFree: false,
+        });
 
-    if (bogoOffer?.freeProduct) {
-      await addToCartApi({
-        productId: bogoOffer.freeProduct._id,
-        quantity: 1,
-        color: null,
-        lens: null,
-        powerType: "frame-only",
-        powerDetails: null,
-        bogoGroupId: bogoGroupId ?? null,
-        isFree: true,
+        if (bogoOffer?.freeProduct) {
+          await addToCart({
+            productId: bogoOffer.freeProduct._id,
+            quantity: 1,
+            color: null,
+            lens: null,
+            powerType: "frame-only",
+            powerDetails: null,
+            bogoGroupId: bogoGroupId ?? null,
+            isFree: true,
+          });
+        }
+
+        onClose();
+        navigate("/cart");
       });
+    } catch (error: any) {
+      // The provider leaves its state on the last confirmed cart, so the badge
+      // correctly stays where it was.
+      console.error("Failed to add item to cart:", error);
+      toast.error(
+        error?.response?.data?.message || "Could not add this item to your cart. Please try again."
+      );
+    } finally {
+      setIsAddingToCart(false);
     }
-
-    notifyCartUpdated();
-    onClose();
-    navigate("/cart");
-    }); // end requireAuth
   }, [
+    isAddingToCart,
     productId,
     selectedPowerType,
     selectedLens,
@@ -307,6 +335,7 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
     navigate,
     onClose,
     requireAuth,
+    addToCart,
     validatePrescription,
     selectedCountry,
   ]);
@@ -547,7 +576,9 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
       <p className="text-sm text-gray-500 text-center mt-2">Can't find your power? Call <span className="font-medium text-teal-600">+91 8470007367</span></p>
       <button
         onClick={handleAddToCart}
-        className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors"
+        disabled={isAddingToCart}
+        aria-busy={isAddingToCart}
+        className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         Save &amp; Proceed
       </button>
@@ -587,7 +618,14 @@ export const LensSelectionPanel = memo(function LensSelectionPanel({
             <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t border-gray-200"><span>Total</span><Price value={totalPrice} size="md" /></div>
           </div>
         </div>
-        <button onClick={handleAddToCart} className="w-full py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors">Add to Cart - <Price value={totalPrice} size="md" className="text-white" /></button>
+        <button
+          onClick={handleAddToCart}
+          disabled={isAddingToCart}
+          aria-busy={isAddingToCart}
+          className="w-full py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          Add to Cart - <Price value={totalPrice} size="md" className="text-white" />
+        </button>
       </div>
     );
   };

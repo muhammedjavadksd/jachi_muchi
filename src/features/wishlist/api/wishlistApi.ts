@@ -1,6 +1,30 @@
 import { api } from "@/shared/lib/axios";
 import { getImageUrl } from "@/shared/utils/image";
+import { pickPrimaryImage } from "@/shared/utils/imageSrc";
 import type { ApiWishlistItem, AddToWishlistRequest } from "@/features/wishlist/types";
+
+interface WishlistApiProduct {
+  _id: string;
+  name?: string;
+  price?: number;
+  mrp?: number;
+  isActive?: boolean;
+  image?: string;
+  images?: string[];
+  [key: string]: any;
+}
+
+interface WishlistApiItem {
+  _id?: string;
+  // Newer backend returns a `product` snapshot; older payloads populate the
+  // product document under `productId`.
+  product?: WishlistApiProduct;
+  productId?: string | WishlistApiProduct;
+  addedAt?: string;
+  name?: string;
+  price?: number;
+  image?: string;
+}
 
 interface WishlistApiResponse {
   success: boolean;
@@ -8,55 +32,34 @@ interface WishlistApiResponse {
   data: {
     _id: string;
     userId: string;
-    items: Array<{
-      productId: {
-        _id: string;
-        name: string;
-        price: number;
-        images: string[];
-        [key: string]: any;
-      };
-      addedAt: string;
-    }>;
+    items: WishlistApiItem[];
     [key: string]: any;
   };
 }
 
-interface AddToWishlistApiResponse {
-  success: boolean;
-  message: string;
-  data: {
-    _id: string;
-    userId: string;
-    items: Array<{
-      productId: {
-        _id: string;
-        name: string;
-        price: number;
-        images: string[];
-        [key: string]: any;
-      };
-      addedAt: string;
-    }>;
-    [key: string]: any;
-  };
-}
+type AddToWishlistApiResponse = WishlistApiResponse;
 
-function transformWishlistItem(item: any): ApiWishlistItem {
-  const product = item.productId || item;
+function transformWishlistItem(item: WishlistApiItem): ApiWishlistItem {
+  const productObject: WishlistApiProduct | null =
+    item.product && typeof item.product === "object"
+      ? item.product
+      : item.productId && typeof item.productId === "object"
+        ? item.productId
+        : null;
+
   const rawProductId =
-    (typeof product === "object" ? product._id : undefined) ||
-    (typeof item.productId === "string" ? item.productId : undefined) ||
+    productObject?._id ||
+    (typeof item.productId === "string" ? item.productId : "") ||
     "";
-  const cleanProductId = rawProductId.replace(/^\/product\//, "");
+  const cleanProductId = String(rawProductId).replace(/^\/product\//, "");
+
   return {
     _id: item._id || cleanProductId,
     productId: cleanProductId,
-    name: typeof product === "object" ? product.name || "Unknown Product" : item.name || "Unknown Product",
-    price: typeof product === "object" ? product.price || 0 : item.price || 0,
-    image: getImageUrl(typeof product === "object" ? product.images?.[0] : undefined),
+    name: productObject?.name || item.name || "Unknown Product",
+    price: productObject?.price ?? item.price ?? 0,
+    image: getImageUrl(pickPrimaryImage(productObject) || item.image),
     link: `/product/${cleanProductId}`,
-
     addedAt: item.addedAt || new Date().toISOString(),
   };
 }

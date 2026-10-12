@@ -109,7 +109,11 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
   let y = 14;
 
   // ── HEADER: logo + brand name ──────────────────────────────
+  // BUG-025: SUPPORT_PHONE is now configuration-driven, so it can be empty.
+  // An invoice is a legal document — when no number is configured it must show
+  // the email alone rather than a blank line or a placeholder.
   const logoData = await loadImageAsBase64(BRAND_LOGO);
+  const supportLine = SUPPORT_PHONE ? `${SUPPORT_EMAIL}  |  ${SUPPORT_PHONE}` : SUPPORT_EMAIL;
   if (logoData) {
     doc.addImage(logoData, "PNG", M.left, y, 14, 14);
     doc.setFont("helvetica", "bold");
@@ -120,8 +124,12 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(120, 120, 120);
-    doc.text(SUPPORT_EMAIL, M.left + 18, y + 13);
-    doc.text(SUPPORT_PHONE, M.left + 18, y + 16.5);
+    if (SUPPORT_PHONE) {
+      doc.text(SUPPORT_EMAIL, M.left + 18, y + 13);
+      doc.text(SUPPORT_PHONE, M.left + 18, y + 16.5);
+    } else {
+      doc.text(supportLine, M.left + 18, y + 13);
+    }
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
@@ -130,7 +138,7 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(120, 120, 120);
-    doc.text(`${SUPPORT_EMAIL}  |  ${SUPPORT_PHONE}`, M.left, y + 13);
+    doc.text(supportLine, M.left, y + 13);
   }
   y += logoData ? 24 : 19;
 

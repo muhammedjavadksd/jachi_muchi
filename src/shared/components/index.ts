@@ -4,6 +4,7 @@ export { Container } from "@/shared/components/Container/Container";
 export { EmptyState } from "@/shared/components/EmptyState/EmptyState";
 export { Grid } from "@/shared/components/Grid/Grid";
 export { ImageCard } from "@/shared/components/ImageCard/ImageCard";
+export { SafeImage } from "@/shared/components/SafeImage/SafeImage";
 export { Input } from "@/shared/components/Input";
 export { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 export { Modal } from "@/shared/components/Modal";

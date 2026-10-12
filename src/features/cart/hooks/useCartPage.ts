@@ -8,15 +8,7 @@ import {
   calculateOfferDiscount,
 } from "@/shared/services/offerEngine";
 import type { Offer, OfferBadge } from "@/features/offer/types";
-import {
-  fetchCart,
-  updateCartItemQuantity,
-  removeCartItemApi,
-  notifyCartUpdated,
-  mapBackendItem,
-} from "@/features/cart/api/cartApi";
-import type { CartItem } from "@/app/providers/CartProvider";
-import { useAuthGuard } from "@/shared/hooks";
+import { useCart } from "@/features/cart/hooks/useCart";
 
 interface NormalizedBill {
   totalItemPrice: number;
@@ -56,60 +48,46 @@ function normalizeBill(raw: Record<string, any> | null | undefined, fallbackTota
 }
 
 export function useCartPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // BUG-012: this hook used to hold its own cart copy, fetched independently of
+  // CartProvider and never subscribed to cart changes, so the page and the
+  // header badge were two sources of truth that could disagree (the page summed
+  // setCount, the badge summed quantity) and the page could show a stale cart
+  // until it was remounted. It now reads the provider's state and delegates every
+  // write to it, which applies the server's own response.
+  const { items: cartItems, bill, total, itemCount, updateQuantity, removeItem, clearCart } = useCart();
+
   const [offers, setOffers] = useState<Offer[]>([]);
   const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>({});
   const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
-  const [normalizedBill, setNormalizedBill] = useState<NormalizedBill | null>(null);
-  const { requireAuth } = useAuthGuard();
 
-  const loadCart = useCallback(async () => {
-    try {
-      const cart = await fetchCart();
-      setCartItems(cart.items.map(mapBackendItem));
-      setNormalizedBill(normalizeBill(cart.bill, cart.total));
-    } catch {
-      setCartItems([]);
-      setNormalizedBill(null);
-    }
-  }, []);
+  const normalizedBill = useMemo(
+    () => normalizeBill(bill, total),
+    [bill, total]
+  );
 
   useEffect(() => {
-    loadCart();
     getOffers().then(setOffers).catch(() => {});
-  }, [loadCart]);
+  }, []);
 
-  const handleRemoveItem = useCallback(async (cartItemId: string) => {
-    requireAuth(async () => {
-    setCartItems((prev) => {
-      const target = prev.find((i) => i.cartItemId === cartItemId);
-      const bogoGroupId = target?.bogoGroupId;
-      return prev.filter(
-        (i) =>
-          i.cartItemId !== cartItemId &&
-          !(bogoGroupId && i.bogoGroupId === bogoGroupId)
-      );
-    });
-    try {
-      await removeCartItemApi(cartItemId);
-      notifyCartUpdated();
-      await loadCart();
-    } catch {
-      await loadCart();
-    }
-    });
-  }, [loadCart, requireAuth]);
+  const handleRemoveItem = useCallback(
+    async (cartItemId: string) => {
+      try {
+        await removeItem(cartItemId);
+        setStockErrors((prev) => ({ ...prev, [cartItemId]: "" }));
+      } catch (error: any) {
+        const msg = error.response?.data?.message || error.message || "Failed to remove item";
+        setStockErrors((prev) => ({ ...prev, [cartItemId]: msg }));
+      }
+    },
+    [removeItem]
+  );
 
   const handleUpdateQuantity = useCallback(
     async (cartItemId: string, action: "increment" | "decrement") => {
-      requireAuth(async () => {
       setUpdatingItems((prev) => ({ ...prev, [cartItemId]: true }));
       setStockErrors((prev) => ({ ...prev, [cartItemId]: "" }));
       try {
-        const updated = await updateCartItemQuantity(cartItemId, action);
-        setCartItems(updated.items.map(mapBackendItem));
-        setNormalizedBill(normalizeBill(updated.bill, updated.total));
-        notifyCartUpdated();
+        await updateQuantity(cartItemId, action);
       } catch (error: any) {
         const msg =
           error.response?.data?.message || error.message || "Failed to update quantity";
@@ -117,18 +95,13 @@ export function useCartPage() {
       } finally {
         setUpdatingItems((prev) => ({ ...prev, [cartItemId]: false }));
       }
-      });
     },
-    [requireAuth]
+    [updateQuantity]
   );
 
   const handleClearCart = useCallback(async () => {
-    const { clearCartApi } = await import("@/features/cart/api/cartApi");
-    await clearCartApi();
-    setCartItems([]);
-    setNormalizedBill(null);
-    notifyCartUpdated();
-  }, []);
+    await clearCart();
+  }, [clearCart]);
 
   const subtotal = useMemo(
     () =>
@@ -150,13 +123,10 @@ export function useCartPage() {
 
   const totalDiscount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
 
-  const totalQuantity = useMemo(
-    () =>
-      cartItems.reduce((sum, item) => {
-        return sum + (item.setCount || 1);
-      }, 0),
-    [cartItems]
-  );
+  // Same number the header badge shows. This used to sum `setCount` while the
+  // badge summed `quantity`, so a BOGO/set cart rendered "Cart (2 items)" next
+  // to a badge reading 3.
+  const totalQuantity = itemCount;
 
   const fittingFee = useMemo(() => (cartItems.length > 0 ? 199 : 0), [cartItems.length]);
 

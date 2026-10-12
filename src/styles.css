@@ -123,18 +123,16 @@
   display: none;
 }
 
-/* Auto-scrolling marquee carousel */
-@keyframes auto-scroll-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
+/* Horizontal carousel driven by native scroll position (Similar Products).
+   overflow-x must stay scrollable: a transform-based marquee cannot be moved by
+   the user, and overflow: hidden made every manual scroll route impossible. */
 .auto-scroll-viewport {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  /* Hide the scrollbar so the strip keeps its original chrome-free look. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   -webkit-mask-image: linear-gradient(
     to right,
     transparent,
@@ -151,20 +149,18 @@
   );
 }
 
+.auto-scroll-viewport::-webkit-scrollbar {
+  display: none;
+}
+
 .auto-scroll-track {
   display: flex;
   width: max-content;
-  animation: auto-scroll-left var(--auto-scroll-duration, 30s) linear infinite;
 }
 
-.auto-scroll-viewport:hover .auto-scroll-track,
-.auto-scroll-viewport:focus-within .auto-scroll-track,
-.auto-scroll-viewport.paused .auto-scroll-track {
-  animation-play-state: paused;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auto-scroll-track {
-    animation: none;
-  }
+/* Snap targets. scroll-snap-stop keeps every product reachable instead of
+   letting a hard flick skip past several. */
+.auto-scroll-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }

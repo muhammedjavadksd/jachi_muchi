@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getStoreCount } from "@/features/store/api/storeApi";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export const EyeCheckupFeatures: React.FC = () => {
   const [storeCount, setStoreCount] = useState<number | null>(null);
@@ -21,7 +22,7 @@ export const EyeCheckupFeatures: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link
-            to="/stores"
+            to={ROUTE_PATHS.storeLocator}
             className="group block rounded-3xl overflow-hidden relative bg-white border border-gray-100 shadow-sm hover:shadow-md transition-transform transform hover:-translate-y-1"
             aria-label="Visit Your Nearest Store"
           >

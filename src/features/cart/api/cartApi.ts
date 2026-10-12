@@ -1,5 +1,6 @@
 import { api } from "@/shared/lib/axios";
 import { getProductById } from "@/features/product/api/productApi";
+import type { OrderItemVariant } from "@/shared/utils/variant";
 
 export interface BackendCartItem {
   _id: string;
@@ -18,6 +19,7 @@ export interface BackendCartItem {
   parentItem: string | null;
   offer: string | null;
   color?: { name: string; id: string } | null;
+  variant?: OrderItemVariant | null;
   lens?: { id: string; name: string; price: number } | null;
   powerType?: string | null;
   powerDetails?: {
@@ -127,6 +129,7 @@ export function mapBackendItem(item: BackendCartItem) {
     mrp: item.product.mrp ?? item.product.price,
     quantity: item.quantity,
     color: item.color ?? null,
+    variant: item.variant ?? null,
     lens: item.lens ?? null,
     powerType: item.powerType ?? undefined,
     powerDetails: item.powerDetails ?? null,
@@ -174,10 +177,6 @@ export async function removeCartItemApi(cartItemId: string): Promise<BackendCart
 
 export async function clearCartApi(): Promise<void> {
   await api.delete("/cart");
-}
-
-export function notifyCartUpdated(): void {
-  window.dispatchEvent(new Event("cart-updated"));
 }
 
 // ---------------------------------------------------------------------------

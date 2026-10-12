@@ -3,9 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Footer, WhatsAppButton } from "@/components";
 import { Container } from "@/shared/components/Container/Container";
 import { getSkipCashSessionStatus } from "@/features/checkout/api/paymentApi";
-import { clearCartApi, notifyCartUpdated } from "@/features/cart/api/cartApi";
+import { clearCartApi } from "@/features/cart/api/cartApi";
 import { markCouponAsUsed } from "@/features/coupon/api/couponApi";
 import { useAuth } from "@/features/auth/hooks";
+import { useCart } from "@/features/cart/hooks";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
 import {
@@ -46,6 +47,7 @@ const FAILURE_COPY: Record<FailureKind, { title: string; message: string }> = {
 export const PaymentReturnPage = memo(function PaymentReturnPage(): JSX.Element {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+const { clearCart } = useCart();
 
   const sessionRef = useMemo(() => {
     const fromUrl = searchParams.get("ref") || "";
@@ -72,10 +74,13 @@ export const PaymentReturnPage = memo(function PaymentReturnPage(): JSX.Element 
       localStorage.removeItem("pendingCouponMark");
       localStorage.removeItem(PAYMENT_SESSION_REF_KEY);
     } catch {}
+    // BUG-012: routes through CartProvider so the header badge drops to empty
+    // immediately after a successful payment. DELETE /cart returns no body, so
+    // the emptied state is published rather than refetched.
     clearCartApi()
-      .then(() => notifyCartUpdated())
+      .then(() => clearCart())
       .catch(() => {});
-  }, [user?.id]);
+  }, [user?.id, clearCart]);
 
   useEffect(() => {
     if (!sessionRef) {

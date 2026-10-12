@@ -2,6 +2,13 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
 import { FOOTER_LINKS } from "@/features/account/constants";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
+import {
+  CUSTOMER_CARE,
+  CUSTOMER_CARE_CALL_LABEL,
+  CUSTOMER_CARE_FALLBACK_MESSAGE,
+  CUSTOMER_CARE_HOURS,
+} from "@/shared/constants/contactInfo";
 import type { FooterLink } from "@/shared/types";
 
 const FOOTER_BACKGROUND = "#0c1018";
@@ -9,11 +16,18 @@ const COPYRIGHT_TEXT = "© 2026 Jachi & Muchi";
 const FOOTER_LINK_CLASSES = "text-gray-300 text-sm hover:text-white transition-colors";
 const INSTAGRAM_URL = "https://www.instagram.com/jachiandmuchi?stkn=MWQyMmdtanluYzFjNg%3D%3D&utm_source=qr";
 
-/** Bottom-bar legal links for quick access to the key policies */
+/**
+ * Bottom-bar legal links for quick access to the key policies.
+ *
+ * BUG-023: "Disclaimer" was typed here and again in `FOOTER_LINKS` (the Legal
+ * column) as a bare `/disclaimer` string, and neither matched a registered
+ * route, so the link rendered the 404 page. All legal paths now come from
+ * `ROUTE_PATHS`, which the route table also reads.
+ */
 const FOOTER_BOTTOM_LINKS: FooterLink[] = [
-  { label: "Terms & Conditions", href: "/terms" },
-  { label: "Privacy Policy", href: "/privacy" },
-  { label: "Disclaimer", href: "/disclaimer" },
+  { label: "Terms & Conditions", href: ROUTE_PATHS.terms },
+  { label: "Privacy Policy", href: ROUTE_PATHS.privacy },
+  { label: "Disclaimer", href: ROUTE_PATHS.disclaimer },
 ];
 
 /**
@@ -90,6 +104,29 @@ export const Footer = memo(function Footer(): JSX.Element {
               {linkColumns}
             </div>
           </nav>
+
+          {/* Customer care phone.
+              BUG-025: the footer advertised no phone at all, so the support line
+              was reachable only from two pages and each had its own copy of the
+              number. Reads the same single source as Contact Us and Help, and
+              degrades to the email fallback when no number is configured. */}
+          <div className="border-t border-gray-800/70 pt-6">
+            {CUSTOMER_CARE.isAvailable ? (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 text-sm">
+                <span className="text-gray-400">Customer care</span>
+                <a
+                  href={CUSTOMER_CARE.telHref}
+                  aria-label={`${CUSTOMER_CARE_CALL_LABEL} on ${CUSTOMER_CARE.display}`}
+                  className="font-semibold text-gray-100 hover:text-white underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c1018] rounded-sm"
+                >
+                  {CUSTOMER_CARE.display}
+                </a>
+                <span className="text-gray-400">· {CUSTOMER_CARE_HOURS.label}</span>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">{CUSTOMER_CARE_FALLBACK_MESSAGE}</p>
+            )}
+          </div>
         </div>
       </Container>
 

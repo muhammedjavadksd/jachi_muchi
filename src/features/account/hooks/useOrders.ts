@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import toast from "react-hot-toast";
 import { getMyOrders, cancelOrder } from "@/features/checkout/api/orderApi";
 import { retrySkipCashPayment } from "@/features/checkout/api/paymentApi";
+import type { ShippingAddress } from "@/features/account/utils/shippingAddress";
 
 type OrderStatus =
   | "pending"
@@ -41,7 +42,7 @@ interface Order {
   total?: number;
   deliveryDate?: string;
   paymentMethod?: string;
-  address?: string;
+  shippingAddress?: ShippingAddress | null;
   statusTimeline?: {
     status: OrderStatus;
     date: string;
@@ -60,6 +61,7 @@ export interface UseOrdersReturn {
   openOrderDrawer: (order: Order) => void;
   closeOrderDrawer: () => void;
   handleCancelFromDrawer: (orderId: string) => Promise<void>;
+  handleOrderAddressUpdated: (orderId: string, address: ShippingAddress) => void;
   getStatusColors: (status: OrderStatus) => { bg: string; border: string; text: string; badge: string };
 }
 
@@ -163,6 +165,12 @@ export function useOrders(): UseOrdersReturn {
     }
   }, [handleOrderCancel, closeOrderDrawer]);
 
+  const handleOrderAddressUpdated = useCallback((orderId: string, address: ShippingAddress) => {
+    const matches = (order: Order) => order._id === orderId || order.id === orderId;
+    setOrders(prev => prev.map(order => (matches(order) ? { ...order, shippingAddress: address } : order)));
+    setSelectedOrder(prev => (prev && matches(prev) ? { ...prev, shippingAddress: address } : prev));
+  }, []);
+
   const getStatusColors = useCallback((status: OrderStatus) => {
     switch (status) {
       case "pending":
@@ -205,6 +213,7 @@ export function useOrders(): UseOrdersReturn {
     openOrderDrawer,
     closeOrderDrawer,
     handleCancelFromDrawer,
+    handleOrderAddressUpdated,
     getStatusColors,
   };
 }

@@ -1,7 +1,7 @@
+import { resolveImageSrc, IMAGE_PLACEHOLDER } from "@/shared/utils/imageSrc";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, '') || "";
-export function getImageUrl(path?: string | null, fallback = "https://placehold.co/400x300?text=Eyewear"): string {
-  if (!path) return fallback;
-  if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  if (path.startsWith("/uploads/")) return `${API_BASE_URL}${path}`;
-  return path;
+
+export function getImageUrl(path?: string | null, fallback: string = IMAGE_PLACEHOLDER): string {
+  return resolveImageSrc(path, API_BASE_URL, fallback);
 }

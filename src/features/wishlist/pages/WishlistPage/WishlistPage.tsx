@@ -2,8 +2,7 @@ import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Heart } from "lucide-react";
 import { Footer, WhatsAppButton } from "@/components";
-import { Container, EmptyState, Price } from "@/shared/components";
-import { getImageUrl } from "@/shared/utils/image";
+import { Container, EmptyState, Price, SafeImage } from "@/shared/components";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
@@ -55,8 +54,8 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
                     to={item.link}
                     className="w-full h-40 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-gray-100 mb-4"
                   >
-                    <img
-                      src={getImageUrl(item.image)}
+                    <SafeImage
+                      src={item.image}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />

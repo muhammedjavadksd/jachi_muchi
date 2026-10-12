@@ -1,5 +1,6 @@
 import type { ShapeItem, CategoryItem, ProductItem, NearbyServiceItem, ExclusiveItem } from "@/features/home/types";
 import type { PopularEyewearItem } from "@/shared/types";
+import { ROUTE_PATHS, storeLocatorWithService } from "@/shared/constants/routes";
 
 export const EYEGLASS_SHAPES: ShapeItem[] = [
   { label: "Rectangle", image: "/category/image.png", link: "/eyeglasses/rectangle" },
@@ -99,7 +100,7 @@ export const NEARBY_SERVICES: NearbyServiceItem[] = [
   {
     title: "Visit Your Nearest Store",
     image: "/near/near---store.png",
-    link: "/stores",
+    link: ROUTE_PATHS.storeLocator,
   },
   {
     title: "Experience Our Home Try-On",
@@ -155,7 +156,7 @@ export const FREE_CHECKUP: ExclusiveItem[] = [
   {
     title: "Visit Your Nearest Store",
     image: "/free/image.png",
-    link: "/stores?service=free-eye-testing",
+    link: storeLocatorWithService("free-eye-testing"),
   },
   {
     title: "Schedule Eye Test at Home",

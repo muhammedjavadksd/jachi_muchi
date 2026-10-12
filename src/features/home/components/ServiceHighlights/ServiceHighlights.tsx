@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 interface Store {
   _id?: string;
@@ -13,7 +14,7 @@ export const NearbyServices = memo(function NearbyServices({ stores = [] }: { st
     (stores || []).map((store, index) => (
       <Link
         key={store?._id || index}
-        to="/find-nearest-store"
+        to={ROUTE_PATHS.findNearestStore}
         className="relative block overflow-hidden group"
         style={{ borderRadius: "16px" }}
       >

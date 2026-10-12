@@ -35,3 +35,22 @@ export const getOrderById = async (orderId: string) => {
     throw error;
   }
 };
+
+export interface UpdateOrderAddressPayload {
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country?: string;
+}
+
+export const updateOrderAddress = async (
+  orderId: string,
+  payload: UpdateOrderAddressPayload
+) => {
+  const res = await api.patch(`/orders/${orderId}/address`, payload);
+  return res.data;
+};

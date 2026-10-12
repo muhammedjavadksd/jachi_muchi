@@ -1,8 +1,9 @@
 import type { NavTab } from "./BottomNav";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export const BOTTOM_NAV_ROUTES: Record<NavTab, string> = {
   home: "/",
-  stores: "/stores",
+  stores: ROUTE_PATHS.storeLocator,
   // "ar-tryon": "/try-at-home", // AR Try on — temporarily hidden
   "eye-test": "/online-eye-test",
   orders: "/account/orders",

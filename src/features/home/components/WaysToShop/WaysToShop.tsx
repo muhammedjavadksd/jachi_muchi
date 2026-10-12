@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 interface ShopCard {
   title: string;
@@ -15,7 +16,7 @@ const CARDS: ShopCard[] = [
   {
     title: "Visit nearest store",
     subtitle: "Try frames in person, get a proper fitting from our team.",
-    link: "/stores",
+    link: ROUTE_PATHS.storeLocator,
     image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=400&fit=crop",
   },
   {

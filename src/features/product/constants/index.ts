@@ -1,4 +1,5 @@
 import type { CategoryNavItem, FilterGroup, ProductCardProps } from "@/features/product/types";
+import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 export const PREFERRED_FRAME_TYPES: string[] = [
   "Eyeglasses",
@@ -22,7 +23,7 @@ export const SEARCH_CATEGORIES: CategoryNavItem[] = [
   // Hidden from nav for now – restore when needed:
   /* { id: "collections", label: "COLLECTIONS", link: "/collections" }, */
   { id: "home-eye-test", label: "HOME EYE-TEST", link: "/online-eye-test" },
-  { id: "store-locator", label: "STORE LOCATOR", link: "/stores" },
+  { id: "store-locator", label: "STORE LOCATOR", link: ROUTE_PATHS.storeLocator },
 ];
 
 export const SEARCH_FILTERS: FilterGroup[] = [
