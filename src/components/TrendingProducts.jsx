@@ -197,7 +197,7 @@ export function TrendingProducts() {
                       src={product.image}
                       alt={product.name}
                       loading="lazy"
-                      className="w-full aspect-[10/11] object-contain bg-[#f7f7f7] p-2"
+                      className="w-full aspect-[4/3] object-contain bg-white p-1 mix-blend-multiply"
                     />
                     <h3 className="mt-2 font-medium group-hover:underline">{product.name}</h3>
                     <p className="mt-1 text-sm text-gray-600">{product.price}</p>
