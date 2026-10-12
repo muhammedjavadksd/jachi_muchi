@@ -1,6 +1,7 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { ArrowRight } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
+import { DEFAULT_CARD_IMAGE_POSITION } from "@/features/home/constants";
 import { ROUTE_PATHS } from "@/shared/constants/routes";
 
 interface ShopCard {
@@ -10,20 +11,30 @@ interface ShopCard {
   linkExternal?: boolean;
   image: string;
   badge?: string;
+  /** Per-card crop focal point (CSS `object-position`) so the subject stays framed. */
+  imagePosition?: string;
 }
 
+/**
+ * Card images are requested at full aspect (no forced server-side crop) so the
+ * CSS `object-cover` + `objectPosition` below controls the framing instead of
+ * Unsplash's centre crop. Values start from a visual guess and can be tuned
+ * per card without touching the component.
+ */
 const CARDS: ShopCard[] = [
   {
     title: "Visit nearest store",
     subtitle: "Try frames in person, get a proper fitting from our team.",
     link: ROUTE_PATHS.storeLocator,
-    image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=1200&q=80",
+    imagePosition: "35% 60%",
   },
   {
     title: "Home try-on",
     subtitle: "Pick four frames, we bring them straight to your door.",
     link: "/home-try-on",
-    image: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1577803645773-f96470509666?w=1200&q=80",
+    imagePosition: "50% 75%",
     badge: "In 60 mins",
   },
   {
@@ -31,14 +42,16 @@ const CARDS: ShopCard[] = [
     subtitle: "Chat with us and order without the app hassle.",
     link: "https://wa.me/97477264007",
     linkExternal: true,
-    image: "https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1611746872915-64382b5c76da?w=1200&q=80",
+    imagePosition: "60% 30%",
   },
   {
     title: "Talk to an expert",
     subtitle: "Get guidance on lenses, fit and frame style.",
     link: "https://wa.me/97477264007",
     linkExternal: true,
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&q=80",
+    imagePosition: "50% 10%",
   },
 ];
 
@@ -68,12 +81,13 @@ export const WaysToShop = memo(function WaysToShop(): JSX.Element {
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
               aria-label={card.title}
-              className="group relative block overflow-hidden rounded-2xl bg-gray-100 h-52 sm:h-60 lg:h-72"
+              className="group relative block overflow-hidden rounded-2xl bg-gray-100 aspect-[4/3] sm:aspect-auto sm:h-60 lg:h-72"
             >
               <img
                 src={card.image}
                 alt={card.title}
                 loading="lazy"
+                style={{ objectPosition: card.imagePosition ?? DEFAULT_CARD_IMAGE_POSITION }}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

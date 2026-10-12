@@ -18,6 +18,7 @@ function filtersToParams(
   sortBy?: string,
   cardId?: string | null,
   gender?: string | null,
+  trending?: string | null,
 ): Record<string, any> {
   const params: Record<string, any> = { category };
   if (gender) params.gender = gender.toLowerCase();
@@ -26,6 +27,7 @@ function filtersToParams(
   if (brandFromQuery) params.brand = brandFromQuery;
   if (shape) params.shape = shape;
   if (cardId) params.cardId = cardId;
+  if (trending) params.trending = trending;
   if (filters["frame-shape"]?.length) params.shape = filters["frame-shape"].join(",");
   if (filters["frame-type"]?.length) params.frameType = filters["frame-type"].join(",");
   if (filters["frame-color"]?.length) params.color = filters["frame-color"].join(",");
@@ -68,6 +70,7 @@ export function useProductSearch() {
   const searchQuery = searchParams.get("q");
   const cardId = searchParams.get("cardId");
   const gender = searchParams.get("gender");
+  const trending = searchParams.get("trending");
 
   useEffect(() => {
     getBrands().then((brands) => {
@@ -106,7 +109,7 @@ export function useProductSearch() {
 
   useEffect(() => {
     setFetching(true);
-    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender);
+    const params = filtersToParams(filters, category, shape, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender, trending);
     getProducts(params)
       .then((res) => {
         const extracted = res.data?.data?.products || res.data?.products || res?.products || [];
@@ -119,7 +122,7 @@ export function useProductSearch() {
         setLoading(false);
         setFetching(false);
       });
-  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender]);
+  }, [category, shape, filters, collectionSlug, brandFromQuery, searchQuery, sortBy, cardId, gender, trending]);
 
   const handleSortChange = useCallback((value: string) => {
     setSortBy(value);
@@ -133,15 +136,24 @@ export function useProductSearch() {
     setFilters(pendingFilters);
     setApplyCount((c) => c + 1);
     const sp = filtersToSearchParams(pendingFilters);
+    if (trending) sp.trending = trending;
     setSearchParams(sp, { replace: true });
     setShowFilters(false);
-  }, [pendingFilters, setSearchParams]);
+  }, [pendingFilters, setSearchParams, trending]);
 
   const clearFilters = useCallback(() => {
     setPendingFilters({});
     setFilters({});
     setSearchParams({}, { replace: true });
     setShowFilters(false);
+  }, [setSearchParams]);
+
+  const clearTrending = useCallback(() => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("trending");
+      return next;
+    }, { replace: true });
   }, [setSearchParams]);
 
   const getOfferBadge = useCallback((productId: string, price: number): OfferBadge | null => {
@@ -164,10 +176,12 @@ export function useProductSearch() {
     categoryBanner,
     pendingCount,
     applyCount,
+    trending,
     handleSortChange,
     handleFilterChange,
     applyFilters,
     clearFilters,
+    clearTrending,
     setShowFilters,
     getOfferBadge,
   };
