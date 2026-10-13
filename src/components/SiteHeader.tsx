@@ -5,6 +5,7 @@ import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Truck, Heart, ShoppingBag, User, Package, LogOut, X } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
+import { MobileSearchBar } from "@/components/MobileSearchBar";
 import { useAuth, useLoginModal, useLogoutConfirm } from "@/features/auth/hooks";
 import { LogoutConfirmDialog } from "@/features/auth/components/LogoutConfirmDialog/LogoutConfirmDialog";
 import { useCart } from "@/features/cart/hooks";
@@ -251,7 +252,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
               type="button"
               onClick={openSearch}
               aria-label="Open search"
-              className="flex items-center gap-2 text-sm font-medium text-ink hover:text-teal transition-colors p-1.5 md:p-0"
+              className="hidden md:flex items-center gap-2 text-sm font-medium text-ink hover:text-teal transition-colors p-1.5 md:p-0"
             >
               <Search className="w-5 h-5" />
               <span className="hidden md:inline">Search</span>
@@ -441,6 +442,11 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
             </button>
           </div>
         </Container>
+      </div>
+
+      {/* Mobile search entry — below the top row, above the category strip */}
+      <div className="md:hidden bg-white px-4 pt-3 pb-3">
+        <MobileSearchBar />
       </div>
 
       {/* Row 2 — category pills */}
