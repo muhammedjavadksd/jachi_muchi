@@ -12,6 +12,7 @@ export { LoadingScreen } from "@/shared/components/LoadingScreen/LoadingScreen";
 export { SiteHeader } from "@/components/SiteHeader";
 export { MobileSearchBar } from "@/components/MobileSearchBar";
 export { MobileSearchScreen } from "@/components/MobileSearchScreen";
+export { SearchSuggestionList } from "@/components/SearchSuggestionList";
 
 // Section Components
 export { HeroSlider } from "@/features/home/components/HeroSlider/HeroSlider";
