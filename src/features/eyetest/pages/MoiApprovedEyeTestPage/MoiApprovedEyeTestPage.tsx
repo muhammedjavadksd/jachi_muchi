@@ -50,7 +50,7 @@ const CTA_OUTLINE =
 export const MoiApprovedEyeTestPage = memo(function MoiApprovedEyeTestPage(): JSX.Element {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   const waHref = useMemo(() => whatsappUrl(), []);
   const callHref = useMemo(() => telUrl(), []);

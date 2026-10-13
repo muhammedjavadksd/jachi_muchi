@@ -116,7 +116,7 @@ const MEASUREMENT_STEPS: MeasurementStep[] = [
  * constrained `Container`, `Footer`, `WhatsAppButton`).
  */
 export const FrameSizeGuidePage = memo(function FrameSizeGuidePage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden">

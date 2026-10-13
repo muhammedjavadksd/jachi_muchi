@@ -17,7 +17,7 @@ const HEADER_SPACER_HEIGHT = 132;
  */
 export const FAQPage = memo(function FAQPage(): JSX.Element {
   const [openKey, setOpenKey] = useState<string | null>("How to measure glasses?");
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   const toggle = useCallback((key: string) => {
     setOpenKey((prev) => (prev === key ? null : key));

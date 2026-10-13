@@ -31,7 +31,7 @@ const BeMoreBanner = lazy(() => import("@/features/home/components/BeMoreBanner/
 const WaysToShop = lazy(() => import("@/features/home/components/WaysToShop/WaysToShop").then(m => ({ default: m.WaysToShop })));
 
 export function HomePage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
   const [categories, setCategories] = useState<any[]>([]);
 
   const [heroBanners, setHeroBanners] = useState<any[]>([]);

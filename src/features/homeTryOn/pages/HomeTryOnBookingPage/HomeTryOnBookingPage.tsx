@@ -157,7 +157,7 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
   if (submitted) {
     return (
       <div className="min-h-screen flex flex-col bg-white">
-        <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
+        <div style={{ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }} />
         <main className="flex-1 flex items-center justify-center">
           <Container>
             <div className="max-w-md mx-auto text-center py-16">
@@ -215,7 +215,7 @@ export const HomeTryOnBookingPage = memo(function HomeTryOnBookingPage(): JSX.El
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <SEO {...noIndexMeta.homeTryOnBooking} noIndex />
-      <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
+      <div style={{ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }} />
 
       <main className="flex-1">
         <Container>

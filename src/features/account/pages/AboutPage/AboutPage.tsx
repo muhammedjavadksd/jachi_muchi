@@ -10,7 +10,7 @@ const HEADER_SPACER_HEIGHT = 132;
  * About page – company story, quality, variety, value, contact summary, and trust
  */
 export const AboutPage = memo(function AboutPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

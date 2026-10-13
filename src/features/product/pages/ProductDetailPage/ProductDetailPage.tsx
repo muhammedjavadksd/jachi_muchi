@@ -32,7 +32,7 @@ export const ProductDetailPage = memo(function ProductDetailPage(): JSX.Element 
     getOfferLabel,
   } = useProductDetail();
 
-  const spacerStyle = useMemo(() => ({ height: HEADER_SPACER_HEIGHT }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   if (loading) return <div className="p-10 text-center">Loading product...</div>;
   if (!product) return <div className="p-10 text-center">Product not found</div>;

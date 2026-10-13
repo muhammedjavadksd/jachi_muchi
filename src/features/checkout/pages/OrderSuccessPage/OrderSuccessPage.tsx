@@ -115,7 +115,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   }, [id]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   const safeItems = useMemo(() => order?.items || [], [order]);

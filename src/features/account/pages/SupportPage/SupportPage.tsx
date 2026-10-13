@@ -34,7 +34,7 @@ const QUICK_LINKS = [
  * Support page – quick help links and connect with customer support
  */
 export const SupportPage = memo(function SupportPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

@@ -107,7 +107,7 @@ export const TryAtHomePage = memo(function TryAtHomePage(): JSX.Element {
     setCameraState("idle");
   }, []);
 
-  const spacerStyle = { height: `${HEADER_SPACER_HEIGHT}px` };
+  const spacerStyle = { height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

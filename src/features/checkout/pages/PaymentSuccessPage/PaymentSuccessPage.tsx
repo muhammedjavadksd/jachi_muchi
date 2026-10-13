@@ -23,7 +23,7 @@ export const PaymentSuccessPage = memo(function PaymentSuccessPage(): JSX.Elemen
   }, [user?.id, orderId]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   return (

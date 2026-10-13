@@ -8,7 +8,7 @@ const HEADER_SPACER_HEIGHT = 132;
  * 404 Not Found page – shown when the user navigates to a route that doesn't exist
  */
 export const NotFoundPage = memo(function NotFoundPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

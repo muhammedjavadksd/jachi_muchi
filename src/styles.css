@@ -52,6 +52,17 @@
     overflow-x: hidden;
   }
 
+  /* Page top spacers consume --header-offset to clear the fixed site header.
+     Below `md` it tracks the header's real height (published as
+     --header-height by SiteHeader), which grows with the mobile search bar; at
+     `md` and up it is undefined, so the spacers keep their original 132px and
+     desktop spacing is untouched. */
+  @media (max-width: 767.98px) {
+    :root {
+      --header-offset: var(--header-height, 132px);
+    }
+  }
+
   a {
     color: inherit;
     text-decoration: none;

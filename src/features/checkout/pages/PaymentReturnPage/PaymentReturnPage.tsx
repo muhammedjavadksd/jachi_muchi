@@ -136,7 +136,7 @@ const { clearCart } = useCart();
   }, [sessionRef, finalizeSuccess]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   const failureCopy = FAILURE_COPY[view === "failed" ? failureKind : "error"];

@@ -231,7 +231,7 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
   } = useProductSearch();
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   // Only the four approved category slugs get their own metadata. Anything

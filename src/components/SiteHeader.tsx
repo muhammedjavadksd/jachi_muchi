@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 // React's KeyboardEvent is aliased because the bare name is the DOM
 // KeyboardEvent used by the document-level Escape listeners below.
 import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
@@ -52,6 +52,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
   const [query, setQuery] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -82,6 +83,30 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [searchOpen]);
+
+  // Publish the header's real rendered height as `--header-height` on <html>.
+  // Every page's top spacer consumes it (through `--header-offset` in
+  // styles.css), so content clears the fixed header automatically — including
+  // below `md`, where the mobile search bar made the header taller. A
+  // ResizeObserver keeps it correct across breakpoints and future header
+  // changes instead of a hard-coded pixel offset.
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const publish = () => {
+      document.documentElement.style.setProperty(
+        "--header-height",
+        `${el.offsetHeight}px`
+      );
+    };
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--header-height");
+    };
+  }, []);
 
   const handleSearchSubmit = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
@@ -210,7 +235,7 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50">
+    <div ref={headerRef} className="fixed top-0 left-0 right-0 z-50">
       {/* Search overlay — slides down from the top of the viewport */}
       <div className="fixed inset-x-0 top-0 z-[60] pointer-events-none">
         <div

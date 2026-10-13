@@ -7,7 +7,7 @@ const HEADER_SPACER_HEIGHT = 132;
  * Privacy Policy page
  */
 export const PrivacyPage = memo(function PrivacyPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

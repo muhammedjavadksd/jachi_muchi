@@ -104,7 +104,7 @@ export const HomeTryOnPage = memo(function HomeTryOnPage(): JSX.Element {
     navigate("/home-try-on/book");
   }, [isAuthenticated, openLogin, navigate]);
 
-  const spacerStyle = { height: `${HEADER_SPACER_HEIGHT}px` };
+  const spacerStyle = { height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` };
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

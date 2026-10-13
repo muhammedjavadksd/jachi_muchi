@@ -19,7 +19,7 @@ const HEADER_SPACER_HEIGHT = 132;
  * Contact page – provides multiple ways for customers to reach support
  */
 export const ContactPage = memo(function ContactPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
 
