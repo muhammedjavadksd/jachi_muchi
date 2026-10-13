@@ -6,7 +6,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Truck, Heart, ShoppingBag, User, Package, LogOut, X } from "lucide-react";
 import { Container } from "@/shared/components/Container/Container";
 import { MobileSearchBar } from "@/components/MobileSearchBar";
+import { SearchSuggestionList } from "@/components/SearchSuggestionList";
 import { useAuth, useLoginModal, useLogoutConfirm } from "@/features/auth/hooks";
+import { useSearchSuggestions } from "@/features/product/hooks";
 import { LogoutConfirmDialog } from "@/features/auth/components/LogoutConfirmDialog/LogoutConfirmDialog";
 import { useCart } from "@/features/cart/hooks";
 import { useWishlist } from "@/features/wishlist/hooks";
@@ -16,6 +18,9 @@ import { ROUTE_PATHS } from "@/shared/constants/routes";
 export const SITE_HEADER_SPACER_HEIGHT = 132;
 
 const HEADER_NAV_IDS: string[] = HEADER_NAV_ITEMS.map((item) => item.id);
+
+/** id linking the desktop input's combobox ARIA to the suggestion listbox. */
+const HEADER_SEARCH_LISTBOX_ID = "site-header-search-suggestions";
 
 /**
  * Site-wide header/navbar. Rendered once from the root layout so every
@@ -50,9 +55,13 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+
+  // Shared, debounced typeahead phrases (same hook the mobile screen uses).
+  const { phrases } = useSearchSuggestions(query);
 
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
@@ -108,17 +117,51 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
     };
   }, []);
 
-  const handleSearchSubmit = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const trimmed = query.trim();
+  // Single place that commits a search term: used by the form (typed text) and
+  // by the suggestion rows / keyboard Enter (a highlighted phrase).
+  const runSearch = useCallback(
+    (term: string) => {
+      const trimmed = term.trim();
       setSearchOpen(false);
       setQuery("");
+      setActiveIndex(-1);
       if (trimmed) {
         navigate(`/search?q=${encodeURIComponent(trimmed)}`);
       }
     },
-    [query, navigate]
+    [navigate]
+  );
+
+  const handleSearchSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      runSearch(query);
+    },
+    [query, runSearch]
+  );
+
+  // Arrow keys move the highlight without touching the typed text; Enter only
+  // searches the highlighted phrase — otherwise the form's submit runs the
+  // typed text. Wrapping means ArrowDown past the end returns to the top.
+  const handleSearchKeyDown = useCallback(
+    (e: ReactKeyboardEvent<HTMLInputElement>) => {
+      if (!phrases.length) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveIndex((prev) => (prev >= phrases.length - 1 ? 0 : prev + 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveIndex((prev) => (prev <= 0 ? phrases.length - 1 : prev - 1));
+      } else if (e.key === "Enter") {
+        if (activeIndex >= 0 && activeIndex < phrases.length) {
+          e.preventDefault();
+          runSearch(phrases[activeIndex]);
+        }
+      } else if (e.key === "Escape") {
+        setActiveIndex(-1);
+      }
+    },
+    [phrases, activeIndex, runSearch]
   );
 
   const activeCategoryId = useMemo(() => {
@@ -234,6 +277,11 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
     rows[(next + rows.length) % rows.length].focus();
   }, []);
 
+  // Desktop dropdown: only while the overlay is open, with 2+ typed characters
+  // and at least one phrase. Absolute positioning keeps it shift-free.
+  const showSearchSuggestions =
+    searchOpen && query.trim().length >= 2 && phrases.length > 0;
+
   return (
     <div ref={headerRef} className="fixed top-0 left-0 right-0 z-50">
       {/* Search overlay — slides down from the top of the viewport */}
@@ -245,16 +293,41 @@ export const SiteHeader = memo(function SiteHeader(): JSX.Element {
           } pointer-events-auto`}
         >
           <Container className="flex items-end justify-between gap-4 py-5 md:py-6">
-            <form onSubmit={handleSearchSubmit} className="flex-1 min-w-0">
+            <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0">
               <input
                 ref={inputRef}
                 type="search"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={showSearchSuggestions}
+                aria-controls={HEADER_SEARCH_LISTBOX_ID}
+                aria-activedescendant={
+                  activeIndex >= 0
+                    ? `${HEADER_SEARCH_LISTBOX_ID}-option-${activeIndex}`
+                    : undefined
+                }
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setActiveIndex(-1);
+                }}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search glasses, lenses, brands..."
                 aria-label="Search products"
                 className="w-full bg-transparent text-white text-lg md:text-xl placeholder:text-white/40 border-b-2 border-white/40 focus:border-amber focus:outline-none pb-2"
               />
+              {showSearchSuggestions && (
+                <div className="absolute left-0 right-0 top-full z-50 mt-3 overflow-hidden rounded-b-lg border border-gray-200 bg-white shadow-lg">
+                  <SearchSuggestionList
+                    query={query}
+                    phrases={phrases}
+                    activeIndex={activeIndex}
+                    onSelect={runSearch}
+                    onHoverIndex={setActiveIndex}
+                    listboxId={HEADER_SEARCH_LISTBOX_ID}
+                  />
+                </div>
+              )}
             </form>
             <button
               type="button"

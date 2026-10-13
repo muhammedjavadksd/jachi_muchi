@@ -30,9 +30,10 @@ export async function searchSuggestions(query: string): Promise<SearchResult> {
 }
 
 /**
- * Live typeahead suggestions from the search backend for the mobile
- * full-screen search. The optional `signal` lets the caller abort a superseded
- * request, so a slow earlier response can never overwrite a newer one.
+ * Live typeahead phrases from the search backend, shared by the desktop search
+ * dropdown and the mobile full-screen search. The optional `signal` lets the
+ * caller abort a superseded request, so a slow earlier response can never
+ * overwrite a newer one.
  */
 export async function getSearchSuggestions(
   query: string,
@@ -44,7 +45,6 @@ export async function getSearchSuggestions(
   });
   const data = res.data?.data ?? res.data;
   return {
-    products: data?.products ?? [],
-    keywords: data?.keywords ?? data?.suggestions ?? [],
+    phrases: data?.phrases ?? data?.suggestions ?? [],
   };
 }
