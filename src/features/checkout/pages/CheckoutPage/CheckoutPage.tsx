@@ -460,7 +460,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50">
       <SEO {...noIndexMeta.checkout} noIndex />
-      <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
+      <div style={{ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }} />
 
       <main className="flex-1 py-6 md:py-10">
         <Container>

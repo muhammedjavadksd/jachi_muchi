@@ -71,7 +71,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   }, [pendingRemoval, isMovingToWishlist, addToWishlist, handleRemoveItem]);
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   const cartItemsList = useMemo(() =>

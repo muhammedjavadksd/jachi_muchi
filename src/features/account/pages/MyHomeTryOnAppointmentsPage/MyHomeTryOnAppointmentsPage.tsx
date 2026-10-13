@@ -73,7 +73,7 @@ export const MyHomeTryOnAppointmentsPage = memo(function MyHomeTryOnAppointments
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <SEO {...noIndexMeta.myHomeTryOnAppointments} noIndex />
-      <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
+      <div style={{ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }} />
 
       <main className="flex-1">
         <Container>

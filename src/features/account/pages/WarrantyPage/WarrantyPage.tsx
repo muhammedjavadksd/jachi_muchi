@@ -22,7 +22,7 @@ const LENS_WARRANTY_ROWS: { issue: string; covered: string; period: string }[] =
  * Warranty Policy page – coverage tables, exclusions, claim process, terms
  */
 export const WarrantyPage = memo(function WarrantyPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

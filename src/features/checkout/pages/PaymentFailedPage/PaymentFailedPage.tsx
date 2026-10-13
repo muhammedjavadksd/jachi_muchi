@@ -12,7 +12,7 @@ export const PaymentFailedPage = memo(function PaymentFailedPage(): JSX.Element 
   searchParams.get("orderId"); // orderId reserved for future use
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   return (

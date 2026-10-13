@@ -13,7 +13,7 @@ export const WishlistPage = memo(function WishlistPage(): JSX.Element {
   const { items, removeItem, loading } = useWishlist();
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   return (

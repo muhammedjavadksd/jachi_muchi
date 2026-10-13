@@ -16,7 +16,7 @@ export const PaymentPendingPage = memo(function PaymentPendingPage(): JSX.Elemen
   const [resolved, setResolved] = useState(false);
 
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   const checkStatus = useCallback(async () => {

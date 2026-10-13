@@ -9,7 +9,7 @@ const HEADER_SPACER_HEIGHT = 132;
 
 export const OrderFailurePage = memo(function OrderFailurePage(): JSX.Element {
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`,
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`,
   }), []);
 
   return (

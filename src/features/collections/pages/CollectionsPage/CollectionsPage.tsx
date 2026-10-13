@@ -8,7 +8,7 @@ const HEADER_SPACER_HEIGHT = 132;
 const PLACEHOLDER_IMAGE = "/category/image.png";
 
 export const CollectionsPage = memo(function CollectionsPage(): JSX.Element {
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
   const [collections, setCollections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

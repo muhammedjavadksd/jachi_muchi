@@ -96,7 +96,7 @@ export const StoresPage = memo(function StoresPage(): JSX.Element {
   const [nearestDistance, setNearestDistance] = useState<number>(0);
   const [locating, setLocating] = useState(false);
 
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   const cities = useMemo(() => {
     const unique = Array.from(new Set(allStores.map((s) => s.city).filter(Boolean))).sort();

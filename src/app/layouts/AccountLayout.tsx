@@ -7,7 +7,7 @@ const HEADER_SPACER_HEIGHT = 132;
 
 export const AccountLayout = memo(function AccountLayout(): JSX.Element {
   const spacerStyle = useMemo(() => ({
-    height: `${HEADER_SPACER_HEIGHT}px`
+    height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)`
   }), []);
 
   return (

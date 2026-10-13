@@ -27,7 +27,7 @@ export const FindNearestStorePage = memo(function FindNearestStorePage(): JSX.El
   const [allStores, setAllStores] = useState<Store[]>([]);
   const [distance, setDistance] = useState<number>(0);
 
-  const spacerStyle = useMemo(() => ({ height: `${HEADER_SPACER_HEIGHT}px` }), []);
+  const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
 
   const handleFindNearest = useCallback(() => {
     if (!navigator.geolocation) {

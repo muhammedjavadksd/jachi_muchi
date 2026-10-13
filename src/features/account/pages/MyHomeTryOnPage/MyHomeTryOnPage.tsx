@@ -66,7 +66,7 @@ export const MyHomeTryOnPage = memo(function MyHomeTryOnPage(): JSX.Element {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <SEO {...noIndexMeta.myHomeTryOn} noIndex />
-      <div style={{ height: `${HEADER_SPACER_HEIGHT}px` }} />
+      <div style={{ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }} />
 
       <main className="flex-1">
         <Container>
