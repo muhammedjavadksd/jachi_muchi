@@ -113,3 +113,16 @@ export interface SearchResult {
   suggestions: string[];
   categories: string[];
 }
+
+export interface SearchSuggestionProduct {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  slug?: string;
+}
+
+export interface SearchSuggestions {
+  products: SearchSuggestionProduct[];
+  keywords: string[];
+}
