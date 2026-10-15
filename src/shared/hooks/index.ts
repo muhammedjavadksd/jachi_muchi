@@ -4,3 +4,4 @@ export { useSlider } from "./useSlider";
 export { useAuthGuard } from "./useAuthGuard";
 export { useUserDropdown } from "./useUserDropdown";
 export { useAutoScroll } from "./useAutoScroll";
+export { useMediaQuery } from "./useMediaQuery";
