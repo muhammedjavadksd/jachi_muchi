@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Footer, CenterFocusCarousel } from "@/components";
 import { TrendingProducts } from "@/components/TrendingProducts";
+import { SunglassesSection } from "@/components/SunglassesSection";
 import { LoadingSkeleton } from "@/shared/components/LoadingSkeleton/LoadingSkeleton";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { NEARBY_SERVICES_ORDER_SPLIT } from "@/features/home/constants";
@@ -29,6 +30,7 @@ const FeaturedGrid = lazy(() => import("@/features/home/components/FeaturedGrid/
 const PremiumEyewear = lazy(() => import("@/features/home/components/PremiumEyewear/PremiumEyewear").then(m => ({ default: m.PremiumEyewear })));
 const BeMoreBanner = lazy(() => import("@/features/home/components/BeMoreBanner/BeMoreBanner").then(m => ({ default: m.BeMoreBanner })));
 const WaysToShop = lazy(() => import("@/features/home/components/WaysToShop/WaysToShop").then(m => ({ default: m.WaysToShop })));
+const FaqSection = lazy(() => import("@/features/home/components/FaqSection/FaqSection").then(m => ({ default: m.FaqSection })));
 
 export function HomePage(): JSX.Element {
   const spacerStyle = useMemo(() => ({ height: `var(--header-offset, ${HEADER_SPACER_HEIGHT}px)` }), []);
@@ -115,6 +117,8 @@ export function HomePage(): JSX.Element {
           ) : null}        </Suspense>
 
         <TrendingProducts />
+
+        <SunglassesSection />
 
         <TopCategories />
 
@@ -233,6 +237,10 @@ export function HomePage(): JSX.Element {
 
         <Suspense fallback={<LoadingSkeleton />}>
           <WaysToShop />
+        </Suspense>
+
+        <Suspense fallback={<LoadingSkeleton />}>
+          <FaqSection />
         </Suspense>
 
         <Suspense fallback={<LoadingSkeleton />}>
