@@ -128,7 +128,8 @@ export function useCartPage() {
   // to a badge reading 3.
   const totalQuantity = itemCount;
 
-  const fittingFee = useMemo(() => (cartItems.length > 0 ? 199 : 0), [cartItems.length]);
+  // Server bill owns this figure (0 for frame-only carts); no client fallback.
+  const fittingFee = normalizedBill.fittingFee;
 
   const totalOfferSavings = useMemo(
     () =>

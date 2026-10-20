@@ -46,6 +46,7 @@ export interface CreateOrderItem {
   bogoGroupId?: string;
   color?: OrderItemColor;
   lens?: OrderItemLens;
+  powerType?: string;
   powerDetails?: OrderItemPowerDetails;
 }
 
