@@ -1,3 +1,11 @@
+/**
+ * How the customer supplied their power on Step 3.
+ * "manual" → powerDetails form; "upload" → prescriptionFile holds the uploaded
+ * document URL. "later" is legacy — the storefront no longer offers it, but it
+ * stays in the union so old carts and orders that carry it keep validating.
+ */
+export type PowerMethod = "later" | "manual" | "upload";
+
 export interface PowerDetails {
   leftSPH?: string;
   rightSPH?: string;
@@ -30,6 +38,12 @@ export interface OrderItemPowerDetails {
   customerName?: string;
   customerPhone?: string;
   knowPowerLater?: boolean;
+  /** Step 3 choice. Optional so items saved before it existed keep working. */
+  powerMethod?: PowerMethod;
+  /** Upload method only — hosted URL of the uploaded prescription. */
+  prescriptionFile?: string;
+  /** Legacy "later" method only — ISO date the power was due by. */
+  powerDueDate?: string;
 }
 
 export interface CreateOrderItem {

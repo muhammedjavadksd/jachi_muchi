@@ -45,6 +45,9 @@ interface CartItem {
     customerName?: string;
     customerPhone?: string;
     knowPowerLater?: boolean;
+    powerMethod?: "later" | "manual" | "upload";
+    prescriptionFile?: string;
+    powerDueDate?: string;
   } | null;
 }
 

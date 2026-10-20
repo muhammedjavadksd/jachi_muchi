@@ -49,6 +49,18 @@ export const QATAR_PHONE_DISPLAY: string = CUSTOMER_CARE.display;
  */
 export const QATAR_TEL_URL: string = CUSTOMER_CARE.telHref;
 
+/**
+ * Help line under the lens drawer's manual power form
+ * ("Can't find your power? Call …").
+ *
+ * Kept as its own constant instead of reusing {@link SUPPORT_PHONE}: that one
+ * is driven by `VITE_SUPPORT_PHONE` (currently the Qatar customer-care line),
+ * and the two must be able to differ. The `tel:` href is derived from the
+ * display string, so changing the number here is still a one-place edit.
+ */
+export const LENS_POWER_HELP_PHONE_DISPLAY = "+91 97477264007";
+export const LENS_POWER_HELP_PHONE_TEL = `tel:${LENS_POWER_HELP_PHONE_DISPLAY.replace(/[\s-]/g, "")}`;
+
 export const TOTAL_SLIDES = 5;
 
 export const SCROLL_THRESHOLD = 200;

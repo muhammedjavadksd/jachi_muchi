@@ -32,6 +32,12 @@ export interface BackendCartItem {
     customerName?: string;
     customerPhone?: string;
     knowPowerLater?: boolean;
+    /** Step 3 "Add Power" choice. Optional: items saved before it existed omit it. */
+    powerMethod?: "later" | "manual" | "upload";
+    /** Upload method only — hosted URL of the uploaded prescription. */
+    prescriptionFile?: string;
+    /** "Later" method only — ISO date, order date + 15 days. */
+    powerDueDate?: string;
   } | null;
   bogoGroupId?: string | null;
   freeCount?: number;

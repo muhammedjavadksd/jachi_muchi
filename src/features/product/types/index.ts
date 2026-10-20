@@ -88,6 +88,8 @@ export interface BrandItem {
   description?: string;
   logo?: string;
   isActive?: boolean;
+  /** "frame" | "lens". Missing on legacy rows, which are frames. */
+  type?: string;
 }
 
 export interface BrandsResponse {
