@@ -544,7 +544,9 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                     {offerSavings > 0 && (
                       <div className="flex justify-between text-sm"><span className="text-gray-600">Offer savings</span><Price value={offerSavings} negated size="sm" className="text-green-600 font-medium" /></div>
                     )}
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Fitting Fee</span><Price value={fittingFee} size="sm" /></div>
+                    {fittingFee > 0 && (
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Fitting Fee</span><Price value={fittingFee} size="sm" /></div>
+                    )}
                     {appliedCoupon && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Coupon ({appliedCoupon})</span>

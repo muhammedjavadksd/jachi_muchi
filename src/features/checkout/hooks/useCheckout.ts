@@ -170,7 +170,7 @@ export function useCheckout(): UseCheckoutReturn {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const fittingFee = normalizedBill?.fittingFee ?? 199;
+  const fittingFee = normalizedBill?.fittingFee ?? 0;
   const subtotal = normalizedBill?.totalItemPrice ?? 0;
   const discount = normalizedBill?.totalDiscount ?? 0;
 
@@ -370,6 +370,7 @@ export function useCheckout(): UseCheckoutReturn {
         bogoGroupId: item.bogoGroupId || undefined,
         color: item.color || undefined,
         lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price) } : undefined,
+        powerType: item.powerType || undefined,
         powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0 ? item.powerDetails : undefined,
       })),
       addressId: selectedAddress.id,

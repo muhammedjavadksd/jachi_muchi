@@ -312,14 +312,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                             <span className="text-gray-400">—</span>
                           )}
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Fitting Fee</span>
-                          {displayBill.fittingFee > 0 ? (
+                        {displayBill.fittingFee > 0 && cartItems.length > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Fitting Fee</span>
                             <Price value={displayBill.fittingFee} size="sm" />
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                         <div className="pt-4 border-t border-gray-200 flex justify-between items-center">
                           <span className="font-semibold text-lg">Total payable</span>
                           <Price value={displayBill.totalPayable} size="xl" />

@@ -1,5 +1,6 @@
 import { memo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { BottomNav } from "@/app/layouts";
 import { BRAND_LOGO_URL } from "@/shared/constants";
 import { WhatsAppButton } from "@/shared/components/WhatsAppButton/WhatsAppButton";
 import { SEO } from "@/shared/components/SEO/SEO";
@@ -20,17 +21,30 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
     navigate("/home-try-on");
   }, [navigate]);
 
+  // This route renders its own chrome and sits outside RootLayout, so the
+  // mobile BottomNav is rendered here directly (RootLayout's copy never runs
+  // for this path). The root padding keeps content clear of that fixed bar.
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       <SEO {...seoMeta.onlineEyeTest} />
       {/* White header bar */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-center relative">
-          <img
-            src={BRAND_LOGO_URL}
-            alt="Jachi&Muchi"
-            className="h-8 sm:h-10"
-          />
+          {/* Same asset + same crop/scale as the SiteHeader logo (SiteHeader.tsx
+              "Center — Logo"), so this page's mark matches the home page. */}
+          <Link
+            to="/"
+            aria-label="Jachi & Muchi home"
+            className="flex items-center justify-center"
+          >
+            <div className="relative w-[66px] h-[50px] md:w-[82px] md:h-[62px] overflow-hidden shrink-0 mx-auto">
+              <img
+                src={BRAND_LOGO_URL}
+                alt="Jachi&Muchi"
+                className="absolute left-1/2 top-1/2 w-[142px] md:w-[176px] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
+              />
+            </div>
+          </Link>
           <button
             onClick={handleClose}
             className="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
@@ -96,7 +110,15 @@ export const OnlineEyeTestPage = memo(function OnlineEyeTestPage(): JSX.Element 
         </div>
       </main>
 
-      <WhatsAppButton />
+      {/* Lifted clear of the fixed BottomNav on mobile; desktop keeps the
+          default bottom-6 used everywhere else (same as the home page). */}
+      <WhatsAppButton className="bottom-24 md:bottom-6" />
+
+      {/* Mobile-only app tab bar. This route sits outside RootLayout, so the
+          shared component is rendered directly rather than duplicated;
+          BottomNav derives its own active tab from the pathname, which
+          highlights "Eye Test" here (md:hidden keeps it off desktop). */}
+      <BottomNav />
     </div>
   );
 });

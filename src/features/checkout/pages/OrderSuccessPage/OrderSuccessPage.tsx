@@ -97,6 +97,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
           })),
           total: order.totalAmount,
           discount: order.discount,
+          fittingFee: order.fittingFee ?? order.bill?.fittingFee ?? 0,
           address: {
             name: addr.name || "User",
             fullAddress: fullAddress || "N/A",
@@ -154,7 +155,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
 
   const totalSaved = discount + offerSavings;
 
-  const fittingFee = 199;
+  const fittingFee = order?.fittingFee ?? 0;
 
   const addressName = order?.address?.name || "N/A";
   const addressFull = order?.address?.fullAddress || "";
@@ -300,10 +301,12 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                       <Price value={totalSaved} negated size="sm" className="text-green-600 font-medium" />
                     </div>
                   )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Fitting Fee</span>
-                    <Price value={fittingFee} size="sm" />
-                  </div>
+                  {fittingFee > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Fitting Fee</span>
+                      <Price value={fittingFee} size="sm" />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                     <span className="font-semibold text-lg text-gray-900">Total Paid</span>
                     <Price value={total} size="xl" />
