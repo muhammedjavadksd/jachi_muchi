@@ -12,9 +12,14 @@ export const TopCategories = memo(function TopCategories(): JSX.Element | null {
 
   useEffect(() => {
     setLoading(true);
-    api.get("/categories")
+    api.get("/categories", { params: { type: "frame" } })
       .then((res) => {
-        setCategories((res.data?.data?.categories || []).filter((c: any) => c.isActive));
+        // Safety net: frames only — legacy rows with no type are frames too.
+        setCategories(
+          (res.data?.data?.categories || []).filter(
+            (c: any) => c.isActive && (c.type === "frame" || !c.type)
+          )
+        );
       })
       .catch((err) => {
         console.error("Failed to fetch categories:", err);
