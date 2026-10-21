@@ -31,6 +31,7 @@ interface CartItem {
     id?: string;
     name: string;
     price: number;
+    discount?: number;
   } | null;
   lensPrice?: number;
   totalPrice: number;
@@ -372,7 +373,7 @@ export function useCheckout(): UseCheckoutReturn {
         freeUnitPrice: item.freeUnitPrice || undefined,
         bogoGroupId: item.bogoGroupId || undefined,
         color: item.color || undefined,
-        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price) } : undefined,
+        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price), discount: (item.lens as any).discount } : undefined,
         powerType: item.powerType || undefined,
         powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0 ? item.powerDetails : undefined,
       })),
