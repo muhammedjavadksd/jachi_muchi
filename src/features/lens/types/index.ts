@@ -9,6 +9,8 @@ export interface LensItem {
   warranty?: string;
   badge?: string;
   type?: string;
+  image?: string;
+  brand?: { logo?: string; name?: string } | null;
 }
 
 export interface LensResponse {

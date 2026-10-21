@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { getLenses } from "@/features/lens/api/lensApi";
 import type { LensItem } from "@/features/lens/types";
 import { getOffers } from "@/shared/services/offerEngine";
-import { Price } from "@/shared/components";
+import { Price, SafeImage } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
 import { useCart } from "@/features/cart/hooks";
@@ -392,7 +392,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           quantity: 1,
           color: selectedColor ?? null,
           lens: selectedLens
-            ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price }
+            ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price, discount: (selectedLens as any).discount }
             : null,
           powerType: selectedPowerType,
           powerDetails: resolvedPowerDetails,
@@ -581,25 +581,50 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
 
     return (
       <div className="flex flex-col gap-4">
-        {lenses.map((lens) => (
-          <button key={lens._id || lens.id || lens.name} onClick={() => handleLensSelect(lens)} className="flex items-start gap-4 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg">
-            <img src="/category/image.png" alt={lens.name} className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-medium text-gray-900">{lens.name}</p>
-                {lens.badge && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{lens.badge}</span>}
+        {lenses.map((lens) => {
+          // The API sends `price` (list price) plus `discount` as a percentage
+          // off — there is no separate originalPrice field. When a discount
+          // applies, the card shows the computed final price with the list
+          // price struck through.
+          const discountPct =
+            typeof lens.discount === "number" && lens.discount > 0 ? lens.discount : 0;
+          const finalPrice =
+            discountPct > 0 ? Math.round(lens.price * (1 - discountPct / 100)) : lens.price;
+          return (
+            <button
+              key={lens._id || lens.id || lens.name}
+              onClick={() => handleLensSelect(lens)}
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl hover:border-teal-600 hover:bg-teal-50 transition-all text-left group shadow-md hover:shadow-lg"
+            >
+              <span className="w-16 h-16 shrink-0 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                <SafeImage
+                  src={lens.image}
+                  alt={lens.name}
+                  fallback={getImageUrl(lens.brand?.logo)}
+                  className="w-full h-full object-contain p-1"
+                />
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-medium text-gray-900">{lens.name}</p>
+                  {lens.badge && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{lens.badge}</span>}
+                </div>
+                {lens.features && <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>}
+                <div className="flex items-center gap-2">
+                  <Price value={finalPrice} size="md" />
+                  {discountPct > 0 && (
+                    <>
+                      <Price value={lens.price} size="sm" className="text-gray-400 line-through" />
+                      <span className="text-xs text-green-600 font-medium">{discountPct}% OFF</span>
+                    </>
+                  )}
+                </div>
+                {lens.warranty && <p className="text-xs text-gray-400 mt-1">{lens.warranty} warranty</p>}
               </div>
-              {lens.features && <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>}
-              <div className="flex items-center gap-2">
-                {lens.originalPrice && <Price value={lens.originalPrice} size="sm" className="text-gray-400 line-through" />}
-                <Price value={lens.price} size="md" />
-                {lens.discount && <span className="text-xs text-green-600 font-medium">{lens.discount}% OFF</span>}
-              </div>
-              {lens.warranty && <p className="text-xs text-gray-400 mt-1">{lens.warranty} warranty</p>}
-            </div>
-            <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600 mt-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </button>
-        ))}
+              <svg className="w-5 h-5 text-gray-400 group-hover:text-teal-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+          );
+        })}
       </div>
     );
   };

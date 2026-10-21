@@ -26,6 +26,7 @@ export interface OrderItemLens {
   id?: string;
   name: string;
   price: number;
+  discount?: number;
 }
 
 export interface OrderItemPowerDetails {
