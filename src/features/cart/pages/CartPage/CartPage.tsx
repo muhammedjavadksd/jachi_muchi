@@ -16,6 +16,10 @@ export const CartPage = memo(function CartPage(): JSX.Element {
   const {
     cartItems,
     displayBill,
+    lensTotal,
+    lensLabel,
+    transitionTotal,
+    transitionLabel,
     totalQuantity,
     comboOffers,
     activeCombos,
@@ -150,15 +154,25 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               </div>
             )}
 
+            {item.transition && (
+              <div className="flex justify-between items-center my-1">
+                <span className="text-gray-600 text-sm">
+                  Transition: {item.transition.name}
+                  {item.transition.color ? ` (${item.transition.color})` : ""}
+                  {(item.transitionPrice || 0) > 0 ? <> (+<Price value={item.transitionPrice || 0} size="xs" />)</> : ''}
+                </span>
+              </div>
+            )}
+
             <div className="flex justify-between items-center py-3 border-t border-gray-100">
               <span className="text-gray-700 font-medium">Final Price</span>
               <div className="text-right">
                 {isFreeOffer ? (
                   <Price value={0} free size="xl" />
                 ) : isSameProductBogo ? (
-                  <Price value={(item.setCount || 1) * item.productPrice + (item.lens?.price || 0)} size="xl" />
+                  <Price value={(item.setCount || 1) * item.productPrice + (item.lens?.price || 0) + (item.transitionPrice || 0)} size="xl" />
                 ) : (
-                  <Price value={item.productPrice + (item.lens?.price || 0)} size="xl" />
+                  <Price value={item.productPrice + (item.lens?.price || 0) + (item.transitionPrice || 0)} size="xl" />
                 )}
               </div>
             </div>
@@ -293,9 +307,27 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                     {displayBill ? (
                       <>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Total item price</span>
-                          <Price value={displayBill.totalItemPrice} size="sm" />
+                          <span className="text-gray-600">Frame</span>
+                          <Price
+                            value={Math.max(
+                              0,
+                              displayBill.totalItemPrice - lensTotal - transitionTotal
+                            )}
+                            size="sm"
+                          />
                         </div>
+                        {lensTotal > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">{lensLabel}</span>
+                            <Price value={lensTotal} size="sm" />
+                          </div>
+                        )}
+                        {transitionTotal > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">{transitionLabel}</span>
+                            <Price value={transitionTotal} size="sm" />
+                          </div>
+                        )}
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Total discount</span>
                           {displayBill.totalDiscount > 0 ? (

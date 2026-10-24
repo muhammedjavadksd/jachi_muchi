@@ -8,6 +8,12 @@ export interface CartItemData {
     price: number;
   };
   lensPrice?: number;
+  transition?: {
+    transitionId: string;
+    name: string;
+    color: string;
+  } | null;
+  transitionPrice?: number;
   totalPrice: number;
   powerType?: string;
 }

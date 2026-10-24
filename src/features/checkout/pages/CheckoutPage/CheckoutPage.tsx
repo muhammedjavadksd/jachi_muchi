@@ -411,6 +411,10 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     submitError,
     paymentMethod,
     subtotal,
+    lensTotal,
+    lensLabel,
+    transitionTotal,
+    transitionLabel,
     totalSellingPrice,
     discount,
     offerSavings,
@@ -539,7 +543,13 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
 
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
                   <div className="space-y-4">
-                    <div className="flex justify-between text-sm"><span className="text-gray-600">Total MRP</span><Price value={subtotal} size="sm" /></div>
+                    <div className="flex justify-between text-sm"><span className="text-gray-600">Frame</span><Price value={Math.max(0, subtotal - lensTotal - transitionTotal)} size="sm" /></div>
+                    {lensTotal > 0 && (
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">{lensLabel}</span><Price value={lensTotal} size="sm" /></div>
+                    )}
+                    {transitionTotal > 0 && (
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">{transitionLabel}</span><Price value={transitionTotal} size="sm" /></div>
+                    )}
                     <div className="flex justify-between text-sm"><span className="text-gray-600">Discount</span><Price value={discount} negated size="sm" className="text-green-600 font-medium" /></div>
                     {offerSavings > 0 && (
                       <div className="flex justify-between text-sm"><span className="text-gray-600">Offer savings</span><Price value={offerSavings} negated size="sm" className="text-green-600 font-medium" /></div>

@@ -1,2 +1,7 @@
-export type { LensItem, LensResponse } from "./types";
+export type {
+  LensItem,
+  LensResponse,
+  SelectedTransition,
+  TransitionOption,
+} from "./types";
 export { getLenses } from "./api/lensApi";

@@ -26,6 +26,12 @@ export interface CartItem {
   variant?: OrderItemVariant | null;
   lens: { id?: string; name: string; price: number; discount?: number } | null;
   lensPrice?: number;
+  transition: {
+    transitionId: string;
+    name: string;
+    color: string;
+  } | null;
+  transitionPrice?: number;
   totalPrice: number;
   powerType?: string;
   powerDetails?: object | null;
@@ -43,6 +49,7 @@ export interface AddToCartPayload {
   quantity?: number;
   color?: { name: string; id: string } | null;
   lens?: { id: string; name: string; price: number; discount?: number } | null;
+  transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;
   powerDetails?: object | null;
   bogoGroupId?: string | null;

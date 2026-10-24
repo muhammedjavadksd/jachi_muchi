@@ -34,6 +34,12 @@ interface CartItem {
     discount?: number;
   } | null;
   lensPrice?: number;
+  transition: {
+    transitionId: string;
+    name: string;
+    color: string;
+  } | null;
+  transitionPrice?: number;
   totalPrice: number;
   powerType?: string;
   powerDetails?: {
@@ -118,6 +124,10 @@ export interface UseCheckoutReturn {
   submitError: string;
   paymentMethod: string;
   subtotal: number;
+  lensTotal: number;
+  lensLabel: string;
+  transitionTotal: number;
+  transitionLabel: string;
   totalSellingPrice: number;
   discount: number;
   offerSavings: number;
@@ -177,6 +187,49 @@ export function useCheckout(): UseCheckoutReturn {
   const fittingFee = normalizedBill?.fittingFee ?? 0;
   const subtotal = normalizedBill?.totalItemPrice ?? 0;
   const discount = normalizedBill?.totalDiscount ?? 0;
+
+  const lensTotal = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.lens?.price || 0), 0),
+    [cart]
+  );
+
+  const transitionTotal = useMemo(
+    () =>
+      cart.reduce(
+        (sum, item) => sum + (item.transitionPrice || 0),
+        0
+      ),
+    [cart]
+  );
+
+  const lensLabel = useMemo(() => {
+    const lensNames = [
+      ...new Set(
+        cart
+          .map((item) => item.lens?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    return lensNames.length === 1 ? `Lens (${lensNames[0]})` : "Lens";
+  }, [cart]);
+
+  const transitionLabel = useMemo(() => {
+    const transitions = new Map<
+      string,
+      { name: string; color: string }
+    >();
+    cart.forEach((item) => {
+      if (!item.transition) return;
+      transitions.set(
+        `${item.transition.transitionId}-${item.transition.color}`,
+        item.transition
+      );
+    });
+    const selected = [...transitions.values()];
+    return selected.length === 1
+      ? `Transition - ${selected[0].name} (${selected[0].color})`
+      : "Transition";
+  }, [cart]);
 
   const totalComboSavings = useMemo(
     () => getComboCartSavings(cart, offers),
@@ -374,6 +427,12 @@ export function useCheckout(): UseCheckoutReturn {
         bogoGroupId: item.bogoGroupId || undefined,
         color: item.color || undefined,
         lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price), discount: (item.lens as any).discount } : undefined,
+        transition: item.transition
+          ? {
+              transitionId: item.transition.transitionId,
+              color: item.transition.color,
+            }
+          : undefined,
         powerType: item.powerType || undefined,
         powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0 ? item.powerDetails : undefined,
       })),
@@ -493,6 +552,10 @@ export function useCheckout(): UseCheckoutReturn {
     submitError,
     paymentMethod,
     subtotal,
+    lensTotal,
+    lensLabel,
+    transitionTotal,
+    transitionLabel,
     totalSellingPrice,
     discount,
     offerSavings,

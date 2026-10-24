@@ -162,6 +162,18 @@ interface OrderItem {
   mrp?: number;
   returnStatus?: string;
   variant?: OrderItemVariant | null;
+  lens?: { id?: string; name: string; price: number; discount?: number } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number;
+  powerType?: string | null;
+  powerDetails?: object | null;
 }
 
 interface Order {
@@ -438,12 +450,55 @@ const { addToCart } = useCart();
   const displayStatus = order.status || "pending";
   const items = order.items || [];
 
-  const subtotal = items.reduce(
+  const frameTotal = items.reduce(
     (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
     0
   );
 
-  const shipping = (order.totalAmount || 0) - subtotal;
+  const lensTotal = items.reduce(
+    (sum, item) => sum + (item.lens?.price || 0) * (item.quantity || 1),
+    0
+  );
+
+  const transitionTotal = items.reduce(
+    (sum, item) =>
+      sum +
+      (item.transitionPrice ?? item.transition?.price ?? 0) *
+        (item.quantity || 1),
+    0
+  );
+
+  const lensLabel = (() => {
+    const names = [
+      ...new Set(
+        items
+          .map((item) => item.lens?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    return names.length === 1 ? `Lens (${names[0]})` : "Lens";
+  })();
+
+  const transitionLabel = (() => {
+    const transitions = new Map<string, { name: string; color: string }>();
+    items.forEach((item) => {
+      if (!item.transition) return;
+      transitions.set(
+        `${item.transition.id ?? item.transition.transitionId ?? item.transition._id}-${item.transition.color}`,
+        {
+          name: item.transition.name ?? "",
+          color: item.transition.color ?? "",
+        }
+      );
+    });
+    const selected = [...transitions.values()];
+    return selected.length === 1
+      ? `Transition - ${selected[0].name} (${selected[0].color})`
+      : "Transition";
+  })();
+
+  const shipping =
+    (order.totalAmount || 0) - frameTotal - lensTotal - transitionTotal;
   const safeShipping = shipping > 0 ? shipping : 0;
 
   const handleCancelOrder = () => {
@@ -489,6 +544,16 @@ const { addToCart } = useCart();
           quantity: item.quantity || 1,
           color: (item as any).color ?? null,
           lens: (item as any).lens ?? null,
+          transition: item.transition
+            ? {
+                transitionId:
+                  item.transition.id ||
+                  item.transition.transitionId ||
+                  item.transition._id ||
+                  "",
+                color: item.transition.color || "",
+              }
+            : null,
           powerType: (item as any).powerType ?? null,
           powerDetails: (item as any).powerDetails ?? null,
         });
@@ -676,6 +741,23 @@ const { addToCart } = useCart();
                     {hasVariant(item.variant) && (
                       <p className="text-xs text-gray-500 mt-0.5">{formatVariantLabel(item.variant)}</p>
                     )}
+                    {item.lens && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Lens: {item.lens.name}
+                        {item.lens.price > 0 && (
+                          <> (+<Price value={item.lens.price} size="xs" />)</>
+                        )}
+                      </p>
+                    )}
+                    {item.transition && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Transition: {item.transition.name}
+                        {item.transition.color ? ` (${item.transition.color})` : ""}
+                        {(item.transitionPrice ?? item.transition.price ?? 0) > 0 && (
+                          <> (+<Price value={item.transitionPrice ?? item.transition.price ?? 0} size="xs" />)</>
+                        )}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-1">
                       {item.price === 0 ? <span className="text-teal-600">FREE</span> : <Price value={item.price ?? 0} size="sm" />}
@@ -703,9 +785,21 @@ const { addToCart } = useCart();
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Payment Details</h3>
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex justify-between py-2">
-                <span className="text-gray-600 text-sm">Subtotal</span>
-                <Price value={subtotal} size="sm" />
+                <span className="text-gray-600 text-sm">Frame</span>
+                <Price value={frameTotal} size="sm" />
               </div>
+              {lensTotal > 0 && (
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-600 text-sm">{lensLabel}</span>
+                  <Price value={lensTotal} size="sm" />
+                </div>
+              )}
+              {transitionTotal > 0 && (
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-600 text-sm">{transitionLabel}</span>
+                  <Price value={transitionTotal} size="sm" />
+                </div>
+              )}
               {(order.discount ?? 0) > 0 && (
                 <div className="flex justify-between py-2">
                   <span className="text-gray-600 text-sm">Discount</span>
@@ -1181,6 +1275,18 @@ export const AccountPage = memo(function AccountPage(): JSX.Element {
           <span className="text-gray-500"> +{items.length - 1} more</span>
         )}
       </p>
+      {(items[0]?.lens || items[0]?.transition) && (
+        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 truncate">
+          {items[0]?.lens && <span>Lens: {items[0].lens.name}</span>}
+          {items[0]?.lens && items[0]?.transition && <span> · </span>}
+          {items[0]?.transition && (
+            <span>
+              Transition: {items[0].transition.name || "Transition"}
+              {items[0].transition.color ? ` (${items[0].transition.color})` : ""}
+            </span>
+          )}
+        </p>
+      )}
     </div>
 
     <div className="ml-auto flex items-center gap-1 sm:gap-2 text-teal-600 shrink-0">

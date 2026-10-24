@@ -390,6 +390,23 @@ export const TrackOrderPage = memo(function TrackOrderPage(): JSX.Element {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-100 line-clamp-2">{item.name || "Product"}</p>
+                        {item.lens && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Lens: {item.lens.name}
+                            {item.lens.price > 0 && (
+                              <> (+<Price value={item.lens.price} size="xs" />)</>
+                            )}
+                          </p>
+                        )}
+                        {item.transition && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Transition: {item.transition.name || "Transition"}
+                            {item.transition.color ? ` (${item.transition.color})` : ""}
+                            {(item.transitionPrice ?? item.transition.price ?? 0) > 0 && (
+                              <> (+<Price value={item.transitionPrice ?? item.transition.price ?? 0} size="xs" />)</>
+                            )}
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity || 1}</p>
                       </div>
                       <div className="text-right shrink-0">

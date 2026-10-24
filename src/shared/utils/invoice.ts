@@ -10,6 +10,21 @@ interface InvoiceItem {
   name?: string;
   quantity?: number;
   price?: number;
+  lens?: {
+    id?: string;
+    name: string;
+    price: number;
+    discount?: number;
+  } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number;
 }
 
 export interface InvoiceData {
@@ -57,30 +72,22 @@ function sectionTitle(doc: jsPDF, title: string, y: number): number {
   return y + 5;
 }
 
-function labelValue(doc: jsPDF, label: string, value: string, y: number, opts?: { bold?: boolean; color?: [number, number, number] }) {
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  doc.setTextColor(130, 130, 130);
-  doc.text(label, M.left, y);
-  doc.setFont("helvetica", opts?.bold ? "bold" : "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(opts?.color ? opts.color[0] : 40, opts?.color ? opts.color[1] : 40, opts?.color ? opts.color[2] : 40);
-  doc.text(value, M.left + 30, y);
-}
+// labelValue removed (unused)
 
-async function loadImageAsBase64(url: string): Promise<string | null> {
+async function loadImageAsBase64(url: string): Promise<string | undefined> {
   try {
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return undefined;
     const blob = await res.blob();
-    return await new Promise<string>((resolve) => {
+    const result = await new Promise<string | null>((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
+      reader.onloadend = () => resolve(reader.result as string | null);
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
+    return result || undefined;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
@@ -100,7 +107,16 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     ? new Date(data.date).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })
     : new Date().toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
   const items = data.items || [];
-  const subtotal = data.subtotal ?? items.reduce((s, i) => s + (i.price || 0) * (i.quantity || 1), 0);
+
+  const computedSubtotal = items.reduce((s, i) => {
+    const qty = i.quantity || 1;
+    const frame = (i.price || 0) * qty;
+    const lens = (i.lens?.price || 0) * qty;
+    const trans = (Number(i.transitionPrice ?? i.transition?.price) || 0) * qty;
+    return s + frame + lens + trans;
+  }, 0);
+
+  const subtotal = data.subtotal ?? computedSubtotal;
   const shipping = data.shipping ?? 0;
   const discount = data.discount ?? 0;
   const total = data.total ?? data.totalAmount ?? subtotal - discount + shipping;
@@ -114,8 +130,12 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
   // the email alone rather than a blank line or a placeholder.
   const logoData = await loadImageAsBase64(BRAND_LOGO);
   const supportLine = SUPPORT_PHONE ? `${SUPPORT_EMAIL}  |  ${SUPPORT_PHONE}` : SUPPORT_EMAIL;
-  if (logoData) {
-    doc.addImage(logoData, "PNG", M.left, y, 14, 14);
+  if (typeof logoData === "string") {
+    try {
+      doc.addImage(logoData, "PNG", M.left, y, 14, 14);
+    } catch {
+      // ignore image load failures
+    }
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(20, 20, 20);
@@ -130,6 +150,7 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     } else {
       doc.text(supportLine, M.left + 18, y + 13);
     }
+    y += 24;
   } else {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
@@ -139,8 +160,8 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     doc.setFontSize(7.5);
     doc.setTextColor(120, 120, 120);
     doc.text(supportLine, M.left, y + 13);
+    y += 19;
   }
-  y += logoData ? 24 : 19;
 
   // Company address line
   doc.setFont("helvetica", "normal");
@@ -239,7 +260,15 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
     const lineTotal = qty * price;
 
     const nameLines = doc.splitTextToSize(name, M.colQty - M.left - 4);
-    const rowH = Math.max(nameLines.length * 3.8, 5.5);
+    let rowH = Math.max(nameLines.length * 3.8, 5.5);
+
+    if (item.lens?.name) {
+      rowH += 3.6;
+    }
+    const transitionPrice = Number(item.transitionPrice ?? item.transition?.price) || 0;
+    if (item.transition?.name || transitionPrice > 0) {
+      rowH += 3.6;
+    }
 
     drawRowStripe(doc, y, rowH, idx);
 
@@ -251,6 +280,30 @@ export async function generateInvoicePdf(data: InvoiceData): Promise<void> {
 
     doc.text(rs(price), M.colPrice + 4, y);
     doc.text(rs(lineTotal), M.right - 1, y, { align: "right" });
+
+    let addonY = y + nameLines.length * 3.8 + 1.2;
+    doc.setFontSize(7.5);
+    if (item.lens?.name) {
+      const lensText = `Lens - ${item.lens.name}`;
+      doc.setTextColor(100, 100, 100);
+      doc.text(lensText, M.left + 3, addonY);
+      if ((item.lens.price || 0) > 0) {
+        doc.text(rs((item.lens.price || 0) * qty), M.right - 1, addonY, { align: "right" });
+      }
+      addonY += 3.6;
+    }
+    if (item.transition?.name || transitionPrice > 0) {
+      const transName = item.transition?.name || "Transition";
+      const transColor = item.transition?.color ? ` (${item.transition.color})` : "";
+      const transText = `Transition - ${transName}${transColor}`;
+      doc.setTextColor(100, 100, 100);
+      doc.text(transText, M.left + 3, addonY);
+      if (transitionPrice > 0) {
+        doc.text(rs(transitionPrice * qty), M.right - 1, addonY, { align: "right" });
+      }
+      addonY += 3.6;
+    }
+    doc.setFontSize(8.5);
 
     y += rowH + 1;
 
