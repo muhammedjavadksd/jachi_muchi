@@ -21,6 +21,21 @@ export interface TrackOrderItem {
   quantity?: number;
   price?: number;
   color?: { id: string; name: string } | null;
+  lens?: {
+    id?: string;
+    name: string;
+    price: number;
+    discount?: number;
+  } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number;
 }
 
 export interface TrackShippingAddress {

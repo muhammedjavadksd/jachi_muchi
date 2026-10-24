@@ -107,7 +107,12 @@ export function useCartPage() {
     () =>
       cartItems.reduce((sum, item) => {
         const paidCount = (item.setCount || 1) - (item.freeCount || 0);
-        return sum + ((item.mrp || item.productPrice) * paidCount) + (item.lens?.price || 0);
+        return (
+          sum +
+          ((item.mrp || item.productPrice) * paidCount) +
+          (item.lens?.price || 0) +
+          (item.transitionPrice || 0)
+        );
       }, 0),
     [cartItems]
   );
@@ -116,10 +121,59 @@ export function useCartPage() {
     () =>
       cartItems.reduce((sum, item) => {
         const paidCount = (item.setCount || 1) - (item.freeCount || 0);
-        return sum + item.productPrice * paidCount + (item.lens?.price || 0);
+        return (
+          sum +
+          item.productPrice * paidCount +
+          (item.lens?.price || 0) +
+          (item.transitionPrice || 0)
+        );
       }, 0),
     [cartItems]
   );
+
+  const lensTotal = useMemo(
+    () =>
+      cartItems.reduce((sum, item) => sum + (item.lens?.price || 0), 0),
+    [cartItems]
+  );
+
+  const transitionTotal = useMemo(
+    () =>
+      cartItems.reduce(
+        (sum, item) => sum + (item.transitionPrice || 0),
+        0
+      ),
+    [cartItems]
+  );
+
+  const lensLabel = useMemo(() => {
+    const lensNames = [
+      ...new Set(
+        cartItems
+          .map((item) => item.lens?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    return lensNames.length === 1 ? `Lens (${lensNames[0]})` : "Lens";
+  }, [cartItems]);
+
+  const transitionLabel = useMemo(() => {
+    const transitions = new Map<
+      string,
+      { name: string; color: string }
+    >();
+    cartItems.forEach((item) => {
+      if (!item.transition) return;
+      transitions.set(
+        `${item.transition.transitionId}-${item.transition.color}`,
+        item.transition
+      );
+    });
+    const selected = [...transitions.values()];
+    return selected.length === 1
+      ? `Transition - ${selected[0].name} (${selected[0].color})`
+      : "Transition";
+  }, [cartItems]);
 
   const totalDiscount = useMemo(() => subtotal - totalSellingPrice, [subtotal, totalSellingPrice]);
 
@@ -198,6 +252,10 @@ export function useCartPage() {
     displayBill,
     subtotal,
     totalSellingPrice,
+    lensTotal,
+    lensLabel,
+    transitionTotal,
+    transitionLabel,
     totalDiscount,
     totalQuantity,
     totalOfferSavings,

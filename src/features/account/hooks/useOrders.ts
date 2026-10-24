@@ -25,6 +25,18 @@ interface OrderItem {
   triggerProductName?: string;
   mrp?: number;
   returnStatus?: string;
+  lens?: { id?: string; name: string; price: number; discount?: number } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number;
+  powerType?: string | null;
+  powerDetails?: object | null;
 }
 
 interface Order {

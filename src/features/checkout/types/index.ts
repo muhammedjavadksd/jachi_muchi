@@ -29,6 +29,11 @@ export interface OrderItemLens {
   discount?: number;
 }
 
+export interface OrderItemTransition {
+  transitionId: string;
+  color: string;
+}
+
 export interface OrderItemPowerDetails {
   leftSPH?: string;
   rightSPH?: string;
@@ -61,6 +66,7 @@ export interface CreateOrderItem {
   bogoGroupId?: string;
   color?: OrderItemColor;
   lens?: OrderItemLens;
+  transition?: OrderItemTransition;
   powerType?: string;
   powerDetails?: OrderItemPowerDetails;
 }

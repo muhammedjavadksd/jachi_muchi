@@ -21,6 +21,16 @@ export interface BackendCartItem {
   color?: { name: string; id: string } | null;
   variant?: OrderItemVariant | null;
   lens?: { id: string; name: string; price: number } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number | null;
+  transitionColor?: string | null;
   powerType?: string | null;
   powerDetails?: {
     leftSPH?: string;
@@ -137,9 +147,24 @@ export function mapBackendItem(item: BackendCartItem) {
     color: item.color ?? null,
     variant: item.variant ?? null,
     lens: item.lens ?? null,
+    transition: item.transition
+      ? {
+          transitionId:
+            item.transition.transitionId ??
+            item.transition._id ??
+            item.transition.id ??
+            "",
+          name: item.transition.name ?? "",
+          color: item.transition.color ?? item.transitionColor ?? "",
+        }
+      : null,
+    transitionPrice: Number(item.transitionPrice ?? item.transition?.price) || 0,
     powerType: item.powerType ?? undefined,
     powerDetails: item.powerDetails ?? null,
-    totalPrice: (item.discountedPrice ?? item.product.price) + (item.lens?.price ?? 0),
+    totalPrice:
+      (item.discountedPrice ?? item.product.price) +
+      (item.lens?.price ?? 0) +
+      (Number(item.transitionPrice ?? item.transition?.price) || 0),
     isFree: item.isFree,
     freeCount: item.freeCount ?? 0,
     freeUnitPrice: item.freeUnitPrice ?? 0,
@@ -159,6 +184,7 @@ export async function addToCartApi(payload: {
   quantity?: number;
   color?: { name: string; id: string } | null;
   lens?: { id: string; name: string; price: number } | null;
+  transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;
   powerDetails?: object | null;
   bogoGroupId?: string | null;

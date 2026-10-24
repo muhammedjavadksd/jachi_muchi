@@ -2,7 +2,13 @@ import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getLenses } from "@/features/lens/api/lensApi";
-import type { LensItem } from "@/features/lens/types";
+import type { LensItem, SelectedTransition, TransitionOption } from "@/features/lens/types";
+/**
+ * Transition prices and options are sourced from the hardcoded storefront
+ * constants. This must match backend/src/constants/transitions.constant.ts.
+ */
+import { TRANSITIONS } from "@/constants/transitions";
+import { TransitionStep } from "@/features/checkout/components/TransitionStep/TransitionStep";
 import { getOffers } from "@/shared/services/offerEngine";
 import { Price, SafeImage } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
@@ -20,6 +26,7 @@ import {
   PRESCRIPTION_UPLOAD_ERROR,
   PRESCRIPTION_UPLOAD_HINT,
   PRESCRIPTION_UPLOADING_MESSAGE,
+  TRANSITION_STEP_TITLE,
 } from "@/features/checkout/constants";
 
 
@@ -96,6 +103,8 @@ const LENS_TYPE_MAP: Record<PowerType, string> = {
   "frame-only": "frame_only",
 };
 
+const STEP_LABELS = ["Power Type", "Lens", "Transition", "Add Power"] as const;
+
 // Step 3 "Add Power" icons — inline SVGs in the same style as the rest of the panel.
 const ICON_PENCIL = (
   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -152,6 +161,8 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [step, setStep] = useState(1);
   const [selectedPowerType, setSelectedPowerType] = useState<PowerType | null>(null);
   const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
+  const [selectedTransition, setSelectedTransition] = useState<SelectedTransition | null>(null);
+  const [pendingTransitionId, setPendingTransitionId] = useState<string | null>(null);
   const [lenses, setLenses] = useState<LensItem[]>([]);
   const [lensLoading, setLensLoading] = useState(false);
   const [bogoOffer, setBogoOffer] = useState<Offer | null>(null);
@@ -221,15 +232,57 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
       c.code.includes(countrySearch)
   );
 
+  const resetPanelState = useCallback(() => {
+    setStep(1);
+    setSelectedPowerType(null);
+    setSelectedLens(null);
+    setSelectedTransition(null);
+    setPendingTransitionId(null);
+    setLenses([]);
+    setLensLoading(false);
+    setBogoOffer(null);
+    setSamePowerBothEyes(false);
+    setHasCylindrical(false);
+    setPowerDetails({
+      leftSph: "",
+      rightSph: "",
+      leftCyl: "",
+      rightCyl: "",
+      leftAxis: "",
+      rightAxis: "",
+      name: "",
+      phone: "",
+      knowPowerLater: false,
+    });
+    setErrors({});
+    setPowerMethod(null);
+    setStep3View("options");
+    setPrescriptionFile(null);
+    setPrescriptionUrl(null);
+    setIsUploading(false);
+    setUploadError("");
+    setIsDraggingFile(false);
+    setCountrySearch("");
+    setShowCountryDropdown(false);
+  }, []);
+
   useEffect(() => {
-    if (!isOpen) return;
-    getOffers().then((allOffers) => {
-      const bogo = allOffers.find(
-        (o) => o.offerType === "bogo" && o.applicableProducts?.some((p) => typeof p === "object" && p._id === productId)
-      );
-      setBogoOffer(bogo || null);
-    }).catch(() => {});
-  }, [isOpen, productId]);
+    if (isOpen) {
+      resetPanelState();
+      getOffers()
+        .then((allOffers) => {
+          const bogo = allOffers.find(
+            (o) =>
+              o.offerType === "bogo" &&
+              o.applicableProducts?.some((p) => typeof p === "object" && p._id === productId)
+          );
+          setBogoOffer(bogo || null);
+        })
+        .catch(() => {});
+    } else {
+      resetPanelState();
+    }
+  }, [isOpen, productId, resetPanelState]);
 
   useEffect(() => {
     if (!selectedPowerType || selectedPowerType === "frame-only") return;
@@ -251,23 +304,69 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     fetchLenses();
   }, [selectedPowerType]);
 
-  const handlePowerTypeSelect = useCallback((type: PowerType) => {
-    setSelectedPowerType(type);
-    if (type === "frame-only") {
-      setStep(4);
-    } else {
-      setStep(2);
-    }
+  const resetTransition = useCallback(() => {
+    setSelectedTransition(null);
+    setPendingTransitionId(null);
   }, []);
 
-  const handleLensSelect = useCallback((lens: LensItem) => {
-    setSelectedLens(lens);
-    if (selectedPowerType === "zero-power") {
-      setStep(4);
-    } else {
+  const handlePowerTypeSelect = useCallback(
+    (type: PowerType) => {
+      setSelectedPowerType(type);
+      setSelectedLens(null);
+      setStep3View("options");
+      resetTransition();
+      if (type === "frame-only") {
+        setStep(5);
+      } else {
+        setStep(2);
+      }
+    },
+    [resetTransition]
+  );
+
+  const handleLensSelect = useCallback(
+    (lens: LensItem) => {
+      setSelectedLens(lens);
+      resetTransition();
       setStep(3);
-    }
+    },
+    [resetTransition]
+  );
+
+  const handleTransitionSelect = useCallback((transition: TransitionOption) => {
+    setPendingTransitionId(transition.id);
+    setSelectedTransition(null);
+  }, []);
+
+  const handleTransitionColorSelect = useCallback(
+    (color: string) => {
+      const transition = TRANSITIONS.find(
+        (item) => item.id === pendingTransitionId
+      );
+      if (!transition) return;
+      setSelectedTransition({
+        id: transition.id,
+        name: transition.name,
+        color,
+        price: transition.price,
+      });
+    },
+    [pendingTransitionId]
+  );
+
+  const goPastTransition = useCallback(() => {
+    setStep(selectedPowerType === "zero-power" ? 5 : 4);
   }, [selectedPowerType]);
+
+  const handleTransitionContinue = useCallback(() => {
+    if (!selectedTransition) return;
+    goPastTransition();
+  }, [goPastTransition, selectedTransition]);
+
+  const handleTransitionSkip = useCallback(() => {
+    resetTransition();
+    goPastTransition();
+  }, [goPastTransition, resetTransition]);
 
   const handleBack = useCallback(() => {
     if (step === 1) {
@@ -275,28 +374,34 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     } else if (step === 2) {
       setStep(1);
       setSelectedPowerType(null);
+      setSelectedLens(null);
       setLenses([]);
+      setStep3View("options");
+      resetTransition();
     } else if (step === 3) {
-      // Inside a step-3 sub-view (manual form / upload) the back arrow first
-      // returns to the option cards; only from there does it leave the step.
-      // powerMethod + typed values are kept so the choice persists on return.
+      setStep(2);
+      resetTransition();
+    } else if (step === 4) {
+      // Inside an Add Power sub-view (manual form / upload) the back arrow
+      // first returns to the option cards; only from there does it go back
+      // to the Transition step. powerMethod + typed values are kept.
       if (step3View !== "options") {
         setStep3View("options");
         return;
       }
-      setStep(2);
+      setStep(3);
       setStep3View("options");
-    } else if (step === 4) {
+    } else if (step === 5) {
       if (selectedPowerType === "frame-only") {
         setStep(1);
         setSelectedPowerType(null);
       } else if (selectedPowerType === "zero-power") {
-        setStep(2);
-      } else {
         setStep(3);
+      } else {
+        setStep(4);
       }
     }
-  }, [step, step3View, selectedPowerType, onClose]);
+  }, [step, step3View, selectedPowerType, onClose, resetTransition]);
 
   /**
    * Step 3 validation, branched by the chosen power method:
@@ -394,6 +499,12 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           lens: selectedLens
             ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price, discount: (selectedLens as any).discount }
             : null,
+          transition: selectedTransition
+            ? {
+                transitionId: selectedTransition.id,
+                color: selectedTransition.color,
+              }
+            : null,
           powerType: selectedPowerType,
           powerDetails: resolvedPowerDetails,
           bogoGroupId: bogoGroupId ?? null,
@@ -406,6 +517,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
             quantity: 1,
             color: null,
             lens: null,
+            transition: null,
             powerType: "frame-only",
             powerDetails: null,
             bogoGroupId: bogoGroupId ?? null,
@@ -431,6 +543,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     productId,
     selectedPowerType,
     selectedLens,
+    selectedTransition,
     powerDetails,
     powerMethod,
     prescriptionUrl,
@@ -524,6 +637,13 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   }, [handleAddToCart]);
 
   const completedSteps = step - 1;
+
+  const visibleStepNums = [1, 2, 3, 4].filter((stepNum) => {
+    if (!selectedPowerType) return true;
+    if (selectedPowerType === "frame-only") return stepNum === 1;
+    if (selectedPowerType === "zero-power") return stepNum !== 4;
+    return true;
+  });
 
   const renderStep1 = () => (
     <div className="flex flex-col gap-4">
@@ -629,7 +749,62 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     );
   };
 
-  /** Icon + title + subtext + chevron row used by the step-3 option cards. */
+  const renderTransitionStep = () => (
+    <TransitionStep
+      selectedTransitionId={pendingTransitionId}
+      selectedColor={
+        selectedTransition?.id === pendingTransitionId
+          ? selectedTransition.color
+          : null
+      }
+      onSelectTransition={handleTransitionSelect}
+      onSelectColor={handleTransitionColorSelect}
+      onContinue={handleTransitionContinue}
+      onSkip={handleTransitionSkip}
+    />
+  );
+
+  /**
+   * Live breakdown shown while the customer moves through Lens → Transition →
+   * Add Power. It is display-only: the backend remains the source of truth for
+   * the amount charged when the item is added to the cart.
+   */
+  const renderLivePriceSummary = () => {
+    const lensPrice = selectedLens?.price ?? 0;
+    const transitionPrice = selectedTransition?.price ?? 0;
+    const totalPrice = productPrice + lensPrice + transitionPrice;
+
+    return (
+      <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <div className="flex justify-between gap-3 text-sm">
+          <span className="text-gray-600">Frame</span>
+          <Price value={productPrice} size="sm" />
+        </div>
+        {selectedLens && (
+          <div className="mt-1 flex justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate text-gray-600">
+              Lens ({selectedLens.name})
+            </span>
+            <Price value={lensPrice} size="sm" />
+          </div>
+        )}
+        {selectedTransition && (
+          <div className="mt-1 flex justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate text-gray-600">
+              Transition – {selectedTransition.name} ({selectedTransition.color})
+            </span>
+            <Price value={transitionPrice} size="sm" />
+          </div>
+        )}
+        <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2">
+          <span className="text-sm font-semibold text-gray-900">Total</span>
+          <Price value={totalPrice} size="md" />
+        </div>
+      </div>
+    );
+  };
+
+  /** Icon + title + subtext + chevron row used by the Add Power option cards. */
   const renderOptionCard = (
     icon: JSX.Element,
     title: string,
@@ -1019,9 +1194,10 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     );
   };
 
-  const renderStep4 = () => {
+  const renderConfirmStep = () => {
     const lensPrice = selectedLens?.price || 0;
-    const totalPrice = productPrice + lensPrice;
+    const transitionPrice = selectedTransition?.price || 0;
+    const totalPrice = productPrice + lensPrice + transitionPrice;
     return (
       <div className="flex flex-col">
         {bogoOffer && (
@@ -1049,6 +1225,15 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
             {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+<Price value={selectedLens.price} size="xs" />)</span></div>}
+            {selectedTransition && (
+              <div className="flex justify-between text-sm mb-1 gap-3">
+                <span className="text-gray-500 shrink-0">Transition</span>
+                <span className="text-gray-900 font-medium text-right">
+                  {selectedTransition.name} ({selectedTransition.color}) (+
+                  <Price value={selectedTransition.price} size="xs" />)
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-sm font-semibold mt-2 pt-2 border-t border-gray-200"><span>Total</span><Price value={totalPrice} size="md" /></div>
           </div>
         </div>
@@ -1076,14 +1261,10 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
           </div>
           <div className="flex items-center justify-between">
-            {(["Power Type", "Lens", "Add Power"] as const).map((label, idx) => {
-              const stepNum = idx + 1;
+            {visibleStepNums.map((stepNum, idx) => {
+              const label = STEP_LABELS[stepNum - 1];
               const isActive = step === stepNum;
               const isCompleted = completedSteps >= stepNum;
-              const isZeroPowerSkip = selectedPowerType === "zero-power" && stepNum === 3;
-              if (isZeroPowerSkip) return null;
-              const isVisible = selectedPowerType !== "frame-only" || stepNum === 1;
-              if (!isVisible) return null;
               return (
                 <div key={label} className="flex items-center flex-1">
                   <div className={`flex flex-col items-center ${idx > 0 ? "flex-1" : ""}`}>
@@ -1092,7 +1273,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
                     </div>
                     <span className={`text-xs mt-1 ${isActive ? "text-teal-700 font-medium" : isCompleted ? "text-teal-600" : "text-gray-400"}`}>{label}</span>
                   </div>
-                  {idx < 2 && idx < (selectedPowerType !== "frame-only" ? 2 : 0) && <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-teal-600" : "bg-gray-200"}`} />}
+                  {idx < visibleStepNums.length - 1 && <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-teal-600" : "bg-gray-200"}`} />}
                 </div>
               );
             })}
@@ -1105,6 +1286,8 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
               : step === 2
               ? "Choose Lens Package"
               : step === 3
+              ? TRANSITION_STEP_TITLE
+              : step === 4
               ? step3View === "manual"
                 ? "Enter Power Details"
                 : step3View === "upload"
@@ -1112,10 +1295,12 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
                 : "Add Power"
               : "Confirm Selection"}
           </h2>
+          {step >= 2 && step <= 4 && renderLivePriceSummary()}
           {step === 1 && renderStep1()}
           {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-          {step === 4 && renderStep4()}
+          {step === 3 && renderTransitionStep()}
+          {step === 4 && renderStep3()}
+          {step === 5 && renderConfirmStep()}
         </div>
       </div>
     </>

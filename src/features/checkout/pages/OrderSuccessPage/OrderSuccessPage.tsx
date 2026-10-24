@@ -28,6 +28,16 @@ interface OrderItem {
   bogoGroupId?: string;
   triggerProductName?: string;
   mrp?: number;
+  lens?: { name: string; price: number } | null;
+  transition?: {
+    transitionId?: string;
+    _id?: string;
+    id?: string;
+    name?: string;
+    color?: string;
+    price?: number;
+  } | null;
+  transitionPrice?: number;
 }
 
 interface OrderAddress {
@@ -94,6 +104,10 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
             bogoGroupId: item.bogoGroupId || undefined,
             triggerProductName: item.triggerProductName || undefined,
             mrp: item.mrp || undefined,
+            lens: item.lens || null,
+            transition: item.transition || null,
+            transitionPrice:
+              Number(item.transitionPrice ?? item.transition?.price) || 0,
           })),
           total: order.totalAmount,
           discount: order.discount,
@@ -135,9 +149,76 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
     if (order?.subtotal !== undefined) return order.subtotal;
     return safeItems.reduce((sum, item) => {
       const qty = item.totalQuantity || item.quantity || 1;
-      return sum + (item.price || 0) * qty;
+      return (
+        sum +
+        ((item.price || 0) +
+          (item.lens?.price || 0) +
+          (item.transitionPrice ?? item.transition?.price ?? 0)) *
+          qty
+      );
     }, 0);
   }, [order, safeItems]);
+
+  const lensTotal = useMemo(
+    () =>
+      safeItems.reduce(
+        (sum, item) =>
+          sum +
+          (item.lens?.price || 0) *
+            (item.totalQuantity || item.quantity || 1),
+        0
+      ),
+    [safeItems]
+  );
+
+  const transitionTotal = useMemo(
+    () =>
+      safeItems.reduce(
+        (sum, item) =>
+          sum +
+          (item.transitionPrice ?? item.transition?.price ?? 0) *
+            (item.totalQuantity || item.quantity || 1),
+        0
+      ),
+    [safeItems]
+  );
+
+  const frameTotal = useMemo(
+    () => Math.max(0, subtotal - lensTotal - transitionTotal),
+    [subtotal, lensTotal, transitionTotal]
+  );
+
+  const lensLabel = useMemo(() => {
+    const names = [
+      ...new Set(
+        safeItems
+          .map((item) => item.lens?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    return names.length === 1 ? `Lens (${names[0]})` : "Lens";
+  }, [safeItems]);
+
+  const transitionLabel = useMemo(() => {
+    const transitions = new Map<
+      string,
+      { name: string; color: string }
+    >();
+    safeItems.forEach((item) => {
+      if (!item.transition) return;
+      transitions.set(
+        `${item.transition.transitionId ?? item.transition.id}-${item.transition.color}`,
+        {
+          name: item.transition.name ?? "",
+          color: item.transition.color ?? "",
+        }
+      );
+    });
+    const selected = [...transitions.values()];
+    return selected.length === 1
+      ? `Transition - ${selected[0].name} (${selected[0].color})`
+      : "Transition";
+  }, [safeItems]);
 
   const total = useMemo(() =>
     order?.total ?? subtotal, [order, subtotal]);
@@ -269,6 +350,23 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
                           ) : item.color ? (
                             <p className="text-sm text-gray-500">Color: {item.color.name}</p>
                           ) : null}
+                          {item.lens && (
+                            <p className="text-sm text-gray-500">
+                              Lens: {item.lens.name}
+                              {item.lens.price > 0 && (
+                                <> (+<Price value={item.lens.price} size="xs" />)</>
+                              )}
+                            </p>
+                          )}
+                          {item.transition && (
+                            <p className="text-sm text-gray-500">
+                              Transition: {item.transition.name}
+                              {item.transition.color ? ` (${item.transition.color})` : ""}
+                              {(item.transitionPrice ?? item.transition.price ?? 0) > 0 && (
+                                <> (+<Price value={item.transitionPrice ?? item.transition.price ?? 0} size="xs" />)</>
+                              )}
+                            </p>
+                          )}
                           {isFree && item.triggerProductName && (
                             <p className="text-xs text-green-600 mt-0.5">Free with {item.triggerProductName}</p>
                           )}
@@ -292,9 +390,21 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
-                    <Price value={subtotal} size="sm" />
+                    <span className="text-gray-600">Frame</span>
+                    <Price value={frameTotal} size="sm" />
                   </div>
+                  {lensTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">{lensLabel}</span>
+                      <Price value={lensTotal} size="sm" />
+                    </div>
+                  )}
+                  {transitionTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">{transitionLabel}</span>
+                      <Price value={transitionTotal} size="sm" />
+                    </div>
+                  )}
                   {totalSaved > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Offer Savings</span>

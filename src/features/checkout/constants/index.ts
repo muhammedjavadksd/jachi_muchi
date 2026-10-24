@@ -17,3 +17,11 @@ export const PRESCRIPTION_UPLOAD_ERROR =
   "Could not upload your prescription. Please try again.";
 export const PRESCRIPTION_UPLOADING_MESSAGE = "Uploading your prescription…";
 export const PRESCRIPTION_UPLOAD_HINT = "JPG, PNG or PDF · up to 5MB";
+
+/**
+ * Transition step copy.
+ */
+export const TRANSITION_STEP_TITLE = "Choose Transition";
+export const TRANSITION_CONTINUE_LABEL = "Continue";
+export const TRANSITION_SKIP_LABEL = "Skip / No Transition";
+export const TRANSITION_SELECT_COLOR_HINT = "Choose a colour to continue.";
