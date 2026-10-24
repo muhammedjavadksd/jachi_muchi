@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getLenses } from "@/features/lens/api/lensApi";
@@ -15,19 +15,11 @@ import { getImageUrl } from "@/shared/utils/image";
 import type { Offer } from "@/features/offer/types";
 import { useCart } from "@/features/cart/hooks";
 import { useAuthGuard } from "@/shared/hooks";
-import { uploadPrescription } from "@/features/checkout/api/prescriptionApi";
-import type { PowerMethod } from "@/features/checkout/types";
-import { validatePrescriptionFile } from "@/features/checkout/validations";
 import {
   LENS_POWER_HELP_PHONE_DISPLAY,
   LENS_POWER_HELP_PHONE_TEL,
 } from "@/shared/constants";
-import {
-  PRESCRIPTION_UPLOAD_ERROR,
-  PRESCRIPTION_UPLOAD_HINT,
-  PRESCRIPTION_UPLOADING_MESSAGE,
-  TRANSITION_STEP_TITLE,
-} from "@/features/checkout/constants";
+import { TRANSITION_STEP_TITLE } from "@/features/checkout/constants";
 
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
@@ -105,35 +97,6 @@ const LENS_TYPE_MAP: Record<PowerType, string> = {
 
 const STEP_LABELS = ["Power Type", "Lens", "Transition", "Add Power"] as const;
 
-// Step 3 "Add Power" icons — inline SVGs in the same style as the rest of the panel.
-const ICON_PENCIL = (
-  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7.5 18.5 3 20l1.5-4.5L16.5 3.5Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 5.5l4 4" />
-  </svg>
-);
-
-const ICON_UPLOAD = (
-  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
-  </svg>
-);
-
-const ICON_FILE = (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M14 3v5h5" />
-  </svg>
-);
-
-const ICON_SPINNER = (
-  <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeOpacity="0.25" strokeWidth="4" />
-    <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-  </svg>
-);
-
 interface LensSelectionPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -187,34 +150,6 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
 
-  // --- Step 3 "Add Power" state -------------------------------------------
-  // powerMethod persists across back/forward navigation inside the drawer, so
-  // the option the customer picked is still highlighted when they return.
-  const [powerMethod, setPowerMethod] = useState<PowerMethod | null>(null);
-  // Sub-view within step 3: the option cards, the existing manual form, or
-  // the prescription upload form.
-  const [step3View, setStep3View] = useState<"options" | "manual" | "upload">("options");
-  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
-  const [prescriptionUrl, setPrescriptionUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState("");
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const prescriptionInputRef = useRef<HTMLInputElement>(null);
-
-  // Local preview while/after uploading; revoked when the file is replaced.
-  const filePreviewUrl = useMemo(
-    () =>
-      prescriptionFile && prescriptionFile.type.startsWith("image/")
-        ? URL.createObjectURL(prescriptionFile)
-        : null,
-    [prescriptionFile]
-  );
-
-  useEffect(() => {
-    if (!filePreviewUrl) return;
-    return () => URL.revokeObjectURL(filePreviewUrl);
-  }, [filePreviewUrl]);
-
   useEffect(() => {
     if (!showCountryDropdown) return;
     const handler = (e: MouseEvent) => {
@@ -255,13 +190,6 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
       knowPowerLater: false,
     });
     setErrors({});
-    setPowerMethod(null);
-    setStep3View("options");
-    setPrescriptionFile(null);
-    setPrescriptionUrl(null);
-    setIsUploading(false);
-    setUploadError("");
-    setIsDraggingFile(false);
     setCountrySearch("");
     setShowCountryDropdown(false);
   }, []);
@@ -313,7 +241,6 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     (type: PowerType) => {
       setSelectedPowerType(type);
       setSelectedLens(null);
-      setStep3View("options");
       resetTransition();
       if (type === "frame-only") {
         setStep(5);
@@ -376,21 +303,16 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
       setSelectedPowerType(null);
       setSelectedLens(null);
       setLenses([]);
-      setStep3View("options");
       resetTransition();
     } else if (step === 3) {
       setStep(2);
       resetTransition();
     } else if (step === 4) {
-      // Inside an Add Power sub-view (manual form / upload) the back arrow
-      // first returns to the option cards; only from there does it go back
-      // to the Transition step. powerMethod + typed values are kept.
-      if (step3View !== "options") {
-        setStep3View("options");
-        return;
-      }
-      setStep(3);
-      setStep3View("options");
+      // Manual power is the only Add Power form now. Back returns to the
+      // Transition step when it exists, otherwise to the Lens step.
+      const hasTransitionStep =
+        selectedPowerType === "with-power" || selectedPowerType === "progressive";
+      setStep(hasTransitionStep ? 3 : 2);
     } else if (step === 5) {
       if (selectedPowerType === "frame-only") {
         setStep(1);
@@ -401,14 +323,10 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
         setStep(4);
       }
     }
-  }, [step, step3View, selectedPowerType, onClose, resetTransition]);
+  }, [step, selectedPowerType, onClose, resetTransition]);
 
-  /**
-   * Step 3 validation, branched by the chosen power method:
-   * - "upload" → name + phone only (the file is enforced by the disabled Save);
-   * - "manual" → the existing rules: name, phone, and the SPH/CYL values.
-   */
-  const validatePrescription = useCallback((method: PowerMethod | null): boolean => {
+  /** Validate the manual Add Power form: name, phone, and SPH/CYL values. */
+  const validatePowerDetails = useCallback((): boolean => {
     const errs: Record<string, string> = {};
 
     const name = powerDetails.name.trim();
@@ -422,7 +340,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
       if (phoneErr) errs.phone = phoneErr;
     }
 
-    if (method !== "upload" && !powerDetails.knowPowerLater) {
+    if (!powerDetails.knowPowerLater) {
       if (!powerDetails.leftSph) errs.leftSph = "Left SPH is required.";
       if (!samePowerBothEyes && !powerDetails.rightSph) errs.rightSph = "Right SPH is required.";
       if (hasCylindrical) {
@@ -441,17 +359,13 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   // cart the server just returned. The isAddingToCart guard closes the double
   // submit window that used to let one intent POST twice, and the try/catch keeps
   // a failed write from silently skipping the toast and the navigation.
-  const handleAddToCart = useCallback(async (method?: PowerMethod) => {
+  const handleAddToCart = useCallback(async () => {
     if (isAddingToCart) return;
     setIsAddingToCart(true);
     try {
       await requireAuth(async () => {
-        // Callers pass the method they just confirmed ("manual"/"upload");
-        // without an override the panel's persisted choice is used and manual
-        // stays the fallback for anything saved before this step.
-        const effectiveMethod: PowerMethod = method ?? powerMethod ?? "manual";
         if (selectedPowerType === "with-power" || selectedPowerType === "progressive") {
-          if (!validatePrescription(effectiveMethod)) return;
+          if (!validatePowerDetails()) return;
         }
         const bogoGroupId = bogoOffer?.freeProduct ? Date.now().toString() + "-bogo" : undefined;
 
@@ -461,35 +375,20 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
 
         const resolvedPowerDetails =
           selectedPowerType === "with-power" || selectedPowerType === "progressive"
-            ? effectiveMethod === "upload"
-              ? {
-                  // Power lives in the uploaded document, not in the fields.
-                  leftSPH: "",
-                  rightSPH: "",
-                  leftCYL: null,
-                  rightCYL: null,
-                  isSamePower: false,
-                  hasCylindrical: false,
-                  customerName: powerDetails.name,
-                  customerPhone,
-                  knowPowerLater: false,
-                  powerMethod: "upload" as const,
-                  prescriptionFile: prescriptionUrl ?? "",
-                }
-              : {
-                  leftSPH: powerDetails.leftSph,
-                  rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
-                  leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
-                  rightCYL: hasCylindrical
-                    ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl)
-                    : null,
-                  isSamePower: samePowerBothEyes,
-                  hasCylindrical,
-                  customerName: powerDetails.name,
-                  customerPhone,
-                  knowPowerLater: powerDetails.knowPowerLater,
-                  powerMethod: "manual" as const,
-                }
+            ? {
+                leftSPH: powerDetails.leftSph,
+                rightSPH: samePowerBothEyes ? powerDetails.leftSph : powerDetails.rightSph,
+                leftCYL: hasCylindrical ? powerDetails.leftCyl : null,
+                rightCYL: hasCylindrical
+                  ? (samePowerBothEyes ? powerDetails.leftCyl : powerDetails.rightCyl)
+                  : null,
+                isSamePower: samePowerBothEyes,
+                hasCylindrical,
+                customerName: powerDetails.name,
+                customerPhone,
+                knowPowerLater: powerDetails.knowPowerLater,
+                powerMethod: "manual" as const,
+              }
             : null;
 
         await addToCart({
@@ -545,8 +444,6 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     selectedLens,
     selectedTransition,
     powerDetails,
-    powerMethod,
-    prescriptionUrl,
     samePowerBothEyes,
     hasCylindrical,
     selectedColor,
@@ -555,85 +452,12 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     onClose,
     requireAuth,
     addToCart,
-    validatePrescription,
+    validatePowerDetails,
     selectedCountry,
   ]);
 
-  // --- Step 3 "Add Power" handlers ----------------------------------------
-
-  const openManualForm = useCallback(() => {
-    setPowerMethod("manual");
-    setStep3View("manual");
-  }, []);
-
-  const openUploadForm = useCallback(() => {
-    setPowerMethod("upload");
-    setStep3View("upload");
-  }, []);
-
-  const backToStep3Options = useCallback(() => setStep3View("options"), []);
-
-  /**
-   * Validates the picked file (JPG/PNG/PDF ≤ 5MB) and uploads it right away,
-   * so the sub-view can show its own loading spinner and error + retry state.
-   */
-  const handlePrescriptionFile = useCallback(async (file: File) => {
-    const fileError = validatePrescriptionFile(file);
-    if (fileError) {
-      setUploadError(fileError);
-      return;
-    }
-    setUploadError("");
-    setPrescriptionFile(file);
-    setPrescriptionUrl(null);
-    setIsUploading(true);
-    try {
-      setPrescriptionUrl(await uploadPrescription(file));
-    } catch (err) {
-      setUploadError(
-        err instanceof Error && err.message ? err.message : PRESCRIPTION_UPLOAD_ERROR
-      );
-    } finally {
-      setIsUploading(false);
-    }
-  }, []);
-
-  const handlePrescriptionInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      // Cleared so picking the same file again after Remove still fires.
-      e.target.value = "";
-      if (file) void handlePrescriptionFile(file);
-    },
-    [handlePrescriptionFile]
-  );
-
-  const removePrescription = useCallback(() => {
-    setPrescriptionFile(null);
-    setPrescriptionUrl(null);
-    setUploadError("");
-  }, []);
-
-  const retryUpload = useCallback(() => {
-    if (prescriptionFile) void handlePrescriptionFile(prescriptionFile);
-  }, [prescriptionFile, handlePrescriptionFile]);
-
-  const handleFileDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDraggingFile(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) void handlePrescriptionFile(file);
-    },
-    [handlePrescriptionFile]
-  );
-
   const handleSaveManual = useCallback(() => {
-    void handleAddToCart("manual");
-  }, [handleAddToCart]);
-
-  const handleSaveUpload = useCallback(() => {
-    void handleAddToCart("upload");
+    void handleAddToCart();
   }, [handleAddToCart]);
 
   const completedSteps = step - 1;
@@ -804,63 +628,8 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     );
   };
 
-  /** Icon + title + subtext + chevron row used by the Add Power option cards. */
-  const renderOptionCard = (
-    icon: JSX.Element,
-    title: string,
-    subtext: string,
-    selected: boolean,
-    onClick: () => void
-  ) => (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center gap-4 p-4 border rounded-xl transition-all text-left group shadow-md hover:shadow-lg ${
-        selected
-          ? "border-teal-600 bg-teal-50"
-          : "border-gray-200 hover:border-teal-600 hover:bg-teal-50"
-      }`}
-    >
-      <span
-        className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-          selected
-            ? "bg-teal-600 text-white"
-            : "bg-teal-100 text-teal-700 group-hover:bg-teal-600 group-hover:text-white"
-        }`}
-      >
-        {icon}
-      </span>
-      <span className="flex-1 min-w-0">
-        <span className="block font-medium text-gray-900">{title}</span>
-        <span className="block text-sm text-gray-500">{subtext}</span>
-      </span>
-      <svg
-        className={`w-5 h-5 shrink-0 ${selected ? "text-teal-600" : "text-gray-400 group-hover:text-teal-600"}`}
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-      </svg>
-    </button>
-  );
-
-  /** Back arrow shown at the top of the manual / upload step-3 sub-views. */
-  const renderSubViewBack = (label: string) => (
-    <button
-      type="button"
-      onClick={backToStep3Options}
-      className="flex items-center gap-1.5 self-start mb-4 -ml-1 p-1 rounded-lg text-sm font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
-    >
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-      </svg>
-      {label}
-    </button>
-  );
-
   /**
-   * Name + phone (with the country-code dropdown) — the same fields the
-   * manual form has always had, shared by the manual and upload sub-views.
+   * Name + phone (with the country-code dropdown) for the manual power form.
    */
   const renderContactFields = () => (
     <div className="mt-4">
@@ -935,45 +704,11 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     </div>
   );
 
-  /**
-   * Step 3 "Add Power" — the two ways to supply power: the existing manual
-   * form, or a prescription upload. Both open as a sub-view with a back arrow
-   * to these cards. The picked method stays selected when the customer comes
-   * back.
-   */
-  const renderStep3 = () => {
-    if (step3View === "manual") return renderManualPowerForm();
-    if (step3View === "upload") return renderUploadForm();
+  const renderStep3 = () => renderManualPowerForm();
 
-    return (
-      <div className="flex flex-col">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-          I know my power
-        </p>
-        <div className="flex flex-col gap-4">
-          {renderOptionCard(
-            ICON_PENCIL,
-            "Enter Power Manually",
-            "Input your latest eye prescription",
-            powerMethod === "manual",
-            openManualForm
-          )}
-          {renderOptionCard(
-            ICON_UPLOAD,
-            "Upload Prescription",
-            "Just upload your power prescription",
-            powerMethod === "upload",
-            openUploadForm
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  /** Existing manual power form, now reached as a step-3 sub-view. */
+  /** Manual Add Power form shown directly at step 4. */
   const renderManualPowerForm = () => (
     <div className="flex flex-col">
-      {renderSubViewBack("Add Power")}
       <label className="flex items-center gap-2 mb-4">
         <input type="checkbox" checked={samePowerBothEyes} onChange={(e) => { setSamePowerBothEyes(e.target.checked); setErrors({}); }} className="w-4 h-4 text-teal-600 rounded" />
         <span className="text-sm text-gray-700">I have same power for both eyes</span>
@@ -1067,133 +802,6 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     </div>
   );
 
-  /** Step-3 upload sub-view: file picker / drag-and-drop + name & phone. */
-  const renderUploadForm = () => {
-    const canSave =
-      Boolean(prescriptionUrl) &&
-      !isUploading &&
-      powerDetails.name.trim().length > 0 &&
-      powerDetails.phone.trim().length > 0;
-
-    return (
-      <div className="flex flex-col">
-        {renderSubViewBack("Add Power")}
-
-        {prescriptionFile ? (
-          <div className="rounded-xl border border-gray-200 p-3 flex items-center gap-3">
-            {filePreviewUrl ? (
-              <img
-                src={filePreviewUrl}
-                alt="Prescription preview"
-                className="w-16 h-16 rounded-lg object-cover border border-gray-100 shrink-0"
-              />
-            ) : (
-              <span className="w-16 h-16 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
-                {ICON_FILE}
-              </span>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{prescriptionFile.name}</p>
-              <p className="text-xs text-gray-400">
-                {(prescriptionFile.size / (1024 * 1024)).toFixed(2)} MB
-              </p>
-              {isUploading ? (
-                <p className="text-xs text-teal-700 mt-1 inline-flex items-center gap-1.5">
-                  {ICON_SPINNER}
-                  {PRESCRIPTION_UPLOADING_MESSAGE}
-                </p>
-              ) : prescriptionUrl ? (
-                <p className="text-xs text-green-600 mt-1">Uploaded</p>
-              ) : null}
-            </div>
-            <div className="flex flex-col items-end gap-1.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => prescriptionInputRef.current?.click()}
-                disabled={isUploading}
-                className="text-xs font-medium text-teal-600 hover:text-teal-700 disabled:opacity-50"
-              >
-                Replace
-              </button>
-              <button
-                type="button"
-                onClick={removePrescription}
-                disabled={isUploading}
-                className="text-xs font-medium text-red-500 hover:text-red-600 disabled:opacity-50"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => prescriptionInputRef.current?.click()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") prescriptionInputRef.current?.click();
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDraggingFile(true);
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              setIsDraggingFile(false);
-            }}
-            onDrop={handleFileDrop}
-            className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 flex flex-col items-center justify-center text-center transition-colors ${
-              isDraggingFile
-                ? "border-teal-600 bg-teal-50"
-                : "border-gray-300 hover:border-teal-500 hover:bg-gray-50"
-            }`}
-          >
-            <span className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mb-3">
-              {ICON_UPLOAD}
-            </span>
-            <p className="text-sm font-medium text-gray-900">Drag &amp; drop your prescription</p>
-            <p className="text-sm text-gray-500 mt-0.5">or tap to browse</p>
-            <p className="text-xs text-gray-400 mt-2">{PRESCRIPTION_UPLOAD_HINT}</p>
-          </div>
-        )}
-
-        {uploadError && (
-          <div className="flex items-start justify-between gap-3 mt-2">
-            <p className="text-xs text-red-500">{uploadError}</p>
-            {prescriptionFile && !prescriptionUrl && !isUploading && (
-              <button
-                type="button"
-                onClick={retryUpload}
-                className="text-xs font-medium text-teal-600 hover:text-teal-700 shrink-0"
-              >
-                Try again
-              </button>
-            )}
-          </div>
-        )}
-
-        {renderContactFields()}
-
-        <button
-          onClick={handleSaveUpload}
-          disabled={isAddingToCart || isUploading || !canSave}
-          aria-busy={isAddingToCart || isUploading}
-          className="w-full mt-4 py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          Save &amp; Proceed
-        </button>
-
-        <input
-          ref={prescriptionInputRef}
-          type="file"
-          accept="image/jpeg,image/png,application/pdf"
-          onChange={handlePrescriptionInputChange}
-          className="hidden"
-        />
-      </div>
-    );
-  };
-
   const renderConfirmStep = () => {
     const lensPrice = selectedLens?.price || 0;
     const transitionPrice = selectedTransition?.price || 0;
@@ -1238,7 +846,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           </div>
         </div>
         <button
-          onClick={() => handleAddToCart()}
+          onClick={handleAddToCart}
           disabled={isAddingToCart}
           aria-busy={isAddingToCart}
           className="w-full py-4 bg-teal-600 text-white font-semibold rounded-xl hover:bg-teal-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
@@ -1281,26 +889,22 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
         </div>
         <div className="p-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {step === 1
-              ? "Select Lens Type"
-              : step === 2
-              ? "Choose Lens Package"
-              : step === 3
-              ? TRANSITION_STEP_TITLE
-              : step === 4
-              ? step3View === "manual"
-                ? "Enter Power Details"
-                : step3View === "upload"
-                ? "Upload Prescription"
-                : "Add Power"
-              : "Confirm Selection"}
-          </h2>
-          {step >= 2 && step <= 4 && renderLivePriceSummary()}
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderTransitionStep()}
-          {step === 4 && renderStep3()}
-          {step === 5 && renderConfirmStep()}
+          {step === 1
+            ? "Select Lens Type"
+            : step === 2
+            ? "Choose Lens Package"
+            : step === 3
+            ? TRANSITION_STEP_TITLE
+            : step === 4
+            ? "Add Power"
+            : "Confirm Selection"}
+        </h2>
+        {step >= 2 && step <= 4 && renderLivePriceSummary()}
+        {step === 1 && renderStep1()}
+        {step === 2 && renderStep2()}
+        {step === 3 && renderTransitionStep()}
+        {step === 4 && renderStep3()}
+        {step === 5 && renderConfirmStep()}
         </div>
       </div>
     </>
