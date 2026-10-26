@@ -12,6 +12,27 @@
   }
 }
 
+@keyframes lensStepEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lens-step-enter {
+  animation: lensStepEnter 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens-step-enter {
+    animation: none;
+  }
+}
+
 @theme {
   --font-sans: 'Figtree', 'Barlow', system-ui, -apple-system, sans-serif;
   --font-display: 'Playfair Display', 'Bodoni Moda', Georgia, 'Times New Roman', serif;

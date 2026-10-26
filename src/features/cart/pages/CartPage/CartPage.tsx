@@ -18,6 +18,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     displayBill,
     lensTotal,
     lensLabel,
+    brandLabel,
     transitionTotal,
     transitionLabel,
     totalQuantity,
@@ -145,6 +146,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               <div className="flex items-center gap-2 mt-2">
                 <span className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: item.color.name }} />
                 <span className="text-gray-600 text-sm">Color: {item.color.name}</span>
+              </div>
+            )}
+
+            {item.brand && (
+              <div className="flex justify-between items-center my-2">
+                <span className="text-gray-600 text-sm">Brand: {item.brand.name}</span>
               </div>
             )}
 
@@ -316,6 +323,12 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                             size="sm"
                           />
                         </div>
+                        {brandLabel && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">{brandLabel}</span>
+                            <span className="text-gray-400">—</span>
+                          </div>
+                        )}
                         {lensTotal > 0 && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">{lensLabel}</span>

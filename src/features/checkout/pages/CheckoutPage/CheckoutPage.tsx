@@ -413,6 +413,7 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     subtotal,
     lensTotal,
     lensLabel,
+    brandLabel,
     transitionTotal,
     transitionLabel,
     totalSellingPrice,
@@ -544,6 +545,9 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
                 <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
                   <div className="space-y-4">
                     <div className="flex justify-between text-sm"><span className="text-gray-600">Frame</span><Price value={Math.max(0, subtotal - lensTotal - transitionTotal)} size="sm" /></div>
+                    {brandLabel && (
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">{brandLabel}</span><span className="text-gray-400">—</span></div>
+                    )}
                     {lensTotal > 0 && (
                       <div className="flex justify-between text-sm"><span className="text-gray-600">{lensLabel}</span><Price value={lensTotal} size="sm" /></div>
                     )}

@@ -27,6 +27,7 @@ interface CartItem {
   isFreeOfferItem?: boolean;
   bogoGroupId?: string;
   color: { name: string; id: string } | null;
+  brand?: { id?: string; name: string; logo?: string } | null;
   lens: {
     id?: string;
     name: string;
@@ -126,6 +127,7 @@ export interface UseCheckoutReturn {
   subtotal: number;
   lensTotal: number;
   lensLabel: string;
+  brandLabel: string;
   transitionTotal: number;
   transitionLabel: string;
   totalSellingPrice: number;
@@ -211,6 +213,18 @@ export function useCheckout(): UseCheckoutReturn {
       ),
     ];
     return lensNames.length === 1 ? `Lens (${lensNames[0]})` : "Lens";
+  }, [cart]);
+
+  const brandLabel = useMemo(() => {
+    const brandNames = [
+      ...new Set(
+        cart
+          .map((item) => item.brand?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    if (brandNames.length === 0) return "";
+    return brandNames.length === 1 ? `Brand (${brandNames[0]})` : "Brand";
   }, [cart]);
 
   const transitionLabel = useMemo(() => {
@@ -426,7 +440,8 @@ export function useCheckout(): UseCheckoutReturn {
         freeUnitPrice: item.freeUnitPrice || undefined,
         bogoGroupId: item.bogoGroupId || undefined,
         color: item.color || undefined,
-        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price), discount: (item.lens as any).discount } : undefined,
+        brand: item.brand ? { id: item.brand.id, name: item.brand.name } : undefined,
+        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price), discount: item.lens.discount } : undefined,
         transition: item.transition
           ? {
               transitionId: item.transition.transitionId,
@@ -554,6 +569,7 @@ export function useCheckout(): UseCheckoutReturn {
     subtotal,
     lensTotal,
     lensLabel,
+    brandLabel,
     transitionTotal,
     transitionLabel,
     totalSellingPrice,
