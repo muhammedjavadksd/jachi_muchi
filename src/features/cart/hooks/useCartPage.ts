@@ -157,6 +157,18 @@ export function useCartPage() {
     return lensNames.length === 1 ? `Lens (${lensNames[0]})` : "Lens";
   }, [cartItems]);
 
+  const brandLabel = useMemo(() => {
+    const brandNames = [
+      ...new Set(
+        cartItems
+          .map((item) => item.brand?.name)
+          .filter((name): name is string => Boolean(name))
+      ),
+    ];
+    if (brandNames.length === 0) return "";
+    return brandNames.length === 1 ? `Brand (${brandNames[0]})` : "Brand";
+  }, [cartItems]);
+
   const transitionLabel = useMemo(() => {
     const transitions = new Map<
       string,
@@ -254,6 +266,7 @@ export function useCartPage() {
     totalSellingPrice,
     lensTotal,
     lensLabel,
+    brandLabel,
     transitionTotal,
     transitionLabel,
     totalDiscount,

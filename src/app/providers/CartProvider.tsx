@@ -24,6 +24,7 @@ export interface CartItem {
   quantity?: number;
   color: { name: string; id: string } | null;
   variant?: OrderItemVariant | null;
+  brand: { id?: string; name: string; logo?: string } | null;
   lens: { id?: string; name: string; price: number; discount?: number } | null;
   lensPrice?: number;
   transition: {
@@ -48,6 +49,7 @@ export interface AddToCartPayload {
   productId: string;
   quantity?: number;
   color?: { name: string; id: string } | null;
+  brand?: { id: string; name: string } | null;
   lens?: { id: string; name: string; price: number; discount?: number } | null;
   transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;

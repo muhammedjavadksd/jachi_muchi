@@ -1,8 +1,9 @@
-import { memo, useState, useCallback, useEffect, useRef } from "react";
+import { Fragment, memo, useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { getLenses } from "@/features/lens/api/lensApi";
-import type { LensItem, SelectedTransition, TransitionOption } from "@/features/lens/types";
+import { getLensBrands, getLenses } from "@/features/lens/api/lensApi";
+import type { LensBrand, LensItem, SelectedTransition, TransitionOption } from "@/features/lens/types";
+import { BrandStep } from "@/features/checkout/components/BrandStep/BrandStep";
 /**
  * Transition prices and options are sourced from the hardcoded storefront
  * constants. This must match backend/src/constants/transitions.constant.ts.
@@ -95,7 +96,31 @@ const LENS_TYPE_MAP: Record<PowerType, string> = {
   "frame-only": "frame_only",
 };
 
-const STEP_LABELS = ["Power Type", "Lens", "Transition", "Add Power"] as const;
+const STEP_LABELS = ["Power Type", "Brand", "Lens", "Transition", "Add Power"] as const;
+
+const LENS_PAGE_SIZE = 10;
+
+function getLensId(lens: LensItem): string | undefined {
+  return lens._id || lens.id;
+}
+
+function mergeLensPages(previous: LensItem[], incoming: LensItem[]): LensItem[] {
+  const merged = [...previous];
+  const seen = new Set(
+    previous.map(getLensId).filter((id): id is string => Boolean(id))
+  );
+
+  for (const lens of incoming) {
+    const id = getLensId(lens);
+    if (id) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+    }
+    merged.push(lens);
+  }
+
+  return merged;
+}
 
 interface LensSelectionPanelProps {
   isOpen: boolean;
@@ -123,11 +148,22 @@ const { addToCart } = useCart();
 const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [step, setStep] = useState(1);
   const [selectedPowerType, setSelectedPowerType] = useState<PowerType | null>(null);
+  const [brands, setBrands] = useState<LensBrand[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<LensBrand | null>(null);
+  const [brandLoading, setBrandLoading] = useState(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
+  const [brandRetryKey, setBrandRetryKey] = useState(0);
   const [selectedLens, setSelectedLens] = useState<LensItem | null>(null);
   const [selectedTransition, setSelectedTransition] = useState<SelectedTransition | null>(null);
   const [pendingTransitionId, setPendingTransitionId] = useState<string | null>(null);
   const [lenses, setLenses] = useState<LensItem[]>([]);
   const [lensLoading, setLensLoading] = useState(false);
+  const [lensLoadingMore, setLensLoadingMore] = useState(false);
+  const [lensError, setLensError] = useState<string | null>(null);
+  const [lensPage, setLensPage] = useState(0);
+  const [lensTotalPages, setLensTotalPages] = useState(0);
+  const [lensRetryKey, setLensRetryKey] = useState(0);
+  const [lensLoadMoreRetryKey, setLensLoadMoreRetryKey] = useState(0);
   const [bogoOffer, setBogoOffer] = useState<Offer | null>(null);
   const [samePowerBothEyes, setSamePowerBothEyes] = useState(false);
   const [hasCylindrical, setHasCylindrical] = useState(false);
@@ -149,6 +185,15 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const panelBodyRef = useRef<HTMLDivElement>(null);
+  const lensSentinelRef = useRef<HTMLDivElement>(null);
+  const lensControllersRef = useRef<Set<AbortController>>(new Set());
+  const lensLoadingRef = useRef(false);
+  const lensLoadMoreRetryRef = useRef(0);
+
+  useEffect(() => {
+    panelBodyRef.current?.scrollTo({ top: 0 });
+  }, [step]);
 
   useEffect(() => {
     if (!showCountryDropdown) return;
@@ -170,11 +215,26 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   const resetPanelState = useCallback(() => {
     setStep(1);
     setSelectedPowerType(null);
+    setBrands([]);
+    setSelectedBrand(null);
+    setBrandLoading(false);
+    setBrandError(null);
+    setBrandRetryKey(0);
     setSelectedLens(null);
     setSelectedTransition(null);
     setPendingTransitionId(null);
     setLenses([]);
     setLensLoading(false);
+    setLensLoadingMore(false);
+    setLensError(null);
+    setLensPage(0);
+    setLensTotalPages(0);
+    setLensRetryKey(0);
+    setLensLoadMoreRetryKey(0);
+    lensLoadingRef.current = false;
+    lensLoadMoreRetryRef.current = 0;
+    lensControllersRef.current.forEach((controller) => controller.abort());
+    lensControllersRef.current.clear();
     setBogoOffer(null);
     setSamePowerBothEyes(false);
     setHasCylindrical(false);
@@ -213,49 +273,262 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   }, [isOpen, productId, resetPanelState]);
 
   useEffect(() => {
-    if (!selectedPowerType || selectedPowerType === "frame-only") return;
+    if (!selectedPowerType || selectedPowerType === "frame-only") {
+      setBrands([]);
+      setBrandLoading(false);
+      setBrandError(null);
+      return;
+    }
 
-    const fetchLenses = async () => {
+    let cancelled = false;
+    const fetchBrands = async () => {
       try {
-        setLensLoading(true);
+        setBrandLoading(true);
+        setBrandError(null);
         const apiType = LENS_TYPE_MAP[selectedPowerType];
-        const result = await getLenses(apiType);
-        setLenses(result);
+        const result = await getLensBrands(apiType);
+        if (!cancelled) setBrands(result);
       } catch (error) {
-        console.error("Failed to fetch lenses:", error);
-        setLenses([]);
+        console.error("Failed to fetch lens brands:", error);
+        if (!cancelled) {
+          setBrands([]);
+          setBrandError("We couldn't load the brands. Please try again.");
+        }
       } finally {
-        setLensLoading(false);
+        if (!cancelled) setBrandLoading(false);
       }
     };
 
-    fetchLenses();
-  }, [selectedPowerType]);
+    fetchBrands();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPowerType, brandRetryKey]);
+
+  useEffect(() => {
+    if (
+      step !== 3 ||
+      !selectedPowerType ||
+      selectedPowerType === "frame-only" ||
+      !selectedBrand
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    lensControllersRef.current.add(controller);
+    lensLoadingRef.current = true;
+
+    setLenses([]);
+    setLensPage(0);
+    setLensTotalPages(0);
+    setLensLoadingMore(false);
+    setLensError(null);
+    setLensLoading(true);
+
+    const fetchFirstPage = async () => {
+      try {
+        const result = await getLenses({
+          type: LENS_TYPE_MAP[selectedPowerType] as "with_power" | "zero_power" | "progressive",
+          brand: selectedBrand._id,
+          page: 1,
+          limit: LENS_PAGE_SIZE,
+          signal: controller.signal,
+        });
+        if (cancelled || controller.signal.aborted) return;
+
+        setLenses(mergeLensPages([], result.lenses));
+        setLensPage(result.pagination.page);
+        setLensTotalPages(result.pagination.totalPages);
+      } catch (error) {
+        if (cancelled || controller.signal.aborted) return;
+        console.error("Failed to fetch lenses:", error);
+        setLensError("We couldn't load the lenses. Please try again.");
+      } finally {
+        lensControllersRef.current.delete(controller);
+        if (!cancelled) {
+          lensLoadingRef.current = false;
+          setLensLoading(false);
+        }
+      }
+    };
+
+    void fetchFirstPage();
+
+    return () => {
+      cancelled = true;
+      lensControllersRef.current.forEach((activeController) => activeController.abort());
+      lensControllersRef.current.clear();
+      lensLoadingRef.current = false;
+    };
+  }, [step, selectedPowerType, selectedBrand, lensRetryKey]);
+
+  const loadNextLensPage = useCallback(async () => {
+    if (
+      step !== 3 ||
+      lensLoadingRef.current ||
+      lensLoading ||
+      lensLoadingMore ||
+      !selectedPowerType ||
+      !selectedBrand ||
+      lensPage <= 0 ||
+      lensTotalPages <= 0 ||
+      lensPage >= lensTotalPages
+    ) {
+      return;
+    }
+
+    const nextPage = lensPage + 1;
+    const controller = new AbortController();
+    lensControllersRef.current.add(controller);
+    lensLoadingRef.current = true;
+    setLensLoadingMore(true);
+    setLensError(null);
+
+    try {
+      const result = await getLenses({
+        type: LENS_TYPE_MAP[selectedPowerType] as "with_power" | "zero_power" | "progressive",
+        brand: selectedBrand._id,
+        page: nextPage,
+        limit: LENS_PAGE_SIZE,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+
+      setLenses((previous) => mergeLensPages(previous, result.lenses));
+      setLensPage(result.pagination.page || nextPage);
+      setLensTotalPages(result.pagination.totalPages);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      console.error("Failed to load more lenses:", error);
+      setLensError("We couldn't load more lenses. Please try again.");
+    } finally {
+      lensControllersRef.current.delete(controller);
+      if (!controller.signal.aborted) {
+        lensLoadingRef.current = false;
+        setLensLoadingMore(false);
+      }
+    }
+  }, [
+    step,
+    lensLoading,
+    lensLoadingMore,
+    selectedPowerType,
+    selectedBrand,
+    lensPage,
+    lensTotalPages,
+  ]);
+
+  const hasMoreLenses = lensTotalPages > 0 && lensPage < lensTotalPages;
+
+  useEffect(() => {
+    if (
+      step !== 3 ||
+      !hasMoreLenses ||
+      lensLoading ||
+      lensLoadingMore ||
+      lensError
+    ) {
+      return;
+    }
+
+    const root = panelBodyRef.current;
+    const sentinel = lensSentinelRef.current;
+    if (!root || !sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadNextLensPage();
+        }
+      },
+      { root, rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [step, hasMoreLenses, lensLoading, lensLoadingMore, lensError, loadNextLensPage]);
+
+  useEffect(() => {
+    if (
+      lensLoadMoreRetryKey === 0 ||
+      lensLoadMoreRetryRef.current === lensLoadMoreRetryKey
+    ) {
+      return;
+    }
+    lensLoadMoreRetryRef.current = lensLoadMoreRetryKey;
+    void loadNextLensPage();
+  }, [lensLoadMoreRetryKey, loadNextLensPage]);
 
   const resetTransition = useCallback(() => {
     setSelectedTransition(null);
     setPendingTransitionId(null);
   }, []);
 
+  const retryBrands = useCallback(() => {
+    setBrandRetryKey((key) => key + 1);
+  }, []);
+
+  const retryLenses = useCallback(() => {
+    setLensError(null);
+    if (lenses.length === 0) {
+      setLensRetryKey((key) => key + 1);
+      return;
+    }
+    setLensLoadMoreRetryKey((key) => key + 1);
+  }, [lenses.length]);
+
+  const resetLensList = useCallback(() => {
+    lensControllersRef.current.forEach((controller) => controller.abort());
+    lensControllersRef.current.clear();
+    lensLoadingRef.current = false;
+    lensLoadMoreRetryRef.current = 0;
+    setLenses([]);
+    setLensLoading(false);
+    setLensLoadingMore(false);
+    setLensError(null);
+    setLensPage(0);
+    setLensTotalPages(0);
+    setLensRetryKey(0);
+    setLensLoadMoreRetryKey(0);
+  }, []);
+
   const handlePowerTypeSelect = useCallback(
     (type: PowerType) => {
       setSelectedPowerType(type);
+      setBrands([]);
+      setBrandError(null);
+      setBrandLoading(type !== "frame-only");
+      setSelectedBrand(null);
       setSelectedLens(null);
+      resetLensList();
       resetTransition();
       if (type === "frame-only") {
-        setStep(5);
+        setStep(6);
       } else {
         setStep(2);
       }
     },
-    [resetTransition]
+    [resetLensList, resetTransition]
+  );
+
+  const handleBrandSelect = useCallback(
+    (brand: LensBrand) => {
+      setSelectedBrand(brand);
+      setSelectedLens(null);
+      resetLensList();
+      resetTransition();
+      setStep(3);
+    },
+    [resetLensList, resetTransition]
   );
 
   const handleLensSelect = useCallback(
     (lens: LensItem) => {
       setSelectedLens(lens);
       resetTransition();
-      setStep(3);
+      setStep(4);
     },
     [resetTransition]
   );
@@ -282,7 +555,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   );
 
   const goPastTransition = useCallback(() => {
-    setStep(selectedPowerType === "zero-power" ? 5 : 4);
+    setStep(selectedPowerType === "zero-power" ? 6 : 5);
   }, [selectedPowerType]);
 
   const handleTransitionContinue = useCallback(() => {
@@ -301,26 +574,29 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     } else if (step === 2) {
       setStep(1);
       setSelectedPowerType(null);
+      setSelectedBrand(null);
       setSelectedLens(null);
+      setBrands([]);
       setLenses([]);
       resetTransition();
     } else if (step === 3) {
       setStep(2);
+      setSelectedLens(null);
       resetTransition();
     } else if (step === 4) {
-      // Manual power is the only Add Power form now. Back returns to the
-      // Transition step when it exists, otherwise to the Lens step.
-      const hasTransitionStep =
-        selectedPowerType === "with-power" || selectedPowerType === "progressive";
-      setStep(hasTransitionStep ? 3 : 2);
+      setStep(3);
+      resetTransition();
     } else if (step === 5) {
+      setStep(4);
+    } else if (step === 6) {
       if (selectedPowerType === "frame-only") {
         setStep(1);
         setSelectedPowerType(null);
+        setSelectedBrand(null);
       } else if (selectedPowerType === "zero-power") {
-        setStep(3);
-      } else {
         setStep(4);
+      } else {
+        setStep(5);
       }
     }
   }, [step, selectedPowerType, onClose, resetTransition]);
@@ -396,7 +672,10 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           quantity: 1,
           color: selectedColor ?? null,
           lens: selectedLens
-            ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price, discount: (selectedLens as any).discount }
+            ? { id: selectedLens._id ?? "", name: selectedLens.name, price: selectedLens.price, discount: selectedLens.discount }
+            : null,
+          brand: selectedBrand
+            ? { id: selectedBrand._id, name: selectedBrand.name }
             : null,
           transition: selectedTransition
             ? {
@@ -441,6 +720,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     isAddingToCart,
     productId,
     selectedPowerType,
+    selectedBrand,
     selectedLens,
     selectedTransition,
     powerDetails,
@@ -462,10 +742,10 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
 
   const completedSteps = step - 1;
 
-  const visibleStepNums = [1, 2, 3, 4].filter((stepNum) => {
+  const visibleStepNums = [1, 2, 3, 4, 5].filter((stepNum) => {
     if (!selectedPowerType) return true;
     if (selectedPowerType === "frame-only") return stepNum === 1;
-    if (selectedPowerType === "zero-power") return stepNum !== 4;
+    if (selectedPowerType === "zero-power") return stepNum !== 5;
     return true;
   });
 
@@ -506,22 +786,73 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
     </div>
   );
 
-  const renderStep2 = () => {
-    if (lensLoading) {
+  const renderLensSkeletons = () => (
+    <div className="flex flex-col gap-4" aria-hidden="true">
+      {[0, 1, 2].map((item) => (
+        <div
+          key={item}
+          className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-md animate-pulse"
+        >
+          <span className="h-16 w-16 shrink-0 rounded-lg bg-gray-200" />
+          <span className="min-w-0 flex-1 space-y-2">
+            <span className="block h-4 w-2/3 rounded bg-gray-200" />
+            <span className="block h-3 w-1/2 rounded bg-gray-100" />
+            <span className="block h-5 w-24 rounded bg-gray-200" />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderLensError = (message: string) => (
+    <div
+      role="alert"
+      className="flex flex-col items-center justify-center rounded-xl border border-red-100 bg-red-50/50 px-4 py-6 text-center"
+    >
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v4m0 4h.01M10.29 3.86l-7.4 12.82A2 2 0 004.63 20h14.74a2 2 0 001.74-3.32l-7.4-12.82a2 2 0 00-3.42 0z" />
+        </svg>
+      </span>
+      <p className="text-sm text-gray-600">{message}</p>
+      <button
+        type="button"
+        onClick={retryLenses}
+        className="mt-4 rounded-xl border border-teal-600 px-5 py-2.5 text-sm font-semibold text-teal-700 transition-colors hover:bg-teal-50"
+      >
+        Try again
+      </button>
+    </div>
+  );
+
+  const renderLensStep = () => {
+    if (lensLoading || (lensPage === 0 && !lensError)) {
       return (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-gray-500">Loading lenses...</p>
+        <div aria-busy="true" aria-label="Loading lenses">
+          {renderLensSkeletons()}
         </div>
       );
     }
 
+    if (lensError && lenses.length === 0) {
+      return renderLensError(lensError);
+    }
+
     if (lenses.length === 0) {
       return (
-        <div className="text-center py-12 text-gray-500">
-          No lenses available for this type
+        <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+          <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-700">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4 9-4V7" />
+            </svg>
+          </span>
+          <p className="text-sm text-gray-500">No lenses available for this brand</p>
         </div>
       );
     }
+
+    const hasReachedEnd =
+      !lensLoading && !lensLoadingMore && !lensError && !hasMoreLenses && lensTotalPages > 0;
 
     return (
       <div className="flex flex-col gap-4">
@@ -553,6 +884,11 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
                   <p className="font-medium text-gray-900">{lens.name}</p>
                   {lens.badge && <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">{lens.badge}</span>}
                 </div>
+                {(lens.material || lens.coating) && (
+                  <p className="text-xs text-gray-500 mb-1">
+                    {[lens.material, lens.coating].filter(Boolean).join(" • ")}
+                  </p>
+                )}
                 {lens.features && <div className="flex flex-wrap gap-1 mb-2">{lens.features.slice(0, 3).map((f, i) => <span key={i} className="text-xs text-gray-500">{f}</span>)}</div>}
                 <div className="flex items-center gap-2">
                   <Price value={finalPrice} size="md" />
@@ -569,6 +905,19 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
             </button>
           );
         })}
+
+        {lensLoadingMore && renderLensSkeletons()}
+        {lensError && renderLensError(lensError)}
+
+        {hasMoreLenses && (
+          <div ref={lensSentinelRef} className="h-px w-full" aria-hidden="true" />
+        )}
+
+        {hasReachedEnd && (
+          <p className="py-2 text-center text-xs font-medium text-gray-400">
+            You've seen all lenses
+          </p>
+        )}
       </div>
     );
   };
@@ -589,40 +938,46 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   );
 
   /**
-   * Live breakdown shown while the customer moves through Lens → Transition →
-   * Add Power. It is display-only: the backend remains the source of truth for
-   * the amount charged when the item is added to the cart.
+   * Sticky bottom bar shared by the lens steps. It is display-only: the backend
+   * remains the source of truth for the amount charged when the item is added
+   * to the cart.
    */
-  const renderLivePriceSummary = () => {
+  const renderBottomSummary = () => {
     const lensPrice = selectedLens?.price ?? 0;
     const transitionPrice = selectedTransition?.price ?? 0;
     const totalPrice = productPrice + lensPrice + transitionPrice;
 
     return (
-      <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <div className="flex justify-between gap-3 text-sm">
-          <span className="text-gray-600">Frame</span>
-          <Price value={productPrice} size="sm" />
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 shrink-0">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Total</p>
+          <Price value={totalPrice} size="lg" />
         </div>
-        {selectedLens && (
-          <div className="mt-1 flex justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate text-gray-600">
-              Lens ({selectedLens.name})
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+          {selectedBrand && (
+            <span
+              title={selectedBrand.name}
+              className="inline-flex max-w-[140px] items-center truncate rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700"
+            >
+              {selectedBrand.name}
             </span>
-            <Price value={lensPrice} size="sm" />
-          </div>
-        )}
-        {selectedTransition && (
-          <div className="mt-1 flex justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate text-gray-600">
-              Transition – {selectedTransition.name} ({selectedTransition.color})
+          )}
+          {selectedLens && (
+            <span
+              title={selectedLens.name}
+              className="inline-flex max-w-[140px] items-center truncate rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
+            >
+              {selectedLens.name}
             </span>
-            <Price value={transitionPrice} size="sm" />
-          </div>
-        )}
-        <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2">
-          <span className="text-sm font-semibold text-gray-900">Total</span>
-          <Price value={totalPrice} size="md" />
+          )}
+          {selectedTransition && (
+            <span
+              title={`${selectedTransition.name} (${selectedTransition.color})`}
+              className="inline-flex max-w-[160px] items-center truncate rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600"
+            >
+              {selectedTransition.name} · {selectedTransition.color}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -832,6 +1187,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           </div>
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens Type</span><span className="text-gray-900 font-medium">{selectedPowerType === "with-power" ? "With Power" : selectedPowerType === "zero-power" ? "Zero Power" : selectedPowerType === "progressive" ? "Progressive" : "Frame Only"}</span></div>
+            {selectedBrand && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Brand</span><span className="text-gray-900 font-medium">{selectedBrand.name}</span></div>}
             {selectedLens && <div className="flex justify-between text-sm mb-1"><span className="text-gray-500">Lens</span><span className="text-gray-900 font-medium">{selectedLens.name} (+<Price value={selectedLens.price} size="xs" />)</span></div>}
             {selectedTransition && (
               <div className="flex justify-between text-sm mb-1 gap-3">
@@ -862,50 +1218,87 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-[70] shadow-2xl transform transition-transform duration-300 overflow-y-auto ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-lg"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+      <div className={`fixed top-0 right-0 z-[70] flex h-full w-full flex-col bg-white shadow-2xl transform transition-transform duration-300 sm:w-[420px] ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+        <div className="shrink-0 border-b border-gray-200 bg-white p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <button onClick={handleBack} aria-label="Go back" className="rounded-lg p-2 hover:bg-gray-100"><svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
+            <button onClick={onClose} aria-label="Close lens selection" className="rounded-lg p-2 hover:bg-gray-100"><svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-start">
             {visibleStepNums.map((stepNum, idx) => {
               const label = STEP_LABELS[stepNum - 1];
               const isActive = step === stepNum;
               const isCompleted = completedSteps >= stepNum;
+              const isConnectorFilled = idx > 0 && completedSteps >= visibleStepNums[idx - 1];
               return (
-                <div key={label} className="flex items-center flex-1">
-                  <div className={`flex flex-col items-center ${idx > 0 ? "flex-1" : ""}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${isCompleted ? "bg-teal-600 text-white" : isActive ? "bg-teal-100 text-teal-700 border-2 border-teal-600" : "bg-gray-100 text-gray-400"}`}>
-                      {isCompleted ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : stepNum}
+                <Fragment key={label}>
+                  {idx > 0 && (
+                    <div
+                      aria-hidden="true"
+                      className={`mx-1 mt-4 h-0.5 min-w-1 flex-1 ${isConnectorFilled ? "bg-teal-600" : "bg-gray-200"}`}
+                    />
+                  )}
+                  <div className="flex w-12 shrink-0 flex-col items-center sm:w-16">
+                    <div
+                      aria-current={isActive ? "step" : undefined}
+                      className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium ${isCompleted ? "bg-teal-600 text-white" : isActive ? "border-2 border-teal-600 bg-teal-100 text-teal-700" : "bg-gray-100 text-gray-400"}`}
+                    >
+                      {isCompleted ? <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : stepNum}
                     </div>
-                    <span className={`text-xs mt-1 ${isActive ? "text-teal-700 font-medium" : isCompleted ? "text-teal-600" : "text-gray-400"}`}>{label}</span>
+                    <span className={`mt-1 whitespace-nowrap text-[9px] sm:text-xs ${isActive ? "font-medium text-teal-700" : isCompleted ? "text-teal-600" : "text-gray-400"}`}>{label}</span>
                   </div>
-                  {idx < visibleStepNums.length - 1 && <div className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-teal-600" : "bg-gray-200"}`} />}
-                </div>
+                </Fragment>
               );
             })}
           </div>
         </div>
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          {step === 1
-            ? "Select Lens Type"
-            : step === 2
-            ? "Choose Lens Package"
-            : step === 3
-            ? TRANSITION_STEP_TITLE
-            : step === 4
-            ? "Add Power"
-            : "Confirm Selection"}
-        </h2>
-        {step >= 2 && step <= 4 && renderLivePriceSummary()}
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderTransitionStep()}
-        {step === 4 && renderStep3()}
-        {step === 5 && renderConfirmStep()}
+
+        <div ref={panelBodyRef} className="flex-1 overflow-y-auto p-4">
+          <div key={step} className="lens-step-enter">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {step === 1
+                ? "Select Lens Type"
+                : step === 2
+                ? "Select Brand"
+                : step === 3
+                ? "Choose Lens Package"
+                : step === 4
+                ? TRANSITION_STEP_TITLE
+                : step === 5
+                ? "Add Power"
+                : "Confirm Selection"}
+            </h2>
+            {step === 2 && (
+              <p className="mt-1 text-sm text-gray-500">
+                Choose a lens brand to see the lenses available.
+              </p>
+            )}
+            <div className="mt-4">
+              {step === 1 && renderStep1()}
+              {step === 2 && (
+                <BrandStep
+                  brands={brands}
+                  loading={brandLoading}
+                  error={brandError}
+                  selectedBrand={selectedBrand}
+                  onSelect={handleBrandSelect}
+                  onBack={handleBack}
+                  onRetry={retryBrands}
+                />
+              )}
+              {step === 3 && renderLensStep()}
+              {step === 4 && renderTransitionStep()}
+              {step === 5 && renderStep3()}
+              {step === 6 && renderConfirmStep()}
+            </div>
+          </div>
         </div>
+
+        {step >= 2 && step <= 5 && (
+          <div className="shrink-0 border-t border-gray-200 bg-white p-4">
+            {renderBottomSummary()}
+          </div>
+        )}
       </div>
     </>
   );

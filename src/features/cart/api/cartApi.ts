@@ -20,6 +20,7 @@ export interface BackendCartItem {
   offer: string | null;
   color?: { name: string; id: string } | null;
   variant?: OrderItemVariant | null;
+  brand?: { id?: string; _id?: string; name?: string; logo?: string } | null;
   lens?: { id: string; name: string; price: number } | null;
   transition?: {
     transitionId?: string;
@@ -146,6 +147,13 @@ export function mapBackendItem(item: BackendCartItem) {
     quantity: item.quantity,
     color: item.color ?? null,
     variant: item.variant ?? null,
+    brand: item.brand
+      ? {
+          id: item.brand.id ?? item.brand._id ?? "",
+          name: item.brand.name ?? "",
+          logo: item.brand.logo,
+        }
+      : null,
     lens: item.lens ?? null,
     transition: item.transition
       ? {
@@ -183,6 +191,7 @@ export async function addToCartApi(payload: {
   productId: string;
   quantity?: number;
   color?: { name: string; id: string } | null;
+  brand?: { id: string; name: string } | null;
   lens?: { id: string; name: string; price: number } | null;
   transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;

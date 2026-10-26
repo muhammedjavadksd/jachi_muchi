@@ -22,6 +22,11 @@ export interface OrderItemColor {
   name: string;
 }
 
+export interface OrderItemBrand {
+  id?: string;
+  name: string;
+}
+
 export interface OrderItemLens {
   id?: string;
   name: string;
@@ -65,6 +70,7 @@ export interface CreateOrderItem {
   freeUnitPrice?: number;
   bogoGroupId?: string;
   color?: OrderItemColor;
+  brand?: OrderItemBrand;
   lens?: OrderItemLens;
   transition?: OrderItemTransition;
   powerType?: string;
