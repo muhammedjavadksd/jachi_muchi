@@ -21,6 +21,7 @@ import {
   LENS_POWER_HELP_PHONE_TEL,
 } from "@/shared/constants";
 import { TRANSITION_STEP_TITLE } from "@/features/checkout/constants";
+import { getLensPricing, formatDiscountPercent } from "@/features/lens/utils/pricing";
 
 
 type PowerType = "with-power" | "zero-power" | "progressive" | "frame-only";
@@ -861,10 +862,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
           // off — there is no separate originalPrice field. When a discount
           // applies, the card shows the computed final price with the list
           // price struck through.
-          const discountPct =
-            typeof lens.discount === "number" && lens.discount > 0 ? lens.discount : 0;
-          const finalPrice =
-            discountPct > 0 ? Math.round(lens.price * (1 - discountPct / 100)) : lens.price;
+          const { currentPrice: finalPrice, discountPercent: discountPct = 0 } = getLensPricing(lens);
           return (
             <button
               key={lens._id || lens.id || lens.name}
@@ -895,7 +893,7 @@ const [isAddingToCart, setIsAddingToCart] = useState(false);
                   {discountPct > 0 && (
                     <>
                       <Price value={lens.price} size="sm" className="text-gray-400 line-through" />
-                      <span className="text-xs text-green-600 font-medium">{discountPct}% OFF</span>
+                      <span className="text-xs text-green-600 font-medium">{formatDiscountPercent(discountPct)}% OFF</span>
                     </>
                   )}
                 </div>

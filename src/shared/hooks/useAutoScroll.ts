@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
-  AUTO_SCROLL_ANIMATION_MS,
   AUTO_SCROLL_DEFAULT_DELAY_MS,
   AUTO_SCROLL_EDGE_TOLERANCE_PX,
   AUTO_SCROLL_MOUSE_MOVE_PAUSE_MS,

@@ -77,7 +77,7 @@ export const getProductReviews = async (
   let res;
   try {
     res = await api.get<ReviewListApiResponse>(
-      `/products/${productId}/reviews`,
+      `/products/${encodeURIComponent(productId)}/reviews`,
       {
         params: {
           page,
@@ -127,7 +127,7 @@ export const createReview = async (
 ): Promise<ReviewActionResponse> => {
   try {
     const res = await api.post<ReviewActionResponse>(
-      `/products/${productId}/reviews`,
+      `/products/${encodeURIComponent(productId)}/reviews`,
       payload
     );
     return { ...res.data, data: mapOptionalReview(res.data.data) };
@@ -142,7 +142,7 @@ export const updateReview = async (
 ): Promise<ReviewActionResponse> => {
   try {
     const res = await api.put<ReviewActionResponse>(
-      `/reviews/${reviewId}`,
+      `/reviews/${encodeURIComponent(reviewId)}`,
       payload
     );
     return { ...res.data, data: mapOptionalReview(res.data.data) };
@@ -155,7 +155,7 @@ export const deleteReview = async (
   reviewId: string
 ): Promise<ReviewActionResponse> => {
   try {
-    const res = await api.delete<ReviewActionResponse>(`/reviews/${reviewId}`);
+    const res = await api.delete<ReviewActionResponse>(`/reviews/${encodeURIComponent(reviewId)}`);
     return res.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, "Failed to delete review"));
@@ -195,7 +195,7 @@ export const getUserReview = async (
 ): Promise<ReviewActionResponse> => {
   try {
     const res = await api.get<ReviewActionResponse>(
-      `/reviews/product/${productId}/user`
+      `/reviews/product/${encodeURIComponent(productId)}/user`
     );
     return { ...res.data, data: mapOptionalReview(res.data.data) };
   } catch (error) {

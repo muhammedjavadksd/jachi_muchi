@@ -58,9 +58,9 @@ export function useProductDetail() {
     if (!id) return;
     setLoading(true);
     getOffers().then(setOffers).catch(() => {});
-    api.get(`/products/${id}`)
+    api.get(`/products/${encodeURIComponent(id)}`)
       .then((res) => setProduct(res.data.data))
-      .catch(console.error)
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
 

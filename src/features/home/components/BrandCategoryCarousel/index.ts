@@ -1,0 +1,1 @@
+export { BrandCategoryCarousel } from "./BrandCategoryCarousel";

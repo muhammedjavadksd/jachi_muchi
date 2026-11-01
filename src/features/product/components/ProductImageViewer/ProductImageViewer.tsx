@@ -69,8 +69,8 @@ export const ProductImageViewer = memo(function ProductImageViewer({
   onImageChange,
   onGoPrev,
   onGoNext,
-  productId,
-  onSimilarClick,
+  productId: _productId,
+  onSimilarClick: _onSimilarClick,
 }: ProductImageViewerProps): JSX.Element {
   // [HIDDEN] 360° modal state — uncomment to restore
   // const [viewer360Open, setViewer360Open] = useState(false);

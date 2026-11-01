@@ -397,10 +397,8 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
   const {
     addresses,
     addressLoading,
-    userCoupons,
     eligibleCoupons,
     usedCoupons,
-    isCouponListOpen,
     couponInput,
     appliedCoupon,
     couponSavings,
@@ -434,7 +432,6 @@ export const CheckoutPage = memo(function CheckoutPage(): JSX.Element {
     handleRemoveCoupon,
     handleCopyCoupon,
     handleCouponInputChange,
-    toggleCouponList,
     setPaymentMethod,
     handlePlaceOrder,
     setIsModalOpen,

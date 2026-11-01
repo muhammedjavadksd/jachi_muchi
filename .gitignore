@@ -102,3 +102,12 @@ logs/
 # # Cursor / tool artifacts
 # ####################################
 # .cursor/
+
+
+####################################
+# Scratch / debug dumps
+####################################
+null
+doit*.txt
+*_raw.txt
+tmp_*.txt

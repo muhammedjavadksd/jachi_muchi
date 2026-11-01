@@ -6,6 +6,7 @@ import { Container, Price } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { formatVariantLabel, hasVariant } from "@/shared/utils/variant";
 import { useCartPage } from "@/features/cart/hooks";
+import { STANDALONE_LENS_CHECKOUT_NOTICE } from "@/features/cart/constants";
 import { useWishlist } from "@/features/wishlist/hooks";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
@@ -33,9 +34,13 @@ export const CartPage = memo(function CartPage(): JSX.Element {
     handleUpdateQuantity,
   } = useCartPage();
 
-  const [pendingRemoval, setPendingRemoval] = useState<{ cartItemId: string; productId: string; productName: string; productPrice: number; productImage?: string } | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<{ cartItemId: string; itemType?: "frame" | "lens"; productId: string; productName: string; productPrice: number; productImage?: string } | null>(null);
   const [isMovingToWishlist, setIsMovingToWishlist] = useState(false);
   const { addItem: addToWishlist } = useWishlist();
+  const hasFrameItem = useMemo(
+    () => cartItems.some((item) => item.itemType !== "lens"),
+    [cartItems]
+  );
 
   // Dismissal is blocked while the move is in flight so the request cannot be
   // abandoned halfway. The success path closes the modal directly, bypassing it.
@@ -120,10 +125,10 @@ export const CartPage = memo(function CartPage(): JSX.Element {
               <div className="text-right shrink-0">
                 {isFreeOffer ? (
                   <div className="flex flex-col items-end gap-0.5">
-                    {item.mrp && <Price value={item.mrp} size="sm" className="text-gray-400 line-through" />}
+                    {!!item.mrp && <Price value={item.mrp} size="sm" className="text-gray-400 line-through" />}
                     <span className="font-bold text-green-600 text-lg">FREE</span>
                   </div>
-                ) : item.mrp && item.mrp > item.productPrice && (
+                ) : !!item.mrp && item.mrp > item.productPrice && (
                   <Price value={item.mrp} size="sm" className="text-gray-400 line-through" />
                 )}
               </div>
@@ -158,6 +163,25 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             {item.lens && (
               <div className="flex justify-between items-center my-3">
                 <span className="text-gray-600 text-sm">Lens: {item.lens.name}{item.lens.price > 0 ? <> (+<Price value={item.lens.price} size="xs" />)</> : ''}</span>
+              </div>
+            )}
+            {item.powerDetails && (
+              <div className="my-2 text-gray-600 text-sm">
+                <div className="font-medium mb-1">Power</div>
+                <div>
+                  {(() => {
+                    const pd = item.powerDetails as any;
+                    const parts: string[] = [];
+                    if (pd.rightSPH || pd.rightSPH === 0) parts.push(`Right: SPH ${pd.rightSPH}`);
+                    else if (pd.rightSph || pd.rightSph === 0) parts.push(`Right: SPH ${pd.rightSph}`);
+                    if (pd.leftSPH || pd.leftSPH === 0) parts.push(`Left: SPH ${pd.leftSPH}`);
+                    else if (pd.leftSph || pd.leftSph === 0) parts.push(`Left: SPH ${pd.leftSph}`);
+                    if (parts.length === 0 && pd.knowPowerLater) {
+                      return "Power to be provided later";
+                    }
+                    return parts.join(" | ");
+                  })()}
+                </div>
               </div>
             )}
 
@@ -237,6 +261,7 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                 <button
                   onClick={() => setPendingRemoval({
                     cartItemId: item.cartItemId!,
+                    itemType: item.itemType,
                     productId: item.productId,
                     productName: item.productName,
                     productPrice: item.productPrice,
@@ -313,16 +338,18 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   <div className="space-y-4">
                     {displayBill ? (
                       <>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Frame</span>
-                          <Price
-                            value={Math.max(
-                              0,
-                              displayBill.totalItemPrice - lensTotal - transitionTotal
-                            )}
-                            size="sm"
-                          />
-                        </div>
+                        {hasFrameItem && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Frame</span>
+                            <Price
+                              value={Math.max(
+                                0,
+                                displayBill.totalItemPrice - lensTotal - transitionTotal
+                              )}
+                              size="sm"
+                            />
+                          </div>
+                        )}
                         {brandLabel && (
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">{brandLabel}</span>
@@ -374,21 +401,24 @@ export const CartPage = memo(function CartPage(): JSX.Element {
                   </div>
                 </div>
 
-                {cartItems.length > 0 ? (
-                  <Link
-                    to="/checkout"
-                    className="block w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-center text-base transition-all active:scale-[0.985]"
-                  >
-                    Proceed To Checkout →
-                  </Link>
-                ) : (
-                  <button
-                    disabled
-                    className="block w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-2xl text-center text-base cursor-not-allowed"
-                  >
-                    Proceed To Checkout →
-                  </button>
-                )}
+     {cartItems.length > 0 && !hasFrameItem && (
+  <p className="mb-3 text-sm text-gray-600">{STANDALONE_LENS_CHECKOUT_NOTICE}</p>
+)}
+     {cartItems.length > 0 ? (
+  <Link
+    to="/checkout"
+    className="block w-full py-4 bg-teal-700 hover:bg-teal-800 text-white font-semibold rounded-2xl text-center text-base transition-all active:scale-[0.985]"
+  >
+    Proceed To Checkout →
+  </Link>
+) : (
+  <button
+    disabled
+    className="block w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-2xl text-center text-base cursor-not-allowed"
+  >
+    Proceed To Checkout →
+  </button>
+)}
               </div>
             </div>
           </div>
@@ -411,17 +441,23 @@ export const CartPage = memo(function CartPage(): JSX.Element {
             </button>
 
             <h3 className="text-lg font-semibold text-gray-900 pr-6">Remove Item From Cart?</h3>
-            <p className="text-sm text-gray-500 mt-2">Instead, you could wishlist this item and access it later.</p>
+            <p className="text-sm text-gray-500 mt-2">
+              {pendingRemoval.itemType === "lens"
+                ? "This lens will be removed from your cart."
+                : "Instead, you could wishlist this item and access it later."}
+            </p>
 
             <div className="flex flex-col gap-3 mt-6">
-              <button
-                onClick={handleMoveToWishlist}
-                disabled={isMovingToWishlist}
-                aria-busy={isMovingToWishlist}
-                className="w-full py-3 px-4 border border-teal-700 text-teal-700 font-semibold rounded-xl hover:bg-teal-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isMovingToWishlist ? "Moving to wishlist..." : "Move to wishlist"}
-              </button>
+              {pendingRemoval.itemType !== "lens" && (
+                <button
+                  onClick={handleMoveToWishlist}
+                  disabled={isMovingToWishlist}
+                  aria-busy={isMovingToWishlist}
+                  className="w-full py-3 px-4 border border-teal-700 text-teal-700 font-semibold rounded-xl hover:bg-teal-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isMovingToWishlist ? "Moving to wishlist..." : "Move to wishlist"}
+                </button>
+              )}
               <button
                 onClick={async () => {
                   if (pendingRemoval) {

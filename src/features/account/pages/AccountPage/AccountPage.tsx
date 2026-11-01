@@ -519,7 +519,7 @@ const { addToCart } = useCart();
       setShowCancelModal(false);
       onClose();
     } catch (error) {
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Cancel order failed");
       toast.error("Failed to cancel order. Try again.");
     } finally {
       setCancelLoading(false);

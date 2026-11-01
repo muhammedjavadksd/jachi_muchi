@@ -172,7 +172,7 @@ export function useOrders(): UseOrdersReturn {
       handleOrderCancel(orderId);
       closeOrderDrawer();
     } catch (error) {
-      console.error(error);
+      if (import.meta.env.DEV) console.error("Cancel order failed");
       alert("Failed to cancel order");
     }
   }, [handleOrderCancel, closeOrderDrawer]);

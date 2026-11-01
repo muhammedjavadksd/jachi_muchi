@@ -69,7 +69,11 @@ export const CouponModal = memo(function CouponModal({
   onCopyCoupon,
 }: CouponModalProps): JSX.Element | null {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [localCopied, setLocalCopied] = useState<string | null>(null);
+  const [localCopied, setLocalCopied] = useState<string | null>(copiedCoupon);
+
+  useEffect(() => {
+    setLocalCopied(copiedCoupon ?? null);
+  }, [copiedCoupon]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -113,6 +117,8 @@ export const CouponModal = memo(function CouponModal({
 
     return { eligibleCoupons: eligible, almostThereCoupons: almostThere };
   }, [userCoupons, cartTotal]);
+
+  const isCouponListEmpty = eligibleCoupons.length === 0 && almostThereCoupons.length === 0;
 
   const getDiscountText = (coupon: UserCoupon) => {
     const value = Number(coupon.discountValue) || 0;
@@ -197,7 +203,7 @@ export const CouponModal = memo(function CouponModal({
           </div>
 
           {/* Best offer — single recommended */}
-          {userCoupons.length === 0 && almostThereCoupons.length === 0 ? (
+          {isCouponListEmpty ? (
             <div className="px-4 pb-4">
               <div className="text-center py-8">
                 <svg className="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

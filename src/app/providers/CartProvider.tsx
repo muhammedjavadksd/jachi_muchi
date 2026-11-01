@@ -15,6 +15,7 @@ import type { OrderItemVariant } from "@/shared/utils/variant";
 export interface CartItem {
   cartItemId?: string;
   bogoGroupId?: string;
+  itemType?: "frame" | "lens";
   productId: string;
   variantId?: string;
   productName: string;
@@ -46,11 +47,18 @@ export interface CartItem {
 
 /** What the add-to-cart endpoints accept, re-exported so callers need no api import. */
 export interface AddToCartPayload {
-  productId: string;
+  productId?: string;
+  itemType?: "frame" | "lens";
   quantity?: number;
   color?: { name: string; id: string } | null;
   brand?: { id: string; name: string } | null;
-  lens?: { id: string; name: string; price: number; discount?: number } | null;
+  lens?: {
+    id: string;
+    name: string;
+    price?: number;
+    discount?: number;
+    image?: string | null;
+  } | null;
   transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;
   powerDetails?: object | null;

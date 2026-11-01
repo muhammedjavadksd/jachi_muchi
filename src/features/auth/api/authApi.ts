@@ -73,9 +73,8 @@ export const authApi = {
 
   getAddresses: async (invalidId?: string): Promise<AddressListResponse> => {
     if (invalidId) {
-      console.warn(
-        "[authApi.getAddresses] called with an ID parameter — did you mean to pass address._id instead of userId?",
-        { passed: invalidId }
+      if (import.meta.env.DEV) console.warn(
+        "[authApi.getAddresses] called with an ID parameter — did you mean to pass address._id instead of userId?"
       );
     }
     const response = await api.get<AddressListResponse>("/address");
@@ -88,17 +87,17 @@ export const authApi = {
   },
 
   updateAddress: async (id: string, data: SaveAddressRequest): Promise<AddressResponse> => {
-    const response = await api.put<AddressResponse>(`/address/${id}`, data);
+    const response = await api.put<AddressResponse>(`/address/${encodeURIComponent(id)}`, data);
     return response.data;
   },
 
   deleteAddress: async (id: string): Promise<DeleteAddressResponse> => {
-    const response = await api.delete<DeleteAddressResponse>(`/address/${id}`);
+    const response = await api.delete<DeleteAddressResponse>(`/address/${encodeURIComponent(id)}`);
     return response.data;
   },
 
   setDefaultAddress: async (id: string): Promise<AddressResponse> => {
-    const response = await api.put<AddressResponse>(`/address/${id}/default`, {});
+    const response = await api.put<AddressResponse>(`/address/${encodeURIComponent(id)}/default`, {});
     return response.data;
   },
 };

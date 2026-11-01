@@ -75,7 +75,7 @@ export async function fetchWishlist(): Promise<ApiWishlistItem[]> {
 
     return wishlistData.items.map(transformWishlistItem);
   } catch (error: any) {
-    console.error("fetchWishlist error:", error.response?.data || error.message);
+    if (import.meta.env.DEV) console.error("fetchWishlist error");
     throw new Error(error.response?.data?.message || "Failed to fetch wishlist");
   }
 }
@@ -94,7 +94,7 @@ export async function addToWishlistAPI(
     const lastItem = wishlistData.items[wishlistData.items.length - 1];
     return transformWishlistItem(lastItem);
   } catch (error: any) {
-    console.error("addToWishlistAPI error:", error.response?.data || error.message);
+    if (import.meta.env.DEV) console.error("addToWishlistAPI error");
     throw new Error(error.response?.data?.message || "Failed to add item to wishlist");
   }
 }
@@ -104,9 +104,9 @@ export async function removeFromWishlistAPI(
 ): Promise<void> {
   try {
     const cleanId = productId.replace(/^\/?(product\/)?/, "");
-    await api.delete(`/wishlist/remove/${cleanId}`);
+    await api.delete(`/wishlist/remove/${encodeURIComponent(cleanId)}`);
   } catch (error: any) {
-    console.error("removeFromWishlistAPI error:", error.response?.data || error.message);
+    if (import.meta.env.DEV) console.error("removeFromWishlistAPI error");
     throw new Error(error.response?.data?.message || "Failed to remove item from wishlist");
   }
 }
@@ -116,7 +116,7 @@ export async function checkWishlistItem(
 ): Promise<boolean> {
   try {
     const cleanId = productId.replace(/^\/?(product\/)?/, "");
-    const response = await api.get(`/wishlist/check/${cleanId}`);
+    const response = await api.get(`/wishlist/check/${encodeURIComponent(cleanId)}`);
     return response.data.data?.isInWishlist || false;
   } catch {
     return false;

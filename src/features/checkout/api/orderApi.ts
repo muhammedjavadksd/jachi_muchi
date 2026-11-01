@@ -13,7 +13,7 @@ export const getMyOrders = async () => {
 
 export const cancelOrder = async (orderId: string) => {
   try {
-    const res = await api.put(`/orders/${orderId}/cancel`);
+    const res = await api.put(`/orders/${encodeURIComponent(orderId)}/cancel`);
     return res.data;
   } catch (error) {
     console.error("cancelOrder error:", error);
@@ -28,7 +28,7 @@ export const createOrder = async (payload: CreateOrderPayload) => {
 
 export const getOrderById = async (orderId: string) => {
   try {
-    const res = await api.get(`/orders/${orderId}`);
+    const res = await api.get(`/orders/${encodeURIComponent(orderId)}`);
     return res.data;
   } catch (error) {
     console.error("getOrderById error:", error);
@@ -51,6 +51,6 @@ export const updateOrderAddress = async (
   orderId: string,
   payload: UpdateOrderAddressPayload
 ) => {
-  const res = await api.patch(`/orders/${orderId}/address`, payload);
+  const res = await api.patch(`/orders/${encodeURIComponent(orderId)}/address`, payload);
   return res.data;
 };

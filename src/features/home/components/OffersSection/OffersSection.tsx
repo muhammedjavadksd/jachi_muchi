@@ -40,7 +40,7 @@ export const OffersSection = memo(function OffersSection(): JSX.Element {
       setOffers(data);
       setCurrentSlide(0);
     } catch (err: any) {
-      setError(err.message || "Failed to load offers");
+      setError("Failed to load offers");
     } finally {
       setLoading(false);
     }

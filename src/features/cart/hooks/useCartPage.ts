@@ -9,6 +9,7 @@ import {
 } from "@/shared/services/offerEngine";
 import type { Offer, OfferBadge } from "@/features/offer/types";
 import { useCart } from "@/features/cart/hooks/useCart";
+import { getEffectiveFittingFee } from "@/shared/utils/fittingFee";
 
 interface NormalizedBill {
   totalItemPrice: number;
@@ -194,8 +195,10 @@ export function useCartPage() {
   // to a badge reading 3.
   const totalQuantity = itemCount;
 
-  // Server bill owns this figure (0 for frame-only carts); no client fallback.
-  const fittingFee = normalizedBill.fittingFee;
+  const fittingFee = useMemo(
+    () => getEffectiveFittingFee(normalizedBill.fittingFee),
+    [normalizedBill.fittingFee]
+  );
 
   const totalOfferSavings = useMemo(
     () =>
@@ -242,8 +245,9 @@ export function useCartPage() {
     if (!normalizedBill) return null;
     return {
       ...normalizedBill,
+      fittingFee: getEffectiveFittingFee(normalizedBill.fittingFee),
       offerSavings: normalizedBill.offerSavings + Math.round(totalComboSavings),
-      totalPayable: normalizedBill.totalPayable - Math.round(totalComboSavings),
+      totalPayable: Math.max(0, normalizedBill.totalPayable - Math.round(totalComboSavings)),
     };
   }, [normalizedBill, totalComboSavings]);
 

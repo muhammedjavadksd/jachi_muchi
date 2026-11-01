@@ -8,6 +8,7 @@ import { ROUTE_PATHS } from "@/shared/constants/routes";
 const App = lazy(() => import("@/App").then(m => ({ default: m.default })));
 const SearchPage = lazy(() => import("@/features/product/pages/SearchPage/SearchPage").then(m => ({ default: m.SearchPage })));
 const ProductDetailPage = lazy(() => import("@/features/product/pages/ProductDetailPage/ProductDetailPage").then(m => ({ default: m.ProductDetailPage })));
+const LensDetailPage = lazy(() => import("@/features/lens/pages/LensDetailPage/LensDetailPage").then(m => ({ default: m.LensDetailPage })));
 const CartPage = lazy(() => import("@/features/cart").then(m => ({ default: m.CartPage })));
 const CheckoutPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.CheckoutPage })));
 const OrderSuccessPage = lazy(() => import("@/features/checkout").then(m => ({ default: m.OrderSuccessPage })));
@@ -75,6 +76,7 @@ export const routes: RouteObject[] = [
       { path: "/search/:category", element: <SearchPage /> },
       { path: "/category/:category", element: <SearchPage /> },
       { path: "/product/:id", element: <ProductDetailPage /> },
+      { path: "/lens/:id", element: <LensDetailPage /> },
       { path: "/wishlist", element: <ProtectedRoute><WishlistPage /></ProtectedRoute> },
       { path: "/cart", element: <ProtectedRoute><CartPage /></ProtectedRoute> },
       { path: "/checkout", element: <ProtectedRoute><CheckoutPage /></ProtectedRoute> },
