@@ -147,3 +147,15 @@ export interface CategoryNavProps {
   categories: CategoryNavItem[];
   activeCategory?: string;
 }
+
+export interface BrandBentoTile {
+  name: string;
+  tagline?: string;
+  image: string;
+  link: string;
+}
+
+export interface BrandBentoSectionProps {
+  featured: BrandBentoTile;
+  brands: BrandBentoTile[];
+}

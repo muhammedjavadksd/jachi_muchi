@@ -10,6 +10,7 @@ import {
 } from "@/shared/utils/variant";
 import { SEO } from "@/shared/components/SEO/SEO";
 import { noIndexMeta } from "@/shared/constants/noIndexMeta";
+import { getEffectiveFittingFee } from "@/shared/utils/fittingFee";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -94,8 +95,9 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
           createdAt: order.createdAt,
           paymentMethod: order.paymentMethod,
           items: (order.items || []).map((item: any) => ({
+            itemType: item.itemType,
             productId: item.productId,
-            name: item.name,
+            name: item.name || item.lens?.name,
             quantity: item.quantity || item.totalQuantity,
             price: item.price,
             color: item.color || null,
@@ -221,7 +223,7 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
   }, [safeItems]);
 
   const total = useMemo(() =>
-    order?.total ?? subtotal, [order, subtotal]);
+    Math.max(0, order?.total ?? subtotal), [order, subtotal]);
 
   const discount = useMemo(() => {
     if (order?.discount !== undefined) return order.discount;
@@ -236,7 +238,10 @@ export const OrderSuccessPage = memo(function OrderSuccessPage(): JSX.Element {
 
   const totalSaved = discount + offerSavings;
 
-  const fittingFee = order?.fittingFee ?? 0;
+  const fittingFee = useMemo(
+    () => getEffectiveFittingFee(order?.fittingFee),
+    [order?.fittingFee]
+  );
 
   const addressName = order?.address?.name || "N/A";
   const addressFull = order?.address?.fullAddress || "";

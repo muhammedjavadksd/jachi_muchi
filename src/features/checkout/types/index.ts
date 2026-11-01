@@ -30,8 +30,6 @@ export interface OrderItemBrand {
 export interface OrderItemLens {
   id?: string;
   name: string;
-  price: number;
-  discount?: number;
 }
 
 export interface OrderItemTransition {
@@ -58,16 +56,15 @@ export interface OrderItemPowerDetails {
 }
 
 export interface CreateOrderItem {
+  itemType: "frame" | "lens";
   productId: string;
   variantId?: string;
   name: string;
   image?: string;
-  price: number;
   totalQuantity: number;
   setCount: number;
   isFree?: boolean;
   freeCount?: number;
-  freeUnitPrice?: number;
   bogoGroupId?: string;
   color?: OrderItemColor;
   brand?: OrderItemBrand;
@@ -80,7 +77,7 @@ export interface CreateOrderItem {
 export interface CreateOrderPayload {
   items: CreateOrderItem[];
   addressId: string;
-  totalAmount: number;
+  couponCode?: string;
   paymentMethod?: string;
 }
 
@@ -89,7 +86,6 @@ export type SkipCashSessionStatus = "INITIATED" | "COMPLETED" | "FAILED" | "EXPI
 export interface InitiateSkipCashPaymentPayload {
   items: CreateOrderItem[];
   addressId: string;
-  totalAmount: number;
   couponCode?: string;
 }
 

@@ -12,6 +12,7 @@ import { useProductSearch } from "@/features/product/hooks";
 import { CATEGORY_SEO_MAP } from "@/features/product/constants/categorySeoMap";
 import { SEO } from "@/shared/components/SEO/SEO";
 import type { OfferBadge } from "@/features/offer/types";
+import { LensListing } from "@/features/lens";
 
 const HEADER_SPACER_HEIGHT = 132;
 
@@ -102,6 +103,7 @@ const ProductGrid = memo(function ProductGrid({
   products,
   loading,
   fetching,
+  error,
   sortBy,
   onSortChange,
   onToggleFilters,
@@ -110,20 +112,19 @@ const ProductGrid = memo(function ProductGrid({
   products: any[];
   loading: boolean;
   fetching: boolean;
+  error: boolean;
   sortBy: string;
   onSortChange: (value: string) => void;
   onToggleFilters: (v: boolean) => void;
   getOfferBadge: (productId: string, price: number) => OfferBadge | null;
 }): JSX.Element {
-  console.log("ProductGrid rendered");
-
-  const productCards = useMemo(() =>
-    products.map((product: any, index) => (
+  const productCards = useMemo(() => {
+    return products.map((product: any, index) => (
       <div key={product._id || index} className="h-full transition-opacity duration-300 ease-in-out">
         <ProductCard {...mapProductToCardProps(product, getOfferBadge)} />
       </div>
-    )),
-  [products, getOfferBadge]);
+    ));
+  }, [products, getOfferBadge]);
 
   if (loading) {
     return (
@@ -180,7 +181,12 @@ const ProductGrid = memo(function ProductGrid({
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 flex-1 lg:min-h-0 lg:overflow-y-auto scrollbar-hide">
+      <div className={`bg-white border border-gray-200 border-t-0 rounded-b-2xl p-4 lg:p-6 flex-1 lg:min-h-0 lg:overflow-y-auto scrollbar-hide transition-opacity ${fetching ? "opacity-60" : ""}`}>
+        {error && !fetching && (
+          <p role="alert" className="mb-4 text-sm text-red-600">
+            We couldn't update the results. Please try again.
+          </p>
+        )}
         {products.length === 0 && !fetching ? (
           <div className="flex w-full flex-col items-start px-2 pt-2 pb-10 lg:pt-4">
             <div className="flex items-center gap-3">
@@ -210,15 +216,21 @@ ProductGrid.displayName = "ProductGrid";
 export const SearchPage = memo(function SearchPage(): JSX.Element {
   const {
     products,
+    lenses,
+    isLensMode,
+    lensCategoryName,
+    lensPagination,
+    lensPage,
+    setLensPage,
     loading,
     fetching,
+    fetchError,
     sortBy,
     showFilters,
     pendingFilters,
     filterConfig,
     category,
     categoryBanner,
-    pendingCount,
     applyCount,
     trending,
     handleSortChange,
@@ -255,74 +267,92 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
             </div>
           )}
 
-          {trending && (
-            <div className="pt-6 flex items-center gap-3">
-              <h1 className="text-lg font-semibold text-gray-900">Trending Products</h1>
-              <button
-                type="button"
-                onClick={clearTrending}
-                aria-label="Clear trending filter"
-                className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
-              >
-                <X size={14} />
-                Clear
-              </button>
-            </div>
-          )}
-
-          <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12 lg:h-[calc(100vh-140px)] lg:min-h-0">
-            {loading && (
-              <div className="hidden lg:block lg:w-72 lg:shrink-0 animate-pulse">
-                <div className="lg:pr-4 lg:pb-6">
-                  {[160, 120, 140, 100, 130].map((h, i) => (
-                    <div key={i} className="border-b border-gray-100 py-4">
-                      <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
-                      <div className="space-y-3" style={{ height: h }}>
-                        {Array.from({ length: Math.ceil(h / 28) }).map((_, j) => (
-                          <div key={j} className="flex items-center gap-3">
-                            <div className="w-5 h-5 rounded border-2 border-gray-200 bg-white" />
-                            <div className="h-3 bg-gray-100 rounded flex-1" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {!loading && (
-              <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:h-full lg:min-h-0 lg:inset-auto lg:z-auto lg:overflow-hidden`}>
-                <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
-                  <h2 className="text-lg font-semibold">Filters</h2>
-                  <button onClick={() => setShowFilters(false)} className="p-2">
-                    <X size={24} />
-                  </button>
-                </div>
-
-                <div className="flex-1 min-h-0 p-4 lg:p-0 lg:pr-4">
-                  <FilterSidebar
-                    filters={filterConfig}
-                    pendingFilters={pendingFilters}
-                    appliedCount={applyCount}
-                    onFilterChange={handleFilterChange}
-                    onApply={applyFilters}
-                    onClear={clearFilters}
-                  />
-                </div>
-              </div>
-            )}
-
-            <ProductGrid
-              products={products}
+          {isLensMode ? (
+            <LensListing
+              lenses={lenses}
+              title={lensCategoryName || "Lenses"}
+              total={lensPagination?.total ?? lenses.length}
               loading={loading}
               fetching={fetching}
-              sortBy={sortBy}
-              onSortChange={handleSortChange}
-              onToggleFilters={setShowFilters}
-              getOfferBadge={getOfferBadge}
+              page={lensPage}
+              totalPages={lensPagination?.totalPages ?? 1}
+              onPageChange={setLensPage}
             />
-          </div>
+          ) : (
+            <>
+              {trending && (
+                <div className="pt-6 flex items-center gap-3">
+                  <h1 className="text-lg font-semibold text-gray-900">
+                    Trending Products
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={clearTrending}
+                    aria-label="Clear trending filter"
+                    className="flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  >
+                    <X size={14} />
+                    Clear
+                  </button>
+                </div>
+              )}
+
+              <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12 lg:h-[calc(100vh-140px)] lg:min-h-0">
+                {loading && (
+                  <div className="hidden lg:block lg:w-72 lg:shrink-0 animate-pulse">
+                    <div className="lg:pr-4 lg:pb-6">
+                      {[160, 120, 140, 100, 130].map((h, i) => (
+                        <div key={i} className="border-b border-gray-100 py-4">
+                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
+                          <div className="space-y-3" style={{ height: h }}>
+                            {Array.from({ length: Math.ceil(h / 28) }).map((_, j) => (
+                              <div key={j} className="flex items-center gap-3">
+                                <div className="w-5 h-5 rounded border-2 border-gray-200 bg-white" />
+                                <div className="h-3 bg-gray-100 rounded flex-1" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!loading && (
+                  <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:h-full lg:min-h-0 lg:inset-auto lg:z-auto lg:overflow-hidden`}>
+                    <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
+                      <h2 className="text-lg font-semibold">Filters</h2>
+                      <button onClick={() => setShowFilters(false)} className="p-2">
+                        <X size={24} />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 min-h-0 p-4 lg:p-0 lg:pr-4">
+                      <FilterSidebar
+                        filters={filterConfig}
+                        pendingFilters={pendingFilters}
+                        appliedCount={applyCount}
+                        onFilterChange={handleFilterChange}
+                        onApply={applyFilters}
+                        onClear={clearFilters}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <ProductGrid
+                  products={products}
+                  loading={loading}
+                  fetching={fetching}
+                  error={fetchError}
+                  sortBy={sortBy}
+                  onSortChange={handleSortChange}
+                  onToggleFilters={setShowFilters}
+                  getOfferBadge={getOfferBadge}
+                />
+              </div>
+            </>
+          )}
         </Container>
       </main>
 

@@ -18,7 +18,7 @@ export const getStores = async (): Promise<Store[]> => {
 
 export const findNearestStore = async (lat: number, lng: number): Promise<NearestStoreResult | null> => {
   try {
-    const res = await api.get(`/public/stores/nearest?lat=${lat}&lng=${lng}`);
+    const res = await api.get("/public/stores/nearest", { params: { lat, lng } });
     const data = res.data?.data;
     if (data?.store) {
       return { store: data.store, distance: data.distance };

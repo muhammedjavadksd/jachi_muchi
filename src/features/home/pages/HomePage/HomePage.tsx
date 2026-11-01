@@ -11,6 +11,7 @@ import { seoMeta } from "@/shared/constants/seoMeta";
 
 const HEADER_SPACER_HEIGHT = 132;
 import { TopCategories } from "@/features/home/components/TopCategories/TopCategories";
+import { BrandCategoryCarousel } from "@/features/home/components/BrandCategoryCarousel/BrandCategoryCarousel";
 import { OfferCarousel } from "@/features/home/components/OfferCarousel/OfferCarousel";
 import { api } from "@/shared/lib/axios";
 import { getBanners } from "@/features/home/api/bannerApi";
@@ -24,7 +25,6 @@ import { useAuth, useLoginModal } from "@/features/auth/hooks";
 const HeroSlider = lazy(() => import("@/features/home/components/HeroSlider/HeroSlider").then(m => ({ default: m.HeroSlider })));
 const Campaign = lazy(() => import("@/features/home/components/Campaign/Campaign").then(m => ({ default: m.Campaign })));
 const ShapeSection = lazy(() => import("@/features/home/components/ShapeSection/ShapeSection").then(m => ({ default: m.ShapeSection })));
-const NearbyServices = lazy(() => import("@/features/home/components/NearbyServices/NearbyServices").then(m => ({ default: m.NearbyServices })));
 const GridSection = lazy(() => import("@/features/home/components/GridSection/GridSection").then(m => ({ default: m.GridSection })));
 const FeaturedGrid = lazy(() => import("@/features/home/components/FeaturedGrid/FeaturedGrid").then(m => ({ default: m.FeaturedGrid })));
 const PremiumEyewear = lazy(() => import("@/features/home/components/PremiumEyewear/PremiumEyewear").then(m => ({ default: m.PremiumEyewear })));
@@ -126,6 +126,8 @@ export function HomePage(): JSX.Element {
         <SunglassesSection />
 
         <TopCategories />
+
+        <BrandCategoryCarousel />
 
         <Suspense fallback={<LoadingSkeleton />}>
           <PremiumEyewear maxHomepageOrder={NEARBY_SERVICES_ORDER_SPLIT} />

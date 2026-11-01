@@ -56,7 +56,7 @@ export const verifySkipCashPayment = async (
   orderId: string
 ): Promise<VerifyPaymentResponse> => {
   const res = await api.get<VerifyPaymentResponse>(
-    `/payment/skipcash/status/${orderId}`
+    `/payment/skipcash/status/${encodeURIComponent(orderId)}`
   );
   return res.data;
 };
@@ -65,7 +65,7 @@ export const retrySkipCashPayment = async (
   orderId: string
 ): Promise<RetryPaymentResponse> => {
   const res = await api.post<RetryPaymentResponse>(
-    `/payment/skipcash/retry/${orderId}`
+    `/payment/skipcash/retry/${encodeURIComponent(orderId)}`
   );
   return res.data;
 };
@@ -74,7 +74,7 @@ export const verifySkipCashTransaction = async (
   query: SkipCashVerifyQuery
 ): Promise<SkipCashVerifyResponse> => {
   const res = await api.get<SkipCashVerifyResponse>(
-    `/payment/skipcash/verify/${query.transactionId}`,
+    `/payment/skipcash/verify/${encodeURIComponent(query.transactionId)}`,
     { params: { id: query.paymentId, statusId: query.statusId } }
   );
   return res.data;

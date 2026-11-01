@@ -1,5 +1,6 @@
 export { HeroSlider } from "./components/HeroSlider/HeroSlider";
 export { TopCategories } from "./components/TopCategories/TopCategories";
+export { BrandCategoryCarousel } from "./components/BrandCategoryCarousel/BrandCategoryCarousel";
 export { Campaign } from "./components/Campaign/Campaign";
 export { ShapeSection } from "./components/ShapeSection/ShapeSection";
 export { NearbyServices } from "./components/NearbyServices/NearbyServices";

@@ -67,7 +67,7 @@ export const Price = memo(function Price({
       )}
       {discount != null && discount > 0 && (
         <span className="text-green-600 text-xs font-semibold ml-1.5">
-          ({discount}% OFF)
+          ({Number(discount.toFixed(2))}% OFF)
         </span>
       )}
     </span>

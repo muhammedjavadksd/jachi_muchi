@@ -9,11 +9,17 @@ import { useCart } from "@/features/cart/hooks";
 import type { UserCoupon } from "@/features/coupon/types";
 import { createOrder } from "@/features/checkout/api/orderApi";
 import { initiateSkipCashPayment } from "@/features/checkout/api/paymentApi";
-import { PAYMENT_SESSION_REF_KEY } from "@/features/checkout/constants";
+import {
+  PAYMENT_SESSION_REF_KEY,
+} from "@/features/checkout/constants";
 import { getOffers, getComboCartSavings } from "@/shared/services/offerEngine";
 import type { Offer } from "@/features/offer/types";
+import { getEffectiveFittingFee } from "@/shared/utils/fittingFee";
+import { getLensById } from "@/features/lens/api/lensApi";
+import { getLensTotalMax, isPowerOverTotalMax } from "@/features/lens/utils/detail";
 
 interface CartItem {
+  itemType?: "frame" | "lens";
   productId: string;
   variantId?: string;
   productName: string;
@@ -48,6 +54,8 @@ interface CartItem {
     rightSPH?: string;
     leftCYL?: string | null;
     rightCYL?: string | null;
+    leftADD?: string | null;
+    rightADD?: string | null;
     isSamePower?: boolean;
     hasCylindrical?: boolean;
     customerName?: string;
@@ -186,7 +194,10 @@ export function useCheckout(): UseCheckoutReturn {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const fittingFee = normalizedBill?.fittingFee ?? 0;
+  const fittingFee = useMemo(
+    () => getEffectiveFittingFee(normalizedBill?.fittingFee),
+    [normalizedBill?.fittingFee]
+  );
   const subtotal = normalizedBill?.totalItemPrice ?? 0;
   const discount = normalizedBill?.totalDiscount ?? 0;
 
@@ -252,8 +263,16 @@ export function useCheckout(): UseCheckoutReturn {
 
   const offerSavings = (normalizedBill?.offerSavings ?? 0) + Math.round(totalComboSavings);
   const totalSellingPrice = subtotal - discount;
-  const displayBillTotalPayable = (normalizedBill?.totalPayable ?? 0) - Math.round(totalComboSavings);
-  const totalPayable = useMemo(() => displayBillTotalPayable - couponSavings, [displayBillTotalPayable, couponSavings]);
+  const displayBillTotalPayable = useMemo(
+    () => Math.max(0, (normalizedBill?.totalPayable ?? 0) - Math.round(totalComboSavings)),
+    [normalizedBill, totalComboSavings]
+  );
+  // Display only: a coupon can never save more than the bill it is applied to.
+  const appliedCouponSavings = useMemo(
+    () => Math.min(Math.max(0, couponSavings), displayBillTotalPayable),
+    [couponSavings, displayBillTotalPayable]
+  );
+  const totalPayable = useMemo(() => Math.max(0, displayBillTotalPayable - appliedCouponSavings), [displayBillTotalPayable, appliedCouponSavings]);
 
   const eligibleCoupons = useMemo(() => {
     return userCoupons.filter(coupon => {
@@ -413,49 +432,98 @@ export function useCheckout(): UseCheckoutReturn {
       // Deliberately not written back to state: the provider owns cart/bill, and
       // this snapshot is only used to price the order payload below.
     } catch (err) {
-      console.warn("Failed to refresh cart before order, using stale state:", err);
+      if (import.meta.env.DEV) console.warn("Failed to refresh cart before order, using stale state");
+    }
+
+    const incompleteLens = latestCart.find((item) => {
+      if (item.itemType !== "lens" || !item.powerDetails) return false;
+      const pd = item.powerDetails as Record<string, unknown>;
+      if (pd.knowPowerLater) return false;
+      return !["rightSPH", "rightCYL", "rightADD", "leftSPH", "leftCYL", "leftADD"].some((k) => pd[k] != null && pd[k] !== "");
+    });
+    if (incompleteLens) {
+      setSubmitError(`Power details are missing for "${incompleteLens.productName}". Remove it from your cart and add it again with the power selected.`);
+      setOrderLoading(false);
+      return;
+    }
+
+    // Re-check lens power against the lens's combined limit; the server must too.
+    const overLimitChecks = await Promise.all(
+      latestCart
+        .filter((item) => item.itemType === "lens" && item.lens?.id && item.powerDetails)
+        .map(async (item) => {
+          try {
+            const lens = await getLensById(item.lens!.id!);
+            const max = lens ? getLensTotalMax(lens) : undefined;
+            const pd = item.powerDetails as Record<string, string | null | undefined>;
+            const over =
+              isPowerOverTotalMax(pd.rightSPH, pd.rightCYL, max) ||
+              isPowerOverTotalMax(pd.leftSPH, pd.leftCYL, max);
+            return over ? { item, max } : null;
+          } catch {
+            return null;
+          }
+        })
+    );
+    const overLimit = overLimitChecks.find(Boolean);
+    if (overLimit) {
+      setSubmitError(`The power selected for "${overLimit.item.productName}" is outside the lens limit (SPH + CYL together can't exceed ${overLimit.max}). Remove it from your cart and add it again.`);
+      setOrderLoading(false);
+      return;
     }
 
     const latestComboSavings = Math.round(getComboCartSavings(latestCart, offers));
     const latestTotalPayable = Math.max(0, n(latestBill.totalPayable) - latestComboSavings - n(couponSavings));
 
     if (!Number.isFinite(latestTotalPayable) || latestTotalPayable <= 0) {
-      console.error("[Place Order] Aborting: totalAmount is not valid:", { latestTotalPayable, latestBill, latestComboSavings, couponSavings });
+      if (import.meta.env.DEV) console.error("[Place Order] Aborting: order total is not valid");
       setSubmitError("Unable to calculate the order total. Please refresh the page and try again.");
       setOrderLoading(false);
       return;
     }
 
     const orderPayload = {
-      items: latestCart.map(item => ({
-        productId: item.productId,
-        variantId: item.variantId || item.color?.id || undefined,
-        name: item.productName,
-        image: item.productImage || "",
-        price: n(item.productPrice),
-        totalQuantity: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
-        setCount: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
-        isFree: item.isFreeOfferItem || undefined,
-        freeCount: item.freeCount || undefined,
-        freeUnitPrice: item.freeUnitPrice || undefined,
-        bogoGroupId: item.bogoGroupId || undefined,
-        color: item.color || undefined,
-        brand: item.brand ? { id: item.brand.id, name: item.brand.name } : undefined,
-        lens: item.lens ? { id: item.lens.id, name: item.lens.name, price: n(item.lens.price), discount: item.lens.discount } : undefined,
-        transition: item.transition
-          ? {
-              transitionId: item.transition.transitionId,
-              color: item.transition.color,
-            }
-          : undefined,
-        powerType: item.powerType || undefined,
-        powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0 ? item.powerDetails : undefined,
-      })),
+      items: latestCart.map(item => {
+        const itemType = item.itemType ?? "frame";
+        const normalizedProductId = itemType === "lens" && item.lens?.id ? item.lens.id : item.productId;
+        const lensPayload = item.lens
+          ? { id: item.lens.id, name: item.lens.name }
+          : undefined;
+
+        return {
+          itemType,
+          productId: normalizedProductId,
+          variantId: item.variantId || item.color?.id || undefined,
+          name: item.productName,
+          image: item.productImage || "",
+          totalQuantity: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
+          setCount: Math.max(1, Math.round(n(item.setCount || item.quantity, 1))),
+          isFree: item.isFreeOfferItem || undefined,
+          freeCount: item.freeCount || undefined,
+          bogoGroupId: item.bogoGroupId || undefined,
+          color: item.color || undefined,
+          brand: item.brand ? { id: item.brand.id, name: item.brand.name } : undefined,
+          lens: lensPayload,
+          transition: item.transition
+            ? {
+                transitionId: item.transition.transitionId,
+                color: item.transition.color,
+              }
+            : undefined,
+          powerType: item.powerType || undefined,
+          powerDetails: item.powerDetails && Object.keys(item.powerDetails).length > 0
+            ? {
+                ...item.powerDetails,
+                customerName: selectedAddress.name,
+                customerPhone: selectedAddress.phone,
+              }
+            : undefined,
+        };
+      }),
       addressId: selectedAddress.id,
-      totalAmount: latestTotalPayable,
+      couponCode: appliedCoupon || undefined,
       paymentMethod,
     };
-    console.log("[Place Order] payload:", JSON.parse(JSON.stringify(orderPayload)));
     try {
       if (paymentMethod === "ONLINE") {
         if (appliedCoupon) {
@@ -465,10 +533,8 @@ export function useCheckout(): UseCheckoutReturn {
           const skipCashPayload = {
             items: orderPayload.items,
             addressId: orderPayload.addressId,
-            totalAmount: orderPayload.totalAmount,
-            couponCode: appliedCoupon || undefined,
+            couponCode: orderPayload.couponCode,
           };
-          console.log("[SkipCash] payload:", skipCashPayload);
           const { paymentUrl, sessionRef } = await initiateSkipCashPayment(skipCashPayload);
           try {
             localStorage.setItem(PAYMENT_SESSION_REF_KEY, sessionRef);
@@ -492,7 +558,7 @@ export function useCheckout(): UseCheckoutReturn {
       await clearCart();
       navigate(`/order-success/${orderId}`);
     } catch (error: any) {
-      console.error(error);
+      if (import.meta.env.DEV) console.error("[Place Order] failed");
       const errMsg = error.response?.data?.message || error.message || "";
       localStorage.removeItem("pendingCouponMark");
       if (errMsg.toLowerCase().includes("coupon") || errMsg.toLowerCase().includes("already used")) {
@@ -502,11 +568,11 @@ export function useCheckout(): UseCheckoutReturn {
         t.toast.error("Coupon is no longer valid. Discount has been removed.");
         setSubmitError("Your coupon is no longer valid. It has been removed — please review your bill and try again.");
       } else if (paymentMethod === "ONLINE") {
-        setSubmitError(errMsg || "We couldn't start your online payment. Please try again.");
+        setSubmitError("We couldn't start your online payment. Please try again.");
       } else {
         const t = await import("react-hot-toast");
-        t.toast.error(errMsg || "Failed to place order. Please try again.");
-        setSubmitError(errMsg || "Failed to place order. Please try again.");
+        t.toast.error("Failed to place order. Please try again.");
+        setSubmitError("Failed to place order. Please try again.");
       }
     } finally {
       setOrderLoading(false);
@@ -559,7 +625,7 @@ export function useCheckout(): UseCheckoutReturn {
     isCouponListOpen,
     couponInput,
     appliedCoupon,
-    couponSavings,
+    couponSavings: appliedCouponSavings,
     couponError,
     isApplyingCoupon,
     copiedCoupon,

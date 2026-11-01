@@ -22,3 +22,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+declare module "@/components/TrendingProducts";
+declare module "@/components/SunglassesSection";

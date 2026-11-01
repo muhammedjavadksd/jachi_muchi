@@ -14,11 +14,11 @@ export const saveAddress = async (data: AddressFormData) => {
 };
 
 export const deleteAddress = async (id: string) => {
-  const res = await api.delete(`/address/${id}`);
+  const res = await api.delete(`/address/${encodeURIComponent(id)}`);
   return res.data;
 };
 
 export const setDefaultAddress = async (id: string) => {
-  const res = await api.put(`/address/${id}/default`, {});
+  const res = await api.put(`/address/${encodeURIComponent(id)}/default`, {});
   return res.data;
 };

@@ -43,7 +43,7 @@ export const getProducts = async (filters?: {
   limit?: number;      // ← added
   page?: number;       // ← added
   [key: string]: any;
-}) => {
+}, signal?: AbortSignal) => {
   const params: Record<string, any> = {};
 
   if (filters?.category) params.category = filters.category;
@@ -62,13 +62,13 @@ export const getProducts = async (filters?: {
   params.limit = filters?.limit ?? 1000;
   if (filters?.page) params.page = filters.page;
 
-  const res = await api.get("/products", { params });
+  const res = await api.get("/products", { params, signal });
   return res.data;
 };
 
 export const getProductById = async (id: string): Promise<ProductDetailData | null> => {
   try {
-    const res = await api.get(`/products/${id}`);
+    const res = await api.get(`/products/${encodeURIComponent(id)}`);
     const data = res.data?.data || res.data?.product || res.data;
     return data || null;
   } catch {
@@ -78,7 +78,7 @@ export const getProductById = async (id: string): Promise<ProductDetailData | nu
 
 export const getSimilarProducts = async (id: string): Promise<any[]> => {
   try {
-    const res = await api.get(`/products/${id}/similar`);
+    const res = await api.get(`/products/${encodeURIComponent(id)}/similar`);
     const data = res.data?.data;
     return Array.isArray(data) ? data : [];
   } catch {

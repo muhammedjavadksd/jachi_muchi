@@ -4,13 +4,14 @@ import type { OrderItemVariant } from "@/shared/utils/variant";
 
 export interface BackendCartItem {
   _id: string;
-  product: {
+  itemType?: "frame" | "lens";
+  product?: {
     _id: string;
     name: string;
     images: string[];
     price: number;
     mrp?: number;
-  };
+  } | null;
   quantity: number;
   price: number;
   discountedPrice: number | null;
@@ -21,7 +22,13 @@ export interface BackendCartItem {
   color?: { name: string; id: string } | null;
   variant?: OrderItemVariant | null;
   brand?: { id?: string; _id?: string; name?: string; logo?: string } | null;
-  lens?: { id: string; name: string; price: number } | null;
+  lens?: {
+    id: string;
+    name: string;
+    price: number;
+    discount?: number;
+    image?: string | null;
+  } | null;
   transition?: {
     transitionId?: string;
     _id?: string;
@@ -38,6 +45,8 @@ export interface BackendCartItem {
     rightSPH?: string;
     leftCYL?: string | null;
     rightCYL?: string | null;
+    leftADD?: string | null;
+    rightADD?: string | null;
     isSamePower?: boolean;
     hasCylindrical?: boolean;
     customerName?: string;
@@ -138,12 +147,13 @@ export function mapBackendItem(item: BackendCartItem) {
   return {
     cartItemId: item._id,
     bogoGroupId: item.bogoGroupId ?? undefined,
-    productId: item.product._id,
+    itemType: item.itemType ?? "frame",
+    productId: item.product?._id ?? item.lens?.id ?? "",
     variantId: item.color?.id || undefined,
-    productName: item.product.name,
-    productPrice: item.discountedPrice ?? item.product.price,
-    productImage: item.product.images?.[0] ?? "",
-    mrp: item.product.mrp ?? item.product.price,
+    productName: item.product?.name ?? item.lens?.name ?? "",
+    productPrice: item.discountedPrice ?? item.product?.price ?? item.lens?.price ?? 0,
+    productImage: item.product?.images?.[0] ?? item.lens?.image ?? "",
+    mrp: item.product?.mrp ?? item.product?.price ?? item.lens?.price ?? 0,
     quantity: item.quantity,
     color: item.color ?? null,
     variant: item.variant ?? null,
@@ -170,8 +180,8 @@ export function mapBackendItem(item: BackendCartItem) {
     powerType: item.powerType ?? undefined,
     powerDetails: item.powerDetails ?? null,
     totalPrice:
-      (item.discountedPrice ?? item.product.price) +
-      (item.lens?.price ?? 0) +
+      (item.discountedPrice ?? item.product?.price ?? item.lens?.price ?? 0) +
+      (item.itemType === "lens" ? 0 : item.lens?.price ?? 0) +
       (Number(item.transitionPrice ?? item.transition?.price) || 0),
     isFree: item.isFree,
     freeCount: item.freeCount ?? 0,
@@ -188,11 +198,18 @@ export async function fetchCart(): Promise<BackendCartResponse> {
 }
 
 export async function addToCartApi(payload: {
-  productId: string;
+  productId?: string;
+  itemType?: "frame" | "lens";
   quantity?: number;
   color?: { name: string; id: string } | null;
   brand?: { id: string; name: string } | null;
-  lens?: { id: string; name: string; price: number } | null;
+  lens?: {
+    id: string;
+    name: string;
+    price?: number;
+    discount?: number;
+    image?: string | null;
+  } | null;
   transition?: { transitionId: string; color: string } | null;
   powerType?: string | null;
   powerDetails?: object | null;
@@ -207,12 +224,12 @@ export async function updateCartItemQuantity(
   cartItemId: string,
   action: "increment" | "decrement"
 ): Promise<BackendCartResponse> {
-  const res = await api.patch(`/cart/items/${cartItemId}`, { action });
+  const res = await api.patch(`/cart/items/${encodeURIComponent(cartItemId)}`, { action });
   return enforceFlatBogoFreeItems(res.data.data);
 }
 
 export async function removeCartItemApi(cartItemId: string): Promise<BackendCartResponse> {
-  const res = await api.delete(`/cart/item/${cartItemId}`);
+  const res = await api.delete(`/cart/item/${encodeURIComponent(cartItemId)}`);
   return enforceFlatBogoFreeItems(res.data.data);
 }
 
@@ -234,7 +251,14 @@ interface FreshProductData {
 export async function refreshCartPrices(cartItems: any[]): Promise<any[]> {
   if (cartItems.length === 0) return cartItems;
 
-  const uniqueProductIds = [...new Set(cartItems.map((item) => item.productId).filter(Boolean))];
+  const uniqueProductIds = [
+    ...new Set(
+      cartItems
+        .filter((item) => item.itemType !== "lens")
+        .map((item) => item.productId)
+        .filter(Boolean)
+    ),
+  ];
 
   const productMap: Record<string, FreshProductData> = {};
   await Promise.all(
@@ -255,6 +279,7 @@ export async function refreshCartPrices(cartItems: any[]): Promise<any[]> {
   if (Object.keys(productMap).length === 0) return cartItems;
 
   return cartItems.map((item) => {
+    if (item.itemType === "lens") return item;
     const fresh = productMap[item.productId];
     if (!fresh) return item;
     const matchedVariant = item.color?.name
