@@ -36,37 +36,38 @@ function getFirstLetter(name: string): string {
 const ItemCard = memo(function ItemCard({
   item,
   isBrandTab,
+  showTypeLabel,
 }: {
   item: CarouselItem;
   isBrandTab: boolean;
+  showTypeLabel: boolean;
 }): JSX.Element {
   const imageUrl = getImageUrl(item.image);
   const [imageError, setImageError] = useState(false);
   const showImage = Boolean(imageUrl) && !imageError;
 
   const imageClassName = isBrandTab
-    ? "h-full w-full object-contain p-[18%]"
-    : "h-full w-full object-cover";
+    ? "h-full w-full object-contain object-center mix-blend-multiply"
+    : "h-full w-full object-cover object-center";
 
   return (
     <Link
       to={item.link}
-      className="group flex shrink-0 flex-col focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#b8860b] focus-visible:ring-offset-[3px]"
-      style={{ flex: "0 0 256px", width: "256px" }}
+      className="group flex w-[168px] shrink-0 snap-start flex-col focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#b8860b] focus-visible:ring-offset-[3px] sm:w-[200px] md:w-[228px] lg:w-[256px]"
       aria-label={item.name}
     >
-      <div
-        className="relative w-full overflow-hidden rounded-none bg-[#f3f2f0]"
-        style={{ aspectRatio: "1 / 1" }}
-      >
+      <div className="relative isolate aspect-square w-full overflow-hidden rounded-none bg-[#f3f2f0]">
         {showImage ? (
-          <img
-            src={imageUrl}
-            alt={item.name}
-            className={`${imageClassName} transition-transform duration-300 group-hover:scale-105`}
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
+          <div className="absolute inset-0 flex items-center justify-center p-[16%]">
+            <img
+              src={imageUrl}
+              alt={item.name}
+              className={`${imageClassName} transition-transform duration-300 group-hover:scale-105`}
+              loading="lazy"
+              draggable={false}
+              onError={() => setImageError(true)}
+            />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-[#f3f2f0]">
             <span className="text-2xl font-medium text-gray-600 sm:text-3xl">
@@ -75,10 +76,15 @@ const ItemCard = memo(function ItemCard({
           </div>
         )}
       </div>
-      <div className="mt-[14px] flex w-full">
-        <span className="w-full text-left text-[15px] font-normal uppercase tracking-[0.05em] text-[#1a1a1a] transition-colors duration-200 group-hover:text-[#b8860b]">
+      <div className="mt-3.5 flex w-full flex-col gap-1">
+        <span className="line-clamp-2 min-h-[42px] w-full text-left text-[15px] font-normal uppercase leading-snug tracking-[0.05em] text-[#1a1a1a] transition-colors duration-200 group-hover:text-[#b8860b]">
           {item.name}
         </span>
+        {showTypeLabel && (
+          <span className="text-left text-[11px] leading-none text-gray-500 sm:text-xs">
+            {item.typeLabel}
+          </span>
+        )}
       </div>
     </Link>
   );
@@ -181,6 +187,9 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    // New item sets start at the container edge (also guards restored scroll
+    // positions on back/forward navigation), so the first card is never clipped.
+    el.scrollLeft = 0;
     updateScrollButtons();
     el.addEventListener("scroll", updateScrollButtons, { passive: true });
     window.addEventListener("resize", updateScrollButtons);
@@ -194,7 +203,10 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
   }, [items, updateScrollButtons]);
 
   useEffect(() => {
-    // Recheck on tab change
+    const el = scrollRef.current;
+    // Tab changes swap the item set; return the strip to its start so the first
+    // card stays flush with the content container instead of appearing clipped.
+    if (el) el.scrollLeft = 0;
     updateScrollButtons();
     const timeout = window.setTimeout(updateScrollButtons, 50);
     return () => window.clearTimeout(timeout);
@@ -248,11 +260,11 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
               <div className="h-10 w-20 animate-pulse rounded bg-gray-100" />
             </div>
           </div>
-          <div className="flex gap-[20px] overflow-hidden">
+          <div className="flex gap-4 overflow-hidden sm:gap-5 lg:gap-6">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex shrink-0 flex-col" style={{ flex: "0 0 256px", width: "256px" }}>
-                <div className="w-full animate-pulse rounded-none bg-gray-200" style={{ aspectRatio: "1 / 1" }} />
-                <div className="mt-[14px] h-4 w-32 animate-pulse rounded bg-gray-200" />
+              <div key={i} className="flex w-[168px] shrink-0 flex-col sm:w-[200px] md:w-[228px] lg:w-[256px]">
+                <div className="aspect-square w-full animate-pulse rounded-none bg-gray-200" />
+                <div className="mt-3.5 h-4 w-32 animate-pulse rounded bg-gray-200" />
               </div>
             ))}
           </div>
@@ -327,27 +339,26 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
           <>
             <div
               ref={scrollRef}
-              className="scrollbar-hide flex snap-x snap-mandatory gap-[20px] overflow-x-auto overscroll-x-contain"
+              className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain sm:gap-5 lg:gap-6"
               style={{
                 scrollBehavior: "smooth",
                 scrollSnapType: "x mandatory",
+                scrollPaddingInline: 0,
                 WebkitOverflowScrolling: "touch",
               }}
             >
               {items.map((item) => (
-                <div key={item.id} className="snap-start">
-                  <ItemCard item={item} isBrandTab={activeTab === "brand"} />
-                  {showTypeLabel && (
-                    <div className="mt-1 flex w-full">
-                      <span className="text-[11px] text-gray-500 sm:text-xs">{item.typeLabel}</span>
-                    </div>
-                  )}
-                </div>
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  isBrandTab={activeTab === "brand"}
+                  showTypeLabel={showTypeLabel}
+                />
               ))}
             </div>
 
             {showArrows && (
-              <div className="mt-6 flex items-center justify-end gap-0">
+              <div className="relative z-10 mt-6 flex items-center justify-end gap-0 pr-20">
                 <button
                   type="button"
                   onClick={() => scrollByAmount("left")}
