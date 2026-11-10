@@ -1,7 +1,6 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
-import { ChevronLeftIcon, ChevronRightIcon } from "@/shared/components";
 import { getImageUrl } from "@/shared/utils/image";
 import { getAllBrands } from "@/features/product/api/brandApi";
 import { getAllCategories } from "@/features/home/api/categoryApi";
@@ -46,6 +45,11 @@ const ItemCard = memo(function ItemCard({
   const [imageError, setImageError] = useState(false);
   const showImage = Boolean(imageUrl) && !imageError;
 
+  // Logos with no built-in white margin (e.g. Essilor's square artwork) look
+  // oversized next to white-background logos, so they get a deeper inset.
+  const isEssilor = isBrandTab && /essilor/i.test(item.name);
+  const cardPadding = isBrandTab ? (isEssilor ? "p-[20%]" : "p-[12%]") : "";
+
   const imageClassName = isBrandTab
     ? "h-full w-full object-contain object-center mix-blend-multiply"
     : "h-full w-full object-cover object-center";
@@ -56,24 +60,23 @@ const ItemCard = memo(function ItemCard({
       className="group flex w-[168px] shrink-0 snap-start flex-col focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#b8860b] focus-visible:ring-offset-[3px] sm:w-[200px] md:w-[228px] lg:w-[256px]"
       aria-label={item.name}
     >
-      <div className="relative isolate aspect-square w-full overflow-hidden rounded-none bg-[#f3f2f0]">
+      <div
+        className={`relative isolate flex aspect-square w-full items-center justify-center overflow-hidden rounded-none bg-[#f3f2f0] ${cardPadding}`}
+        data-brand={isEssilor ? "essilor" : undefined}
+      >
         {showImage ? (
-          <div className="absolute inset-0 flex items-center justify-center p-[16%]">
-            <img
-              src={imageUrl}
-              alt={item.name}
-              className={`${imageClassName} transition-transform duration-300 group-hover:scale-105`}
-              loading="lazy"
-              draggable={false}
-              onError={() => setImageError(true)}
-            />
-          </div>
+          <img
+            src={imageUrl}
+            alt={item.name}
+            className={`${imageClassName} transition-transform duration-300 group-hover:scale-105`}
+            loading="lazy"
+            draggable={false}
+            onError={() => setImageError(true)}
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#f3f2f0]">
-            <span className="text-2xl font-medium text-gray-600 sm:text-3xl">
-              {getFirstLetter(item.name)}
-            </span>
-          </div>
+          <span className="text-2xl font-medium text-gray-600 sm:text-3xl">
+            {getFirstLetter(item.name)}
+          </span>
         )}
       </div>
       <div className="mt-3.5 flex w-full flex-col gap-1">
@@ -184,12 +187,16 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
   }, []);
 
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    // Reset before paint so a restored/leftover scroll offset can never leave
+    // the first card visually clipped against the carousel's left edge.
+    if (el) el.scrollLeft = 0;
+  }, [items]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    // New item sets start at the container edge (also guards restored scroll
-    // positions on back/forward navigation), so the first card is never clipped.
-    el.scrollLeft = 0;
     updateScrollButtons();
     el.addEventListener("scroll", updateScrollButtons, { passive: true });
     window.addEventListener("resize", updateScrollButtons);
@@ -203,10 +210,7 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
   }, [items, updateScrollButtons]);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    // Tab changes swap the item set; return the strip to its start so the first
-    // card stays flush with the content container instead of appearing clipped.
-    if (el) el.scrollLeft = 0;
+    // Recheck on tab change
     updateScrollButtons();
     const timeout = window.setTimeout(updateScrollButtons, 50);
     return () => window.clearTimeout(timeout);
@@ -215,7 +219,14 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
   const scrollByAmount = useCallback((direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-    const amount = el.clientWidth * 0.8;
+
+    // Advance by exactly one card plus the flex gap so snapping stays aligned.
+    const firstCard = el.firstElementChild as HTMLElement | null;
+    const cardWidth = firstCard?.getBoundingClientRect().width ?? 0;
+    const styles = window.getComputedStyle(el);
+    const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
+    const amount = cardWidth > 0 ? cardWidth + gap : el.clientWidth * 0.8;
+
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia &&
@@ -339,11 +350,10 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
           <>
             <div
               ref={scrollRef}
-              className="scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain sm:gap-5 lg:gap-6"
+              className="-mx-4 scrollbar-hide flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 scroll-px-4 sm:-mx-5 sm:gap-5 sm:px-5 sm:scroll-px-5 md:-mx-6 md:px-6 md:scroll-px-6 lg:gap-6"
               style={{
                 scrollBehavior: "smooth",
                 scrollSnapType: "x mandatory",
-                scrollPaddingInline: 0,
                 WebkitOverflowScrolling: "touch",
               }}
             >
@@ -358,28 +368,52 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
             </div>
 
             {showArrows && (
-              <div className="relative z-10 mt-6 flex items-center justify-end gap-0 pr-20">
+              <div className="relative z-10 mt-[36px] flex items-center justify-end pr-[76px]">
                 <button
                   type="button"
                   onClick={() => scrollByAmount("left")}
                   disabled={!canScrollLeft}
-                  aria-label="Scroll left"
-                  className={`flex h-10 w-10 items-center justify-center border-r border-gray-300 text-gray-700 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#b8860b] focus-visible:ring-offset-[3px] ${
-                    canScrollLeft ? "hover:bg-gray-50" : "cursor-not-allowed text-gray-300"
-                  }`}
+                  aria-label="Previous brands"
+                  className="grid h-11 w-12 place-items-center bg-transparent text-[#1a1a1a] transition-colors duration-200 enabled:hover:text-[#b8860b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8860b] disabled:cursor-default disabled:opacity-30 sm:h-8 dark:text-gray-100"
                 >
-                  <ChevronLeftIcon />
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                    className="h-[22px] w-[22px]"
+                  >
+                    <path d="M21 12H3M9 6l-6 6 6 6" />
+                  </svg>
                 </button>
                 <button
                   type="button"
                   onClick={() => scrollByAmount("right")}
                   disabled={!canScrollRight}
-                  aria-label="Scroll right"
-                  className={`flex h-10 w-10 items-center justify-center text-gray-700 focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-[#b8860b] focus-visible:ring-offset-[3px] ${
-                    canScrollRight ? "hover:bg-gray-50" : "cursor-not-allowed text-gray-300"
-                  }`}
+                  aria-label="Next brands"
+                  className="grid h-11 w-12 place-items-center border-l border-[rgba(128,128,128,0.55)] bg-transparent text-[#1a1a1a] transition-colors duration-200 enabled:hover:text-[#b8860b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8860b] disabled:cursor-default disabled:opacity-30 sm:h-8 dark:text-gray-100"
                 >
-                  <ChevronRightIcon />
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                    className="h-[22px] w-[22px]"
+                  >
+                    <path d="M3 12h18M15 6l6 6-6 6" />
+                  </svg>
                 </button>
               </div>
             )}

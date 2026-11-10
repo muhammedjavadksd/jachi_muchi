@@ -25,10 +25,10 @@ const genderOptions = [
 ];
 
 const categoryCards = [
-  { id: "eyeglasses", label: "Eyeglasses", title: "Eyeglasses", image: "/banner/eyeglass.webp", link: "/search/eyeglasses", options: genderOptions },
-  { id: "screen-glasses", label: "Screen Glasses", title: "Screen Glasses", image: "/banner/cumputerglass.webp", link: "/search/screen-glasses", options: genderOptions },
-  { id: "sunglasses", label: "Sunglasses", title: "Sunglasses", image: "/banner/sunglass.webp", link: "/search/sunglasses", options: genderOptions },
-  { id: "contact-lenses", label: "Contact Lenses", title: "Contact Lenses", image: "/banner/lense.webp", link: "/search/contact-lenses", options: genderOptions },
+  { id: "eyeglasses", label: "Eyeglasses", title: "Eyeglasses", image: "/banner/eyeglass.webp", link: "/search/eyeglasses", options: genderOptions, showGenderOptions: true },
+  { id: "screen-glasses", label: "Screen Glasses", title: "Screen Glasses", image: "/banner/cumputerglass.webp", link: "/search/screen-glasses", options: genderOptions, showGenderOptions: true },
+  { id: "sunglasses", label: "Sunglasses", title: "Sunglasses", image: "/banner/sunglass.webp", link: "/search/sunglasses", options: genderOptions, showGenderOptions: true },
+  { id: "contact-lenses", label: "Contact Lenses", title: "Contact Lenses", image: "/banner/lense.webp", link: "/search/lenses", options: genderOptions, showGenderOptions: false },
 ];
 
 /** Shared focus-visible treatment so every control is keyboard-visible. */

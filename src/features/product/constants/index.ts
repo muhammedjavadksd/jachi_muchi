@@ -18,7 +18,7 @@ export const SEARCH_CATEGORIES: CategoryNavItem[] = [
   { id: "eyeglasses", label: "EYEGLASSES", link: "/search/eyeglasses" },
   { id: "screen-glasses", label: "SCREEN GLASSES", link: "/search/screen-glasses" },
   { id: "computer-glasses", label: "COMPUTER GLASSES", link: "/search/computer-glasses" },
-  { id: "contact-lenses", label: "CONTACT LENSES", link: "/search/contact-lenses" },
+  { id: "contact-lenses", label: "CONTACT LENSES", link: "/search/lenses" },
   { id: "sunglasses", label: "SUNGLASSES", link: "/search/sunglasses" },
   // Hidden from nav for now – restore when needed:
   /* { id: "collections", label: "COLLECTIONS", link: "/collections" }, */

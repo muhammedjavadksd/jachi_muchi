@@ -12,6 +12,7 @@ import { useProductSearch } from "@/features/product/hooks";
 import { CATEGORY_SEO_MAP } from "@/features/product/constants/categorySeoMap";
 import { SEO } from "@/shared/components/SEO/SEO";
 import type { OfferBadge } from "@/features/offer/types";
+import type { FilterGroup } from "@/features/product/types";
 import { LensListing } from "@/features/lens";
 
 const HEADER_SPACER_HEIGHT = 132;
@@ -213,6 +214,74 @@ const ProductGrid = memo(function ProductGrid({
 
 ProductGrid.displayName = "ProductGrid";
 
+const FiltersPanel = memo(function FiltersPanel({
+  loading,
+  filters,
+  pendingFilters,
+  appliedCount,
+  showFilters,
+  onFilterChange,
+  onApply,
+  onClear,
+  onClose,
+}: {
+  loading: boolean;
+  filters: FilterGroup[];
+  pendingFilters: Record<string, string[]>;
+  appliedCount: number;
+  showFilters: boolean;
+  onFilterChange: (filters: Record<string, string[]>) => void;
+  onApply: () => void;
+  onClear: () => void;
+  onClose: () => void;
+}): JSX.Element | null {
+  if (loading) {
+    return (
+      <div className="hidden lg:block lg:w-72 lg:shrink-0 animate-pulse">
+        <div className="lg:pr-4 lg:pb-6">
+          {[160, 120, 140, 100, 130].map((h, i) => (
+            <div key={i} className="border-b border-gray-100 py-4">
+              <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
+              <div className="space-y-3" style={{ height: h }}>
+                {Array.from({ length: Math.ceil(h / 28) }).map((_, j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded border-2 border-gray-200 bg-white" />
+                    <div className="h-3 bg-gray-100 rounded flex-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:h-full lg:min-h-0 lg:inset-auto lg:z-auto lg:overflow-hidden`}>
+      <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
+        <h2 className="text-lg font-semibold">Filters</h2>
+        <button onClick={onClose} className="p-2">
+          <X size={24} />
+        </button>
+      </div>
+
+      <div className="flex-1 min-h-0 p-4 lg:p-0 lg:pr-4">
+        <FilterSidebar
+          filters={filters}
+          pendingFilters={pendingFilters}
+          appliedCount={appliedCount}
+          onFilterChange={onFilterChange}
+          onApply={onApply}
+          onClear={onClear}
+        />
+      </div>
+    </div>
+  );
+});
+
+FiltersPanel.displayName = "FiltersPanel";
+
 export const SearchPage = memo(function SearchPage(): JSX.Element {
   const {
     products,
@@ -268,16 +337,35 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
           )}
 
           {isLensMode ? (
-            <LensListing
-              lenses={lenses}
-              title={lensCategoryName || "Lenses"}
-              total={lensPagination?.total ?? lenses.length}
-              loading={loading}
-              fetching={fetching}
-              page={lensPage}
-              totalPages={lensPagination?.totalPages ?? 1}
-              onPageChange={setLensPage}
-            />
+            <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12 lg:h-[calc(100vh-140px)] lg:min-h-0">
+              <FiltersPanel
+                loading={loading}
+                filters={filterConfig}
+                pendingFilters={pendingFilters}
+                appliedCount={applyCount}
+                showFilters={showFilters}
+                onFilterChange={handleFilterChange}
+                onApply={applyFilters}
+                onClear={clearFilters}
+                onClose={() => setShowFilters(false)}
+              />
+
+              <div className="flex-1 min-w-0 min-h-[400px] lg:min-h-0 lg:overflow-y-auto scrollbar-hide">
+                <LensListing
+                  lenses={lenses}
+                  title={lensCategoryName || "Lenses"}
+                  total={lensPagination?.total ?? lenses.length}
+                  loading={loading}
+                  fetching={fetching}
+                  page={lensPage}
+                  totalPages={lensPagination?.totalPages ?? 1}
+                  onPageChange={setLensPage}
+                  sortBy={sortBy}
+                  onSortChange={handleSortChange}
+                  onToggleFilters={() => setShowFilters(true)}
+                />
+              </div>
+            </div>
           ) : (
             <>
               {trending && (
@@ -298,47 +386,17 @@ export const SearchPage = memo(function SearchPage(): JSX.Element {
               )}
 
               <div className="flex flex-col lg:flex-row gap-6 pt-6 pb-12 lg:h-[calc(100vh-140px)] lg:min-h-0">
-                {loading && (
-                  <div className="hidden lg:block lg:w-72 lg:shrink-0 animate-pulse">
-                    <div className="lg:pr-4 lg:pb-6">
-                      {[160, 120, 140, 100, 130].map((h, i) => (
-                        <div key={i} className="border-b border-gray-100 py-4">
-                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-4" />
-                          <div className="space-y-3" style={{ height: h }}>
-                            {Array.from({ length: Math.ceil(h / 28) }).map((_, j) => (
-                              <div key={j} className="flex items-center gap-3">
-                                <div className="w-5 h-5 rounded border-2 border-gray-200 bg-white" />
-                                <div className="h-3 bg-gray-100 rounded flex-1" />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {!loading && (
-                  <div className={`${showFilters ? "fixed inset-0 z-50 bg-white flex flex-col" : "hidden lg:block"} lg:relative lg:flex lg:flex-col lg:w-72 lg:shrink-0 lg:h-full lg:min-h-0 lg:inset-auto lg:z-auto lg:overflow-hidden`}>
-                    <div className="lg:hidden flex items-center justify-between p-4 border-b shrink-0">
-                      <h2 className="text-lg font-semibold">Filters</h2>
-                      <button onClick={() => setShowFilters(false)} className="p-2">
-                        <X size={24} />
-                      </button>
-                    </div>
-
-                    <div className="flex-1 min-h-0 p-4 lg:p-0 lg:pr-4">
-                      <FilterSidebar
-                        filters={filterConfig}
-                        pendingFilters={pendingFilters}
-                        appliedCount={applyCount}
-                        onFilterChange={handleFilterChange}
-                        onApply={applyFilters}
-                        onClear={clearFilters}
-                      />
-                    </div>
-                  </div>
-                )}
+                <FiltersPanel
+                  loading={loading}
+                  filters={filterConfig}
+                  pendingFilters={pendingFilters}
+                  appliedCount={applyCount}
+                  showFilters={showFilters}
+                  onFilterChange={handleFilterChange}
+                  onApply={applyFilters}
+                  onClear={clearFilters}
+                  onClose={() => setShowFilters(false)}
+                />
 
                 <ProductGrid
                   products={products}

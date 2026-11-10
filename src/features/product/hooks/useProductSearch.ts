@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { SEARCH_FILTERS } from "@/features/product/constants";
 import { getProducts } from "@/features/product/api/productApi";
@@ -9,7 +9,13 @@ import { isBannerVisible } from "@/shared/utils/banner";
 import type { Offer, OfferBadge } from "@/features/offer/types";
 import { getCategoryBySlug, isValidCategorySlug } from "@/features/home/api/categoryApi";
 import { getLenses, getLensBrands } from "@/features/lens/api/lensApi";
-import type { GetLensesParams, LensItem } from "@/features/lens/types";
+import {
+  LENSES_CATEGORY_SLUG,
+  LENSES_LISTING_TITLE,
+  LENS_HIDDEN_FILTER_IDS,
+} from "@/features/lens/constants";
+import { getLensPricing } from "@/features/lens/utils/pricing";
+import type { GetLensesParams, LensBrand, LensItem } from "@/features/lens/types";
 
 function filtersToParams(
   filters: Record<string, string[]>,
@@ -52,6 +58,33 @@ function filtersCount(filters: Record<string, string[]>): number {
   return Object.values(filters).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 }
 
+/**
+ * The lens endpoint has no sort parameter, so the received page is ordered on
+ * the client. `best-sellers` keeps the API's recommended order.
+ */
+function sortLenses(lenses: LensItem[], sortBy: string): LensItem[] {
+  if (sortBy === "best-sellers") return lenses;
+
+  const next = [...lenses];
+  switch (sortBy) {
+    case "price-low":
+      next.sort((a, b) => getLensPricing(a).currentPrice - getLensPricing(b).currentPrice);
+      break;
+    case "price-high":
+      next.sort((a, b) => getLensPricing(b).currentPrice - getLensPricing(a).currentPrice);
+      break;
+    case "newest":
+      next.sort(
+        (a, b) =>
+          new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
+      );
+      break;
+    default:
+      break;
+  }
+  return next;
+}
+
 export function useProductSearch() {
   const [sortBy, setSortBy] = useState("best-sellers");
   const [showFilters, setShowFilters] = useState(false);
@@ -72,6 +105,7 @@ export function useProductSearch() {
   const [lensModeResolved, setLensModeResolved] = useState(false);
   const [lensModeKey, setLensModeKey] = useState<string | null>(null);
   const [lensCategoryName, setLensCategoryName] = useState<string>("");
+  const [lensBrands, setLensBrands] = useState<LensBrand[]>([]);
   const [resolvedLensCategory, setResolvedLensCategory] = useState<{ _id: string; name: string } | null>(null);
   const [lensPagination, setLensPagination] = useState<{ total: number; page: number; limit: number; totalPages: number } | null>(null);
 
@@ -80,6 +114,7 @@ export function useProductSearch() {
   const shape = searchParams.get("shape");
   const collectionSlug = searchParams.get("collection");
   const brandFromQuery = searchParams.get("brand");
+  const isLensesPage = (category ?? "").toLowerCase() === LENSES_CATEGORY_SLUG;
   const modeKey = `${category ?? ""}|${brandFromQuery ?? ""}`;
   // Page belongs to the category/brand/filters/sort it was chosen under, so any
   // change of those falls back to page 1 without an extra render or request.
@@ -111,6 +146,7 @@ export function useProductSearch() {
       );
     }).catch(() => {});
     getOffers().then(setOffers).catch(() => {});
+    getLensBrands().then(setLensBrands).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -122,6 +158,19 @@ export function useProductSearch() {
     setLenses([]);
     setLensPagination(null);
     setLensModeResolved(false);
+
+    if (isLensesPage) {
+      // The all-lenses slug intentionally skips the category lookup: the lens
+      // endpoint already returns every active lens, so no category id filter
+      // should be applied.
+      setIsLensMode(true);
+      setLensCategoryName(LENSES_LISTING_TITLE);
+      setLensModeResolved(true);
+      setLensModeKey(modeKey);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     if (!brandFromQuery && !category) {
       setLensModeResolved(true);
@@ -228,8 +277,16 @@ export function useProductSearch() {
         page: lensPage,
         limit: 20,
       };
-      if (brandFromQuery) {
-        lensParams.brand = brandFromQuery;
+      const selectedBrands = filters["brands"];
+      const brandFilter = selectedBrands?.length
+        ? selectedBrands.join(",")
+        : brandFromQuery;
+      if (brandFilter) {
+        lensParams.brand = brandFilter;
+      }
+      const selectedColors = filters["frame-color"];
+      if (selectedColors?.length) {
+        lensParams.color = selectedColors.join(",");
       }
       if (resolvedLensCategory?._id) {
         lensParams.category = resolvedLensCategory._id;
@@ -237,7 +294,7 @@ export function useProductSearch() {
       getLenses({ ...lensParams, signal: controller.signal })
         .then((res) => {
           if (cancelled) return;
-          setLenses(Array.isArray(res.lenses) ? res.lenses : []);
+          setLenses(sortLenses(Array.isArray(res.lenses) ? res.lenses : [], sortBy));
           setLensPagination(res.pagination || null);
           setProducts([]);
         })
@@ -322,6 +379,22 @@ export function useProductSearch() {
     return getBestOfferBadge(productId, price, offers);
   }, [offers]);
 
+  // On the lens listing the brand group must offer lens brands, and the
+  // frame-only groups (shape, frame type) are removed entirely.
+  const visibleFilterConfig = useMemo(() => {
+    const withBrands = filterConfig.map((group) =>
+      group.id === "brands" && isLensMode && lensBrands.length > 0
+        ? {
+            ...group,
+            options: lensBrands.map((brand) => ({ id: brand._id, label: brand.name })),
+          }
+        : group
+    );
+
+    if (!isLensMode) return withBrands;
+    return withBrands.filter((group) => !LENS_HIDDEN_FILTER_IDS.includes(group.id));
+  }, [filterConfig, isLensMode, lensBrands]);
+
   const pendingCount = filtersCount(pendingFilters);
 
   return {
@@ -340,7 +413,7 @@ export function useProductSearch() {
     showFilters,
     pendingFilters,
     filters,
-    filterConfig,
+    filterConfig: visibleFilterConfig,
     category,
     categoryBanner,
     pendingCount,

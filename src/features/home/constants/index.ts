@@ -70,7 +70,7 @@ export const TOP_CATEGORIES: CategoryItem[] = [
   { name: "Eyeglasses", label: "Eyeglasses", image: "/category/image.png", link: "/category/eyeglasses" },
   { name: "Sunglasses", label: "Sunglasses", image: "/category/image.png", link: "/category/sunglasses" },
   { name: "Special Power", label: "Special Power", image: "/category/image.png", link: "/category/special-power" },
-  { name: "Contact Lenses", label: "Contact Lenses", image: "/category/image.png", link: "/category/contact-lenses" },
+  { name: "Contact Lenses", label: "Contact Lenses", image: "/category/image.png", link: "/search/lenses" },
   { name: "Kids Glasses", label: "Kids Glasses", image: "/category/image.png", link: "/category/kids-glasses" },
   { name: "Kids Glasses", label: "Kids Glasses", image: "/category/image.png", link: "/category/kids-glasses" },
   { name: "Sale", label: "Sale", image: "/category/image.png", link: "/category/sale", badge: "60% OFF" },

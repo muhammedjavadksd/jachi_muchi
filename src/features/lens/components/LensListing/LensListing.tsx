@@ -1,7 +1,9 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { SlidersHorizontal } from "lucide-react";
 import { EmptyState, Pagination } from "@/shared/components";
 import { LensCard } from "@/features/lens/components/LensCard/LensCard";
+import { LensSortControl } from "@/features/lens/components/LensSortControl/LensSortControl";
 import {
   LENS_BREADCRUMB_LINKS,
   LENS_GRID_SKELETON_COUNT,
@@ -17,6 +19,9 @@ export interface LensListingProps {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  sortBy?: string;
+  onSortChange?: (value: string) => void;
+  onToggleFilters?: () => void;
 }
 
 const GRID_CLASSES =
@@ -54,6 +59,9 @@ export const LensListing = memo(function LensListing({
   page,
   totalPages,
   onPageChange,
+  sortBy,
+  onSortChange,
+  onToggleFilters,
 }: LensListingProps): JSX.Element {
   const handlePageChange = useCallback(
     (nextPage: number) => {
@@ -62,6 +70,13 @@ export const LensListing = memo(function LensListing({
     },
     [onPageChange]
   );
+
+  // The all-lenses page is titled "Lenses" and already includes it as the
+  // breadcrumb's parent, so do not repeat it as the current crumb.
+  const showCurrentCrumb = useMemo(() => {
+    const lastLink = LENS_BREADCRUMB_LINKS[LENS_BREADCRUMB_LINKS.length - 1];
+    return lastLink?.label.trim().toLowerCase() !== title.trim().toLowerCase();
+  }, [title]);
 
   return (
     <section className="pb-16 pt-6" aria-label={`${title} lenses`}>
@@ -79,7 +94,7 @@ export const LensListing = memo(function LensListing({
 
           <nav aria-label="Breadcrumb" className="mt-2">
             <ol className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
-              {LENS_BREADCRUMB_LINKS.map((link) => (
+              {LENS_BREADCRUMB_LINKS.map((link, index) => (
                 <li key={link.to} className="flex items-center gap-1.5">
                   <Link
                     to={link.to}
@@ -87,16 +102,35 @@ export const LensListing = memo(function LensListing({
                   >
                     {link.label}
                   </Link>
-                  <span aria-hidden>/</span>
+                  {(index < LENS_BREADCRUMB_LINKS.length - 1 || showCurrentCrumb) && (
+                    <span aria-hidden>/</span>
+                  )}
                 </li>
               ))}
-              <li aria-current="page" className="text-gray-700">
-                {title}
-              </li>
+              {showCurrentCrumb && (
+                <li aria-current="page" className="text-gray-700">
+                  {title}
+                </li>
+              )}
             </ol>
           </nav>
         </div>
 
+        <div className="flex items-center gap-3">
+          {onToggleFilters && (
+            <button
+              type="button"
+              onClick={onToggleFilters}
+              className="flex h-9 items-center gap-2 rounded-xl border border-gray-700 bg-gray-800 px-3 text-sm text-white transition-colors hover:border-gray-600 lg:hidden"
+            >
+              <SlidersHorizontal size={18} />
+              Filters
+            </button>
+          )}
+          {onSortChange && sortBy !== undefined && (
+            <LensSortControl value={sortBy} onChange={onSortChange} />
+          )}
+        </div>
       </div>
 
       <div className="mt-6 border-t border-[#e8e8e8]" />
