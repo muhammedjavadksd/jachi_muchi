@@ -13,10 +13,28 @@ export const LENS_SORT_OPTIONS: readonly LensSortOption[] = [
   { value: "newest", label: "Newest" },
 ];
 
+/** Category slug that lists every lens product. */
+export const LENSES_CATEGORY_SLUG = "lenses";
+
+/** Title and breadcrumb label for the all-lenses listing. */
+export const LENSES_LISTING_TITLE = "Lenses";
+
+/** Canonical URL for the all-lenses listing. */
+export const LENSES_LISTING_PATH = "/search/lenses";
+
+/**
+ * Filter groups that only make sense for frames. They are removed from the
+ * filter sidebar when the storefront is showing lenses.
+ */
+export const LENS_HIDDEN_FILTER_IDS: readonly string[] = [
+  "frame-shape",
+  "frame-type",
+];
+
 /** Breadcrumb trail shown above the lens listing title. */
 export const LENS_BREADCRUMB_LINKS: readonly { label: string; to: string }[] = [
   { label: "Home", to: "/" },
-  { label: "Lenses", to: "/search" },
+  { label: "Lenses", to: LENSES_LISTING_PATH },
 ];
 
 /**

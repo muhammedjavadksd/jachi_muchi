@@ -102,6 +102,9 @@ export function CategoryModal({ category, onClose }) {
 
   const dragging = dragY > 0;
   const sheetTransform = active ? `translateY(${dragY}px)` : "translateY(100%)";
+  // Categories can opt out of the gender grid (e.g. Contact Lenses), leaving
+  // only the primary "View All" action. Defaults to showing the grid.
+  const showGenderOptions = content?.showGenderOptions !== false;
 
   return createPortal(
     <div
@@ -156,32 +159,38 @@ export function CategoryModal({ category, onClose }) {
 
               {/* Options + View All */}
               <div className="overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4">
-                <ul className="grid grid-cols-2 gap-3">
-                  {content.options.map((option) => (
-                    <li key={option.id}>
-                      <Link
-                        to={`${content.link}?gender=${option.id}`}
-                        onClick={onClose}
-                        className="flex flex-col items-center gap-2 rounded-xl bg-gray-100 px-2 py-4 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
-                      >
-                        <img
-                          src={option.image}
-                          alt=""
-                          loading="lazy"
-                          className="h-14 w-14 object-contain"
-                        />
-                        <span className="text-sm font-bold text-gray-900">
-                          {option.label}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {showGenderOptions && (
+                  <ul className="grid grid-cols-2 gap-3">
+                    {content.options.map((option) => (
+                      <li key={option.id}>
+                        <Link
+                          to={`${content.link}?gender=${option.id}`}
+                          onClick={onClose}
+                          className="flex flex-col items-center gap-2 rounded-xl bg-gray-100 px-2 py-4 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                        >
+                          <img
+                            src={option.image}
+                            alt=""
+                            loading="lazy"
+                            className="h-14 w-14 object-contain"
+                          />
+                          <span className="text-sm font-bold text-gray-900">
+                            {option.label}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
                 <Link
                   to={content.link}
                   onClick={onClose}
-                  className="mt-3 block w-full rounded-xl bg-gray-100 py-3 text-center text-sm font-bold text-gray-900 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                  className={
+                    showGenderOptions
+                      ? "mt-3 block w-full rounded-xl bg-gray-100 py-3 text-center text-sm font-bold text-gray-900 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                      : "block w-full rounded-[10px] bg-teal py-3.5 text-center text-sm font-bold text-white transition-colors hover:bg-teal-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                  }
                 >
                   View All {content.title}
                 </Link>

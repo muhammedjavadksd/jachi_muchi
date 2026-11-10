@@ -135,7 +135,7 @@ export function HomePage(): JSX.Element {
 
         <CenterFocusCarousel />
 
-        <OfferCarousel />
+        {/* <OfferCarousel /> */}
 
         {categories.filter((c) => c.isActive && c.shapes?.length > 0).map((category) => (
           <Suspense key={category._id} fallback={<LoadingSkeleton />}>

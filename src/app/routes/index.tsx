@@ -73,6 +73,9 @@ export const routes: RouteObject[] = [
       { path: "/", element: <App /> },
       { path: "/home-2", element: <HomePage2 /> },
       { path: "/search", element: <SearchPage /> },
+      // The contact-lenses category was renamed to the all-lenses slug. Keep the
+      // old URL working so bookmarks and external links do not 404.
+      { path: "/search/contact-lenses", element: <Navigate to="/search/lenses" replace /> },
       { path: "/search/:category", element: <SearchPage /> },
       { path: "/category/:category", element: <SearchPage /> },
       { path: "/product/:id", element: <ProductDetailPage /> },
