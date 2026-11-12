@@ -5,6 +5,7 @@ export interface Banner {
   title: string;
   subtitle?: string;
   image: string;
+  mobileImage?: string;
   redirectUrl?: string;
   type: "homepage" | "promotional";
   position: number;
