@@ -261,11 +261,11 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
 
   if (loading) {
     return (
-      <section className="relative pb-8 pt-8 sm:pb-10 sm:pt-10">
+      <section className="relative pb-4 pt-4 sm:pb-10 sm:pt-10">
         <Container>
           <div className="mb-1 h-3 w-28 animate-pulse rounded bg-gray-200" />
           <div className="mb-6 h-8 w-72 animate-pulse rounded bg-gray-200 sm:h-9 md:h-10" />
-          <div className="relative mb-[75px]">
+          <div className="relative mb-3 sm:mb-[75px]">
             <div className="flex gap-6 border-b border-[#1a1a1a]">
               <div className="h-10 w-16 animate-pulse rounded bg-gray-100" />
               <div className="h-10 w-20 animate-pulse rounded bg-gray-100" />
@@ -301,14 +301,14 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
   const showArrows = canScrollLeft || canScrollRight;
 
   return (
-    <section className="relative pb-8 pt-8 sm:pb-8 sm:pt-10">
+    <section className="relative pb-4 pt-4 sm:pb-8 sm:pt-10">
       <Container>
         <p className="mb-1 text-[13px] uppercase tracking-[0.04em] text-gray-500">Explore our range</p>
         <h2 className="mb-6 text-xl font-semibold text-[#1a1a1a] font-brand sm:text-2xl md:text-[30px]">
           Shop by brand &amp; category
         </h2>
 
-        <div className="relative mb-[75px]">
+        <div className="relative mb-3 sm:mb-[75px]">
           <div
             role="tablist"
             aria-label="Shop by brand and category"
@@ -368,7 +368,7 @@ export const BrandCategoryCarousel = memo(function BrandCategoryCarousel(): JSX.
             </div>
 
             {showArrows && (
-              <div className="relative z-10 mt-[36px] flex items-center justify-end pr-[76px]">
+              <div className="relative z-10 mt-2 flex items-center justify-end pr-0 sm:mt-[36px] sm:pr-[76px]">
                 <button
                   type="button"
                   onClick={() => scrollByAmount("left")}
